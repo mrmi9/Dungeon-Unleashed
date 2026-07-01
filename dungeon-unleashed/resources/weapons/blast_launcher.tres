@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"blast_launcher"
+display_name = "Blast Launcher"
+description = "Slow explosive shot that punishes clustered enemies."
+damage = 3
+fire_rate = 1.8
+projectile_speed = 430.0
+projectile_range = 620.0
+projectile_count = 1
+spread_angle = 0.0
+fire_mode = "projectile"
+energy_cost = 4
+magazine_size = 6
+reload_duration = 1.55
+knockback = 210.0
+crit_chance = 0.06
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 86.0
+tags = PackedStringArray("explosive", "area_damage", "energy")

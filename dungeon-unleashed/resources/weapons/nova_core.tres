@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"nova_core"
+display_name = "Nova Core"
+description = "Fires a ring of weak shots for crowd control."
+damage = 1
+fire_rate = 1.35
+projectile_speed = 560.0
+projectile_range = 420.0
+projectile_count = 8
+spread_angle = 360.0
+fire_mode = "radial"
+energy_cost = 4
+magazine_size = 5
+reload_duration = 1.45
+knockback = 90.0
+crit_chance = 0.05
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+tags = PackedStringArray("radial", "crowd_control", "energy")

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"laser_lance"
+display_name = "Laser Lance"
+description = "Fast piercing beam-like shot for lining up rooms."
+damage = 2
+fire_rate = 3.2
+projectile_speed = 1400.0
+projectile_range = 980.0
+projectile_count = 1
+spread_angle = 0.0
+fire_mode = "projectile"
+energy_cost = 2
+magazine_size = 9
+reload_duration = 1.1
+knockback = 70.0
+crit_chance = 0.14
+crit_multiplier = 2.25
+pierce_count = 4
+bounce_count = 0
+explosion_radius = 0.0
+tags = PackedStringArray("laser", "piercing", "line_clear")

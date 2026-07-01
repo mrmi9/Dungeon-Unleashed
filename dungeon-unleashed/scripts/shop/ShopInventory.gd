@@ -21,6 +21,10 @@ const ITEM_TYPE_WEAPON := 2
 	preload("res://resources/weapons/ricochet_blaster.tres"),
 	preload("res://resources/weapons/shotgun.tres"),
 	preload("res://resources/weapons/energy_staff.tres"),
+	preload("res://resources/weapons/arc_blade.tres"),
+	preload("res://resources/weapons/nova_core.tres"),
+	preload("res://resources/weapons/blast_launcher.tres"),
+	preload("res://resources/weapons/laser_lance.tres"),
 ]
 
 @onready var slots: Array[Marker2D] = [

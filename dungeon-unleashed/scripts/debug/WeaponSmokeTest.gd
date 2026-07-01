@@ -1,7 +1,12 @@
 extends Node
 
 const MAIN_SCENE := preload("res://scenes/main/Main.tscn")
+const ENEMY_SCENE := preload("res://scenes/enemies/Enemy.tscn")
 const PROJECTILE_SCENE := preload("res://scenes/projectiles/Projectile.tscn")
+const ARC_BLADE := preload("res://resources/weapons/arc_blade.tres")
+const NOVA_CORE := preload("res://resources/weapons/nova_core.tres")
+const BLAST_LAUNCHER := preload("res://resources/weapons/blast_launcher.tres")
+const LASER_LANCE := preload("res://resources/weapons/laser_lance.tres")
 
 var _failures: Array[String] = []
 
@@ -49,6 +54,7 @@ func _run() -> void:
 			var projectile := get_tree().get_first_node_in_group("projectiles")
 			_expect(projectile != null and projectile.get("_remaining_pierce") == data.pierce_count, "Energy Staff projectile should carry pierce count")
 
+	await _verify_special_weapon_modes(player)
 	await _verify_energy_weapon_gate(player)
 	player.call("_equip_weapon", 0)
 	await get_tree().process_frame
@@ -94,6 +100,81 @@ func _verify_energy_weapon_gate(player: Player) -> void:
 	player.recover_energy(player.max_energy)
 
 
+func _verify_special_weapon_modes(player: Player) -> void:
+	await _verify_melee_weapon(player)
+	await _verify_radial_weapon(player)
+	await _verify_explosive_weapon(player)
+	await _verify_laser_weapon(player)
+
+
+func _verify_melee_weapon(player: Player) -> void:
+	var weapon := player.weapon
+	weapon.set_weapon_data(ARC_BLADE)
+	player.recover_energy(player.max_energy)
+	await get_tree().process_frame
+
+	var enemy := _spawn_test_enemy(weapon.muzzle.global_position + Vector2(58, 0), 7)
+	_clear_projectiles()
+	var fired := weapon.try_fire(weapon.muzzle.global_position + Vector2(160, 0), player)
+	await get_tree().process_frame
+
+	_expect(fired, "Arc Blade should fire")
+	_expect(_projectile_count() == 0, "Arc Blade melee sweep should not spawn projectiles")
+	_expect(enemy.current_health < enemy.max_health, "Arc Blade should damage enemies inside its sweep")
+	enemy.queue_free()
+
+
+func _verify_radial_weapon(player: Player) -> void:
+	var weapon := player.weapon
+	weapon.set_weapon_data(NOVA_CORE)
+	player.recover_energy(player.max_energy)
+	await get_tree().process_frame
+
+	_clear_projectiles()
+	var energy_before := player.get_energy()
+	var fired := weapon.try_fire(weapon.muzzle.global_position + Vector2(160, 0), player)
+	await get_tree().process_frame
+
+	_expect(fired, "Nova Core should fire")
+	_expect(_projectile_count() == NOVA_CORE.projectile_count, "Nova Core should spawn a full radial projectile ring")
+	_expect(player.get_energy() == energy_before - int(NOVA_CORE.get("energy_cost")), "Nova Core should spend configured energy")
+
+
+func _verify_explosive_weapon(player: Player) -> void:
+	var blast_data := BLAST_LAUNCHER.duplicate() as WeaponData
+	blast_data.crit_chance = 0.0
+	var primary := _spawn_test_enemy(player.global_position + Vector2(180, 0), 9)
+	var secondary := _spawn_test_enemy(primary.global_position + Vector2(42, 0), 9)
+	var projectile := PROJECTILE_SCENE.instantiate() as Projectile
+	get_tree().current_scene.add_child(projectile)
+	projectile.global_position = primary.global_position
+	projectile.call("launch", Vector2.RIGHT, blast_data, player)
+	projectile.call("_handle_collision", primary)
+	await get_tree().process_frame
+
+	_expect(primary.current_health < primary.max_health, "Blast Launcher direct hit should damage primary target")
+	_expect(secondary.current_health < secondary.max_health, "Blast Launcher explosion should damage nearby enemies")
+	primary.queue_free()
+	secondary.queue_free()
+
+
+func _verify_laser_weapon(player: Player) -> void:
+	var weapon := player.weapon
+	weapon.set_weapon_data(LASER_LANCE)
+	player.recover_energy(player.max_energy)
+	await get_tree().process_frame
+
+	_clear_projectiles()
+	var fired := weapon.try_fire(weapon.muzzle.global_position + Vector2(260, 0), player)
+	await get_tree().process_frame
+	var projectile := get_tree().get_first_node_in_group("projectiles")
+	_expect(fired, "Laser Lance should fire")
+	_expect(projectile != null, "Laser Lance should spawn a beam-like projectile")
+	if projectile != null:
+		_expect(projectile.get("_remaining_pierce") == LASER_LANCE.pierce_count, "Laser Lance should carry high pierce count")
+		_expect(is_equal_approx(float(projectile.get("speed")), LASER_LANCE.projectile_speed), "Laser Lance should use fast projectile speed")
+
+
 func _verify_critical_damage_roll() -> void:
 	var projectile := PROJECTILE_SCENE.instantiate() as Projectile
 	get_tree().current_scene.add_child(projectile)
@@ -108,6 +189,14 @@ func _verify_critical_damage_roll() -> void:
 	_expect(not bool(normal_roll.get("critical", true)), "Projectile should report zero crit chance as normal hit")
 	_expect(int(normal_roll.get("damage", 0)) == 3, "Projectile normal damage should remain unchanged")
 	projectile.queue_free()
+
+
+func _spawn_test_enemy(position: Vector2, health: int) -> Enemy:
+	var enemy := ENEMY_SCENE.instantiate() as Enemy
+	enemy.max_health = health
+	get_tree().current_scene.add_child(enemy)
+	enemy.global_position = position
+	return enemy
 
 
 func _clear_projectiles() -> void:

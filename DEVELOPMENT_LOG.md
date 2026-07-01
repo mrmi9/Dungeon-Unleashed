@@ -8097,3 +8097,49 @@ Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds
 - 在导出包主菜单中切换 3 个角色，确认说明文本、HP、Armor、Energy 和技能状态刷新正常。
 - 进入游戏后按 `Space` 使用主动技能，确认技能效果、冷却和 HUD 状态变化可感知。
 - 开局后确认角色不能在战斗中被切换。
+
+## 2026-07-01 类元气骑士武器形态第一批扩展
+
+### 目标
+
+- 延续公开参考中同类游戏依赖大量武器差异形成单局变化的方向，把当前武器系统从“普通弹丸参数差异”推进到“开火形态差异”。
+- 本轮新增原创占位武器和通用武器模式，不复制《元气骑士》的具体武器名称、外观或数值。
+
+### 新增内容
+
+- `WeaponData.gd` 新增 `fire_mode` 字段，支持 `projectile`、`radial`、`melee`。
+- `Weapon.gd` 新增环形发射逻辑，支持围绕玩家发射完整一圈弹幕。
+- `Weapon.gd` 新增近战扇形扫击逻辑，命中范围内敌人但不生成弹丸。
+- 新增 `Arc Blade`：近战扇形武器，低消耗自保。
+- 新增 `Nova Core`：环形弹幕武器，适合被包围时清场。
+- 新增 `Blast Launcher`：爆炸弹丸武器，适合惩罚聚集敌人。
+- 新增 `Laser Lance`：高速高穿透弹丸，适合走位拉直线。
+- 宝箱和商店武器池加入新增武器。
+
+### 自动验证结果
+
+```text
+Godot headless project startup passed.
+WeaponSmokeTest passed.
+CharacterSmokeTest passed.
+MenuFlowSmokeTest passed.
+RunSummarySmokeTest passed.
+SettingsSmokeTest passed.
+UILayoutSmokeTest passed.
+RelicSmokeTest passed.
+RoomFlowSmokeTest passed.
+CombatFeedbackSmokeTest passed.
+EnemyVarietySmokeTest passed.
+BossSmokeTest passed.
+FullRunSmokeTest passed.
+RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=359.0
+Windows release export passed.
+Exported exe RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=434.1
+Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds\Dungeon_Unleashed_Windows_Prototype.zip
+```
+
+### 仍需人工复核
+
+- 在宝箱或商店中获得新增武器后，确认近战、环形、爆炸和贯穿武器的实战手感有明显差异。
+- 重点观察 `Arc Blade` 的近战范围是否清晰，后续可能需要增加专属挥砍视觉。
+- 重点观察 `Nova Core` 是否过强或过弱，后续需要结合敌人包围密度调数值。

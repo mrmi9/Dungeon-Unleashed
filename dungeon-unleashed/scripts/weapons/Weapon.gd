@@ -44,7 +44,14 @@ func try_fire(target_position: Vector2, owner_body: Node2D) -> bool:
 	global_rotation = base_direction.angle()
 	if not _spend_owner_energy(owner_body):
 		return false
-	_spawn_projectiles(origin, base_direction, owner_body)
+
+	match weapon_data.fire_mode:
+		"radial":
+			_spawn_radial_projectiles(origin, base_direction, owner_body)
+		"melee":
+			_perform_melee_sweep(origin, base_direction, owner_body)
+		_:
+			_spawn_projectiles(origin, base_direction, owner_body)
 	_spawn_muzzle_flash(base_direction)
 
 	_current_ammo = maxi(_current_ammo - 1, 0)
@@ -116,14 +123,76 @@ func _spawn_projectiles(origin: Vector2, base_direction: Vector2, owner_body: No
 			var step_ratio := float(index) / float(projectile_total - 1)
 			angle_offset = lerpf(-spread_radians * 0.5, spread_radians * 0.5, step_ratio)
 
-		var projectile := projectile_scene.instantiate() as Node2D
-		if projectile == null:
+		_spawn_single_projectile(origin, base_direction.rotated(angle_offset), owner_body)
+
+
+func _spawn_radial_projectiles(origin: Vector2, base_direction: Vector2, owner_body: Node2D) -> void:
+	var projectile_total: int = maxi(weapon_data.projectile_count + _get_owner_projectile_count_bonus(owner_body), 1)
+	for index in range(projectile_total):
+		var angle_offset := 0.0
+		if projectile_total > 1:
+			angle_offset = TAU * float(index) / float(projectile_total)
+		_spawn_single_projectile(origin, base_direction.rotated(angle_offset), owner_body)
+
+
+func _spawn_single_projectile(origin: Vector2, direction: Vector2, owner_body: Node2D) -> void:
+	var projectile := projectile_scene.instantiate() as Node2D
+	if projectile == null:
+		return
+
+	get_tree().current_scene.add_child(projectile)
+	projectile.global_position = origin
+	projectile.call("launch", direction, weapon_data, owner_body)
+	Events.projectile_spawned.emit(projectile)
+
+
+func _perform_melee_sweep(origin: Vector2, base_direction: Vector2, owner_body: Node2D) -> void:
+	var sweep_range := maxf(weapon_data.projectile_range, 1.0)
+	var half_angle := deg_to_rad(clampf(weapon_data.spread_angle, 1.0, 360.0)) * 0.5
+	var hit_targets: Array[Node] = []
+
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
+			continue
+		if not enemy is Node2D or not (enemy as Node).has_method("apply_damage"):
+			continue
+		if enemy.has_method("is_dead") and bool(enemy.call("is_dead")):
 			continue
 
-		get_tree().current_scene.add_child(projectile)
-		projectile.global_position = origin
-		projectile.call("launch", base_direction.rotated(angle_offset), weapon_data, owner_body)
-		Events.projectile_spawned.emit(projectile)
+		var enemy_node := enemy as Node2D
+		var offset := enemy_node.global_position - origin
+		if offset.length() > sweep_range:
+			continue
+		if offset.length_squared() > 0.001 and absf(base_direction.angle_to(offset.normalized())) > half_angle:
+			continue
+		hit_targets.append(enemy)
+
+	for target in hit_targets:
+		var target_node := target as Node2D
+		var direction := (target_node.global_position - origin).normalized()
+		if direction.length_squared() <= 0.001:
+			direction = base_direction
+		var damage_roll := _roll_direct_damage(owner_body)
+		var final_damage := int(damage_roll.get("damage", weapon_data.damage))
+		var was_critical := bool(damage_roll.get("critical", false))
+		target.call("apply_damage", final_damage, owner_body, direction, weapon_data.knockback)
+		Events.projectile_hit.emit(null, target, final_damage)
+		if was_critical:
+			Events.projectile_critical_hit.emit(null, target, final_damage)
+
+
+func _roll_direct_damage(owner_body: Node) -> Dictionary:
+	var base_damage := maxi(roundi(float(weapon_data.damage) * _get_owner_damage_multiplier(owner_body)), 1)
+	var crit_chance := clampf(weapon_data.crit_chance + _get_owner_crit_chance_bonus(owner_body), 0.0, 1.0)
+	if randf() < crit_chance:
+		return {
+			"damage": maxi(roundi(float(base_damage) * weapon_data.crit_multiplier), 1),
+			"critical": true,
+		}
+	return {
+		"damage": base_damage,
+		"critical": false,
+	}
 
 
 func _spawn_muzzle_flash(direction: Vector2) -> void:
@@ -159,6 +228,18 @@ func _get_owner_projectile_count_bonus(owner_body: Node) -> int:
 	if owner_body != null and owner_body.has_method("get_projectile_count_bonus"):
 		return maxi(int(owner_body.call("get_projectile_count_bonus")), 0)
 	return 0
+
+
+func _get_owner_damage_multiplier(owner_body: Node) -> float:
+	if owner_body != null and owner_body.has_method("get_damage_multiplier"):
+		return maxf(float(owner_body.call("get_damage_multiplier")), 0.1)
+	return 1.0
+
+
+func _get_owner_crit_chance_bonus(owner_body: Node) -> float:
+	if owner_body != null and owner_body.has_method("get_crit_chance_bonus"):
+		return clampf(float(owner_body.call("get_crit_chance_bonus")), 0.0, 1.0)
+	return 0.0
 
 
 func _can_owner_spend_energy(owner_body: Node) -> bool:
