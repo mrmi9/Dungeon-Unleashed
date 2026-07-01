@@ -24,6 +24,8 @@ const DANGER_WARNING_SCENE := preload("res://scenes/effects/DangerWarning.tscn")
 @export var summon_count: int = 2
 @export var max_active_summons: int = 4
 @export var summon_spacing: float = 76.0
+@export var min_summon_distance_from_player: float = 145.0
+@export var spawn_contact_grace_duration: float = 0.45
 
 @onready var visual: CanvasItem = $Visual
 
@@ -35,12 +37,14 @@ var _attack_timer := 0.75
 var _attack_index := 0
 var _phase_transition_timer := 0.0
 var _summoned_minions: Array[Node] = []
+var _spawn_contact_grace_timer := 0.0
 
 
 func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("bosses")
 	current_health = max_health
+	_spawn_contact_grace_timer = maxf(spawn_contact_grace_duration, 0.0)
 	_find_target()
 	_emit_health()
 	Events.boss_phase_changed.emit(self, _phase)
@@ -51,6 +55,9 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
+
+	if _spawn_contact_grace_timer > 0.0:
+		_spawn_contact_grace_timer = maxf(_spawn_contact_grace_timer - delta, 0.0)
 
 	if target == null or not is_instance_valid(target):
 		_find_target()
@@ -68,6 +75,10 @@ func _physics_process(delta: float) -> void:
 
 func is_dead() -> bool:
 	return _dead
+
+
+func can_deal_contact_damage() -> bool:
+	return not _dead and _spawn_contact_grace_timer <= 0.0
 
 
 func get_phase() -> int:
@@ -203,10 +214,28 @@ func _summon_minions() -> void:
 			continue
 
 		get_tree().current_scene.add_child(minion)
-		minion.global_position = global_position + Vector2.RIGHT.rotated(angle) * summon_spacing
+		minion.global_position = _get_safe_summon_position(angle)
 		_summoned_minions.append(minion)
 		Events.enemy_spawned.emit(minion)
 	_flash(Color(0.72, 0.42, 1.0, 1.0), 0.18)
+
+
+func _get_safe_summon_position(angle: float) -> Vector2:
+	var position := global_position + Vector2.RIGHT.rotated(angle) * summon_spacing
+	var player := target
+	if player == null or not is_instance_valid(player):
+		player = get_tree().get_first_node_in_group("player") as Node2D
+	if player == null or not is_instance_valid(player):
+		return position
+
+	var minimum_distance := maxf(min_summon_distance_from_player, summon_spacing)
+	if position.distance_to(player.global_position) >= minimum_distance:
+		return position
+
+	var away := position - player.global_position
+	if away.length_squared() <= 0.001:
+		away = Vector2.RIGHT.rotated(angle + PI)
+	return player.global_position + away.normalized() * minimum_distance
 
 
 func _fire_projectile(direction: Vector2) -> void:

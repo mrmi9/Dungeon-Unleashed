@@ -7837,3 +7837,41 @@ README_PLAYTEST.md
 ### 当前仍需人工复核
 
 - 导出包已经验证可以启动运行时刷怪，但仍需要人工完整通关确认窗口显示、真实输入、音频、节奏和 Boss 体验。
+
+## 2026-07-01 敌人安全生成与召唤卡顿加固
+
+### 问题现象
+
+- 游戏运行中有概率出现卡死或崩溃。
+- 敌人有时会刷新到玩家身上，导致玩家刚进房间或敌人刚召唤时立即扣血。
+
+### 修复内容
+
+- `CombatRoom.gd` 新增敌人安全生成规则：每波敌人会优先选择远离玩家的生成点，并加入轻微错位，避免同一刷怪点堆叠。
+- `CombatRoom.gd` 新增波次切换防重入标记，避免同一波清空后重复创建多个下一波计时器。
+- `Enemy.gd` / `BossEnemy.gd` 新增 `can_deal_contact_damage()` 与出生接触伤害宽限期，刚生成的敌人不会立刻通过贴脸碰撞扣血。
+- 普通召唤型敌人新增 `max_active_summons` 上限，避免长时间战斗中召唤物数量无限增长造成卡顿风险。
+- 普通召唤型敌人和 Boss 召唤物会根据玩家位置调整落点，避免召唤物直接生成在玩家身上。
+- `Player.gd` 的接触伤害逻辑会尊重新增的敌人出生宽限。
+- `Main.gd` 的 `--runtime-room-check` 增加最近敌人距离校验，导出包自检会覆盖“有敌人且不贴脸生成”。
+
+### 自动验证结果
+
+```text
+Godot headless project startup passed.
+RoomFlowSmokeTest passed.
+EnemyVarietySmokeTest passed.
+BossSmokeTest passed.
+CombatFeedbackSmokeTest passed.
+WeaponSmokeTest passed.
+FullRunSmokeTest passed.
+RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=311.7
+Windows release export passed.
+Exported exe RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=432.3
+Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds\Dungeon_Unleashed_Windows_Prototype.zip
+```
+
+### 仍需人工复核
+
+- 需要用最新导出包进行 10 分钟以上实机游玩，重点观察召唤型敌人较多时是否仍有卡顿。
+- 需要在不同 seed 下进入普通房、精英房和 Boss 房，确认敌人/召唤物不会出生贴脸扣血。

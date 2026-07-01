@@ -10,6 +10,9 @@ enum RoomState {
 }
 
 const DANGER_WARNING_SCENE := preload("res://scenes/effects/DangerWarning.tscn")
+const SAFE_PLAYER_SPAWN_DISTANCE := 180.0
+const SPAWN_STAGGER_RADIUS := 28.0
+const ROOM_SAFE_SPAWN_EXTENTS := Vector2(540, 300)
 const BOSS_ARENA_HAZARD_POSITIONS := [
 	Vector2(-360, -220),
 	Vector2(360, -220),
@@ -60,6 +63,7 @@ var _boss_arena_hazard_timer := 0.0
 var _boss_arena_cycle_index := 0
 var _boss_arena_markers: Array[Polygon2D] = []
 var _boss_arena_warnings: Array[Node] = []
+var _wave_transition_pending := false
 
 
 func _ready() -> void:
@@ -164,6 +168,7 @@ func _check_initial_overlap() -> void:
 func _begin_combat() -> void:
 	state = RoomState.COMBAT
 	_current_wave_index = -1
+	_wave_transition_pending = false
 	_set_exit_locked(lock_doors_during_combat)
 	if _is_boss_room():
 		_setup_boss_arena()
@@ -173,7 +178,8 @@ func _begin_combat() -> void:
 
 
 func _start_next_wave() -> void:
-	if _room_stopped:
+	_wave_transition_pending = false
+	if _room_stopped or state != RoomState.COMBAT:
 		return
 
 	_current_wave_index += 1
@@ -190,15 +196,15 @@ func _spawn_wave(enemy_count: int) -> void:
 		_clear_room()
 		return
 
+	var player := get_tree().get_first_node_in_group("player") as Node2D
 	for index in range(enemy_count):
-		var spawn_point := spawn_points[index % spawn_points.size()]
 		var scene := _get_enemy_scene_for_spawn(index)
 		var enemy := scene.instantiate() as Node2D
 		if enemy == null:
 			continue
 
 		get_tree().current_scene.add_child(enemy)
-		enemy.global_position = spawn_point.global_position
+		enemy.global_position = _get_safe_spawn_position(spawn_points, index, player)
 		_apply_spawn_modifiers(enemy)
 		_living_enemies.append(enemy)
 
@@ -209,7 +215,8 @@ func _on_enemy_died(enemy: Node) -> void:
 
 	_living_enemies.erase(enemy)
 	_prune_living_enemies()
-	if _living_enemies.is_empty():
+	if _living_enemies.is_empty() and not _wave_transition_pending:
+		_wave_transition_pending = true
 		var timer := get_tree().create_timer(time_between_waves)
 		timer.timeout.connect(_start_next_wave)
 
@@ -224,6 +231,7 @@ func _clear_room() -> void:
 	if _room_stopped:
 		return
 
+	_wave_transition_pending = false
 	_deactivate_boss_arena()
 	state = RoomState.CLEARED
 	_set_exit_locked(false)
@@ -315,6 +323,51 @@ func _get_spawn_points() -> Array[Marker2D]:
 		if child is Marker2D:
 			points.append(child)
 	return points
+
+
+func _get_safe_spawn_position(spawn_points: Array[Marker2D], spawn_index: int, player: Node2D) -> Vector2:
+	var fallback := spawn_points[spawn_index % spawn_points.size()].global_position + _get_spawn_stagger(spawn_index)
+	if player == null or not is_instance_valid(player):
+		return _clamp_to_room_spawn_bounds(fallback)
+
+	var player_position := player.global_position
+	var selected := spawn_points[spawn_index % spawn_points.size()]
+	var selected_score := -1.0
+	for offset in range(spawn_points.size()):
+		var point := spawn_points[(spawn_index + offset) % spawn_points.size()]
+		var distance := point.global_position.distance_to(player_position)
+		var score := distance
+		if distance >= SAFE_PLAYER_SPAWN_DISTANCE:
+			score += 10000.0 - float(offset)
+		if score > selected_score:
+			selected = point
+			selected_score = score
+
+	var position := _clamp_to_room_spawn_bounds(selected.global_position + _get_spawn_stagger(spawn_index))
+	if position.distance_to(player_position) >= SAFE_PLAYER_SPAWN_DISTANCE:
+		return position
+
+	var away := position - player_position
+	if away.length_squared() <= 0.001:
+		away = Vector2.RIGHT.rotated(TAU * float(spawn_index) / 8.0)
+	position = player_position + away.normalized() * SAFE_PLAYER_SPAWN_DISTANCE
+	return _clamp_to_room_spawn_bounds(position)
+
+
+func _get_spawn_stagger(spawn_index: int) -> Vector2:
+	if SPAWN_STAGGER_RADIUS <= 0.0:
+		return Vector2.ZERO
+
+	var angle := TAU * float(spawn_index % 8) / 8.0
+	var ring := 1.0 + floorf(float(spawn_index) / 8.0) * 0.35
+	return Vector2.RIGHT.rotated(angle) * SPAWN_STAGGER_RADIUS * ring
+
+
+func _clamp_to_room_spawn_bounds(position: Vector2) -> Vector2:
+	return Vector2(
+		clampf(position.x, global_position.x - ROOM_SAFE_SPAWN_EXTENTS.x, global_position.x + ROOM_SAFE_SPAWN_EXTENTS.x),
+		clampf(position.y, global_position.y - ROOM_SAFE_SPAWN_EXTENTS.y, global_position.y + ROOM_SAFE_SPAWN_EXTENTS.y)
+	)
 
 
 func _get_doors() -> Array[StaticBody2D]:

@@ -7,6 +7,7 @@ const MAX_DUNGEON_SEED := 2147483647
 const RUNTIME_ROOM_CHECK_ARG := "--runtime-room-check"
 const RUNTIME_ROOM_CHECK_SEED := 424242
 const RUNTIME_ROOM_CHECK_FAILURE_EXIT_CODE := 61
+const RUNTIME_ROOM_CHECK_MIN_ENEMY_DISTANCE := 140.0
 const AVAILABLE_RESOLUTIONS := [
 	Vector2i(1280, 720),
 	Vector2i(1600, 900),
@@ -680,6 +681,7 @@ func _run_runtime_room_spawn_check() -> void:
 
 	var first_room := rooms[0] as CombatRoom
 	var enemy_count := _runtime_alive_enemy_count()
+	var nearest_enemy_distance := _runtime_nearest_enemy_distance(player.global_position)
 	var expected_wave_count := 0
 	var wave_counts := PackedInt32Array()
 	if first_room != null:
@@ -687,19 +689,21 @@ func _run_runtime_room_spawn_check() -> void:
 	if wave_counts.size() > 0:
 		expected_wave_count = int(wave_counts[0])
 
-	if first_room == null or first_room.state != 2 or enemy_count <= 0 or expected_wave_count <= 0:
-		push_error("RuntimeRoomSpawnCheck failed: first_room_state=%s enemies=%d expected_wave=%d" % [
+	if first_room == null or first_room.state != 2 or enemy_count <= 0 or expected_wave_count <= 0 or nearest_enemy_distance < RUNTIME_ROOM_CHECK_MIN_ENEMY_DISTANCE:
+		push_error("RuntimeRoomSpawnCheck failed: first_room_state=%s enemies=%d expected_wave=%d nearest_enemy_distance=%.1f" % [
 			str(first_room.state if first_room != null else "missing"),
 			enemy_count,
 			expected_wave_count,
+			nearest_enemy_distance,
 		])
 		get_tree().quit(RUNTIME_ROOM_CHECK_FAILURE_EXIT_CODE)
 		return
 
-	print("RuntimeRoomSpawnCheck passed: first_room_state=%s enemies=%d expected_wave=%d" % [
+	print("RuntimeRoomSpawnCheck passed: first_room_state=%s enemies=%d expected_wave=%d nearest_enemy_distance=%.1f" % [
 		str(first_room.state),
 		enemy_count,
 		expected_wave_count,
+		nearest_enemy_distance,
 	])
 	get_tree().quit(0)
 
@@ -790,6 +794,20 @@ func _runtime_alive_enemy_count() -> int:
 			continue
 		count += 1
 	return count
+
+
+func _runtime_nearest_enemy_distance(position: Vector2) -> float:
+	var nearest := 1.0e20
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(node) or node.is_queued_for_deletion():
+			continue
+		if node.has_method("is_dead") and node.call("is_dead"):
+			continue
+		var enemy_node := node as Node2D
+		if enemy_node == null:
+			continue
+		nearest = minf(nearest, enemy_node.global_position.distance_to(position))
+	return nearest
 
 
 func _has_user_argument(argument: String) -> bool:

@@ -36,6 +36,9 @@ enum BehaviorType {
 @export var summon_scene: PackedScene
 @export var summon_count: int = 2
 @export var summon_spacing: float = 34.0
+@export var max_active_summons: int = 4
+@export var min_summon_distance_from_player: float = 145.0
+@export var spawn_contact_grace_duration: float = 0.45
 @export var shield_front_arc_degrees: float = 120.0
 @export_range(0.0, 1.0, 0.05) var shield_front_damage_multiplier: float = 0.25
 
@@ -54,6 +57,8 @@ var _charge_timer := 0.0
 var _charge_direction := Vector2.ZERO
 var _is_self_destructing := false
 var _self_destruct_timer := 0.0
+var _spawn_contact_grace_timer := 0.0
+var _summoned_minions: Array[Node] = []
 
 
 func _ready() -> void:
@@ -61,6 +66,7 @@ func _ready() -> void:
 	add_to_group("enemy_%s" % display_name.to_snake_case())
 	current_health = max_health
 	_attack_timer = randf_range(0.25, attack_cooldown)
+	_spawn_contact_grace_timer = maxf(spawn_contact_grace_duration, 0.0)
 	_find_target()
 
 
@@ -98,6 +104,10 @@ func _physics_process(delta: float) -> void:
 
 func is_dead() -> bool:
 	return _dead
+
+
+func can_deal_contact_damage() -> bool:
+	return not _dead and _spawn_contact_grace_timer <= 0.0
 
 
 func apply_elite_modifiers(health_multiplier: float, damage_multiplier: float, death_explosion_radius: float, death_explosion_damage: int) -> void:
@@ -154,6 +164,8 @@ func _can_chase_target() -> bool:
 func _tick_attack_timer(delta: float) -> void:
 	if _attack_timer > 0.0:
 		_attack_timer = maxf(_attack_timer - delta, 0.0)
+	if _spawn_contact_grace_timer > 0.0:
+		_spawn_contact_grace_timer = maxf(_spawn_contact_grace_timer - delta, 0.0)
 
 
 func _update_chaser() -> Vector2:
@@ -286,18 +298,48 @@ func _fire_projectile(direction: Vector2) -> void:
 
 
 func _summon_minions() -> void:
-	if summon_scene == null:
+	_prune_summons()
+	if summon_scene == null or max_active_summons <= 0 or _summoned_minions.size() >= max_active_summons:
 		return
 
-	for index in range(maxi(summon_count, 1)):
-		var angle := TAU * float(index) / float(maxi(summon_count, 1))
+	var remaining_slots := max_active_summons - _summoned_minions.size()
+	var count := mini(maxi(summon_count, 1), remaining_slots)
+	for index in range(count):
+		var angle := TAU * float(index) / float(maxi(count, 1))
 		var minion := summon_scene.instantiate() as Node2D
 		if minion == null:
 			continue
 
 		get_tree().current_scene.add_child(minion)
-		minion.global_position = global_position + Vector2.RIGHT.rotated(angle) * summon_spacing
+		minion.global_position = _get_safe_summon_position(angle)
+		_summoned_minions.append(minion)
 		Events.enemy_spawned.emit(minion)
+
+
+func _get_safe_summon_position(angle: float) -> Vector2:
+	var position := global_position + Vector2.RIGHT.rotated(angle) * summon_spacing
+	var player := target
+	if player == null or not is_instance_valid(player):
+		player = get_tree().get_first_node_in_group("player") as Node2D
+	if player == null or not is_instance_valid(player):
+		return position
+
+	var minimum_distance := maxf(min_summon_distance_from_player, summon_spacing)
+	if position.distance_to(player.global_position) >= minimum_distance:
+		return position
+
+	var away := position - player.global_position
+	if away.length_squared() <= 0.001:
+		away = Vector2.RIGHT.rotated(angle + PI)
+	return player.global_position + away.normalized() * minimum_distance
+
+
+func _prune_summons() -> void:
+	var alive: Array[Node] = []
+	for minion in _summoned_minions:
+		if is_instance_valid(minion) and not minion.is_queued_for_deletion():
+			alive.append(minion)
+	_summoned_minions = alive
 
 
 func _self_destruct() -> void:

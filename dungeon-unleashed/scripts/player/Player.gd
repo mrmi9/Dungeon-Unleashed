@@ -289,6 +289,9 @@ func _try_contact_damage() -> void:
 		if enemy.has_method("is_dead") and enemy.call("is_dead"):
 			continue
 
+		if enemy.has_method("can_deal_contact_damage") and not bool(enemy.call("can_deal_contact_damage")):
+			continue
+
 		var amount := 1
 		var damage_property = enemy.get("contact_damage")
 		if damage_property != null:

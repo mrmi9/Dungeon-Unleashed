@@ -2,6 +2,7 @@ extends Node
 
 const MAIN_SCENE := preload("res://scenes/main/Main.tscn")
 const ROOM_STATE_CLEARED := 3
+const MIN_SAFE_SUMMON_DISTANCE := 120.0
 
 var _failures: Array[String] = []
 var _phase_signal := 1
@@ -98,6 +99,7 @@ func _run() -> void:
 		await get_tree().physics_frame
 		await get_tree().process_frame
 	_expect(_enemy_count_by_name("Chaser") > 0, "Boss summon attack should create Chaser minions")
+	_expect(_nearest_enemy_distance_to(player.global_position, "Chaser") >= MIN_SAFE_SUMMON_DISTANCE, "Boss summon minions should spawn away from the player")
 
 	boss.call("apply_damage", 9999, null, Vector2.ZERO, 0.0)
 	for index in range(5):
@@ -204,6 +206,20 @@ func _enemy_count_by_name(display_name: String) -> int:
 		if str(enemy.get("display_name")) == display_name:
 			count += 1
 	return count
+
+
+func _nearest_enemy_distance_to(position: Vector2, display_name: String = "") -> float:
+	var nearest := 1.0e20
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
+			continue
+		if display_name != "" and str(enemy.get("display_name")) != display_name:
+			continue
+		var enemy_node := enemy as Node2D
+		if enemy_node == null:
+			continue
+		nearest = minf(nearest, enemy_node.global_position.distance_to(position))
+	return nearest
 
 
 func _find_reward_near(position: Vector2) -> Node2D:

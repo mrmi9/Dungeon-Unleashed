@@ -2,6 +2,7 @@ extends Node
 
 const MAIN_SCENE := preload("res://scenes/main/Main.tscn")
 const ENEMY_PROJECTILE_SCENE := preload("res://scenes/projectiles/EnemyProjectile.tscn")
+const MIN_SAFE_SUMMON_DISTANCE := 120.0
 
 var _failures: Array[String] = []
 
@@ -196,6 +197,7 @@ func _verify_summoner_behavior(player: Player) -> void:
 	get_tree().root.add_child(summoner)
 	summoner.global_position = player.global_position + Vector2(280, 0)
 	await get_tree().process_frame
+	_expect(summoner.has_method("can_deal_contact_damage") and not bool(summoner.call("can_deal_contact_damage")), "Newly spawned enemies should have contact damage grace")
 	summoner.set("_attack_timer", 0.0)
 
 	for index in range(4):
@@ -203,6 +205,13 @@ func _verify_summoner_behavior(player: Player) -> void:
 		await get_tree().process_frame
 
 	_expect(_enemy_count_by_name("Chaser") >= 2, "Summoner should create Chaser minions")
+	_expect(_nearest_enemy_distance_to(player.global_position, "Chaser") >= MIN_SAFE_SUMMON_DISTANCE, "Summoner minions should spawn away from the player")
+	for cycle in range(6):
+		summoner.set("_attack_timer", 0.0)
+		for index in range(4):
+			await get_tree().physics_frame
+			await get_tree().process_frame
+	_expect(_enemy_count_by_name("Chaser") <= int(summoner.get("max_active_summons")), "Summoner should cap active Chaser minions")
 	await _discard_all_enemies()
 
 
@@ -235,6 +244,20 @@ func _enemy_count_by_name(display_name: String) -> int:
 	return count
 
 
+func _nearest_enemy_distance_to(position: Vector2, display_name: String = "") -> float:
+	var nearest := 1.0e20
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
+			continue
+		if display_name != "" and str(enemy.get("display_name")) != display_name:
+			continue
+		var enemy_node := enemy as Node2D
+		if enemy_node == null:
+			continue
+		nearest = minf(nearest, enemy_node.global_position.distance_to(position))
+	return nearest
+
+
 func _names_include_type(names: PackedStringArray, base_name: String) -> bool:
 	for enemy_name in names:
 		if enemy_name == base_name or enemy_name.ends_with(" %s" % base_name):
@@ -263,21 +286,27 @@ func _boss_count() -> int:
 
 func _verify_elite_death_explosion(player: Player) -> void:
 	await _discard_all_enemies()
+	get_tree().paused = false
+	player.set("_is_dead", false)
 	player.current_health = player.max_health
 	player.current_shield = 0
 	player.set("_invulnerability_timer", 0.0)
-	player.global_position = Vector2.ZERO
+	player.global_position = Vector2(-1200, -900)
+	await get_tree().physics_frame
+	await get_tree().process_frame
+	player.set("_invulnerability_timer", 0.0)
 	var start_health := player.current_health
 
 	var chaser_scene := load("res://scenes/enemies/ChaserEnemy.tscn") as PackedScene
 	var elite := chaser_scene.instantiate()
 	get_tree().root.add_child(elite)
-	elite.global_position = player.global_position + Vector2(32, 0)
+	elite.global_position = player.global_position + Vector2(88, 0)
 	await get_tree().process_frame
 	elite.call("apply_elite_modifiers", 1.8, 1.35, 120.0, 1)
 	_expect(bool(elite.get("is_elite")), "Elite modifier should mark enemy as elite")
 	_expect(int(elite.get("max_health")) > 3, "Elite modifier should increase max health")
 	elite.call("apply_damage", 9999, null, Vector2.RIGHT, 0.0)
+	player.set("_invulnerability_timer", 0.0)
 	for index in range(4):
 		await get_tree().physics_frame
 		await get_tree().process_frame

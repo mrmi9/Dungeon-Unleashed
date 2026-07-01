@@ -4,6 +4,7 @@ const MAIN_SCENE := preload("res://scenes/main/Main.tscn")
 const ROOM_STATE_COMBAT := 2
 const ROOM_STATE_CLEARED := 3
 const ROOM_STATE_REWARD_CLAIMED := 4
+const MIN_SAFE_ENEMY_SPAWN_DISTANCE := 140.0
 
 var _failures: Array[String] = []
 
@@ -39,6 +40,7 @@ func _run() -> void:
 	var start_wave_counts = start_room.wave_enemy_counts
 	if start_wave_counts.size() > 0:
 		_expect(_enemy_count() == start_wave_counts[0], "Start room should spawn the first enemy wave without test teleport")
+		_expect(_nearest_enemy_distance_to(player.global_position) >= MIN_SAFE_ENEMY_SPAWN_DISTANCE, "Start room enemies should not spawn on top of the player")
 
 	for room in rooms:
 		await _complete_room(room, player)
@@ -67,6 +69,7 @@ func _complete_room(room, player: Player) -> void:
 	var wave_counts = room.wave_enemy_counts
 	for wave_index in range(wave_counts.size()):
 		_expect(_enemy_count() == wave_counts[wave_index], "%s wave %d enemy count should match config" % [room.get_path(), wave_index + 1])
+		_expect(_nearest_enemy_distance_to(player.global_position) >= MIN_SAFE_ENEMY_SPAWN_DISTANCE, "%s wave %d enemies should spawn away from the player" % [room.get_path(), wave_index + 1])
 		_kill_all_enemies()
 		await get_tree().create_timer(room.time_between_waves + 0.2).timeout
 		await get_tree().physics_frame
@@ -124,6 +127,20 @@ func _enemy_count() -> int:
 			continue
 		count += 1
 	return count
+
+
+func _nearest_enemy_distance_to(position: Vector2) -> float:
+	var nearest := 1.0e20
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
+			continue
+		if enemy.has_method("is_dead") and enemy.call("is_dead"):
+			continue
+		var enemy_node := enemy as Node2D
+		if enemy_node == null:
+			continue
+		nearest = minf(nearest, enemy_node.global_position.distance_to(position))
+	return nearest
 
 
 func _reward_count() -> int:
