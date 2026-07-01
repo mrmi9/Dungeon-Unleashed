@@ -5,6 +5,7 @@ signal died(enemy: Enemy)
 
 const DEATH_BURST_SCENE := preload("res://scenes/effects/DeathBurst.tscn")
 const DANGER_WARNING_SCENE := preload("res://scenes/effects/DangerWarning.tscn")
+const PLAYER_BODY_COLLISION_BIT := 1
 
 enum BehaviorType {
 	CHASER,
@@ -64,6 +65,7 @@ var _summoned_minions: Array[Node] = []
 func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("enemy_%s" % display_name.to_snake_case())
+	collision_mask = collision_mask & ~PLAYER_BODY_COLLISION_BIT
 	current_health = max_health
 	_attack_timer = randf_range(0.25, attack_cooldown)
 	_spawn_contact_grace_timer = maxf(spawn_contact_grace_duration, 0.0)
@@ -367,7 +369,7 @@ func _calculate_damage_after_defense(amount: int, knockback_direction: Vector2) 
 	var incoming_dot := knockback_direction.normalized().dot(forward)
 	var front_threshold := -cos(deg_to_rad(shield_front_arc_degrees * 0.5))
 	if incoming_dot <= front_threshold:
-		return floori(float(amount) * shield_front_damage_multiplier)
+		return maxi(ceili(float(amount) * shield_front_damage_multiplier), 1)
 
 	return amount
 

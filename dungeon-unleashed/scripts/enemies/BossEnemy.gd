@@ -3,6 +3,7 @@ class_name BossEnemy
 
 const DEATH_BURST_SCENE := preload("res://scenes/effects/DeathBurst.tscn")
 const DANGER_WARNING_SCENE := preload("res://scenes/effects/DangerWarning.tscn")
+const PLAYER_BODY_COLLISION_BIT := 1
 
 @export var display_name: String = "Dungeon Core"
 @export var max_health: int = 48
@@ -43,6 +44,7 @@ var _spawn_contact_grace_timer := 0.0
 func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("bosses")
+	collision_mask = collision_mask & ~PLAYER_BODY_COLLISION_BIT
 	current_health = max_health
 	_spawn_contact_grace_timer = maxf(spawn_contact_grace_duration, 0.0)
 	_find_target()

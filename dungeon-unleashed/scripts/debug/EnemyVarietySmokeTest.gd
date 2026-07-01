@@ -184,10 +184,19 @@ func _verify_shield_damage_rule() -> void:
 	shield.rotation = 0.0
 	var starting_health = shield.current_health
 	shield.call("apply_damage", 2, null, Vector2.LEFT, 0.0)
-	_expect(shield.current_health == starting_health, "Shielded enemy should block frontal low damage")
+	_expect(shield.current_health == starting_health - 1, "Shielded enemy should reduce frontal low damage without blocking it completely")
 	shield.call("apply_damage", 2, null, Vector2.RIGHT, 0.0)
-	_expect(shield.current_health < starting_health, "Shielded enemy should take damage from behind")
-	shield.queue_free()
+	_expect(shield.current_health == starting_health - 3, "Shielded enemy should take full damage from behind")
+	for index in range(8):
+		if not is_instance_valid(shield) or shield.is_queued_for_deletion():
+			break
+		if shield.has_method("is_dead") and bool(shield.call("is_dead")):
+			break
+		shield.call("apply_damage", 1, null, Vector2.LEFT, 0.0)
+	await get_tree().process_frame
+	_expect(not is_instance_valid(shield) or shield.is_queued_for_deletion() or bool(shield.call("is_dead")), "Shielded enemy should be killable from the front with low-damage weapons")
+	if is_instance_valid(shield) and not shield.is_queued_for_deletion():
+		shield.queue_free()
 
 
 func _verify_summoner_behavior(player: Player) -> void:

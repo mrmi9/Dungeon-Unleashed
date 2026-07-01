@@ -7919,3 +7919,43 @@ Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds
 
 - 请在导出包中重点复测远程敌人：让 Shooter 敌人发射子弹，同时用玩家子弹击杀该 Shooter，观察是否还会崩溃。
 - 导出 exe 自检退出时出现一次 `1 ObjectDB instance was leaked at exit` 警告，未导致自检失败；后续若持续出现，需要单独追踪泄漏对象。
+
+## 2026-07-01 站桩换弹位移与护盾敌人可击杀性修复
+
+### 问题现象
+
+- 开局站在原地清掉第一批敌人后，如果此时触发换弹，玩家位置会被强制挤到一个固定区域。
+- 后续关卡中正面带护盾的敌人，在使用低伤害武器从正面射击时无法击杀。
+
+### 根因确认
+
+- 没有发现换弹逻辑直接改写玩家坐标；实际风险来自敌人 `CharacterBody2D` 在追踪移动时仍会主动与玩家身体发生物理碰撞，玩家站桩换弹期间容易被敌人或下一波敌人的运动碰撞顶走。
+- 护盾正面减伤使用 `floori(amount * multiplier)`，基础手枪 1 点伤害被 `0.2` 倍减伤后向下取整为 0，导致正面射击永远不掉血。
+
+### 修复内容
+
+- `Enemy.gd` 和 `BossEnemy.gd` 在 `_ready()` 中移除敌人运动碰撞 mask 里的 Player body 位，敌人追踪时不再主动把玩家身体顶走；玩家受击仍由 Hurtbox/伤害逻辑处理。
+- `Enemy.gd` 的护盾正面减伤改为至少造成 1 点伤害，护盾敌人仍有正面减伤，但不会完全免疫低伤害武器。
+- `RoomFlowSmokeTest.gd` 新增开局首波站桩换弹回归：清掉第一波并等待换弹/刷波后，玩家位置不能被强制移动。
+- `EnemyVarietySmokeTest.gd` 新增护盾敌人正面低伤害可击杀回归。
+
+### 自动验证结果
+
+```text
+RoomFlowSmokeTest passed.
+EnemyVarietySmokeTest passed.
+WeaponSmokeTest passed.
+CombatFeedbackSmokeTest passed.
+BossSmokeTest passed.
+FullRunSmokeTest passed.
+Godot headless project startup passed.
+RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=313.5
+Windows release export passed.
+Exported exe RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=434.1
+Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds\Dungeon_Unleashed_Windows_Prototype.zip
+```
+
+### 仍需人工复核
+
+- 在最新导出包中复测：开局站桩清掉第一波，手动打空弹匣并等待换弹，确认玩家不会被挤到固定位置。
+- 在包含 Shield Enemy 的后续房间中，使用基础手枪从正面持续射击，确认敌人可以被击杀，同时仍能感觉到护盾正面减伤。

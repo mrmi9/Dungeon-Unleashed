@@ -70,9 +70,19 @@ func _complete_room(room, player: Player) -> void:
 	for wave_index in range(wave_counts.size()):
 		_expect(_enemy_count() == wave_counts[wave_index], "%s wave %d enemy count should match config" % [room.get_path(), wave_index + 1])
 		_expect(_nearest_enemy_distance_to(player.global_position) >= MIN_SAFE_ENEMY_SPAWN_DISTANCE, "%s wave %d enemies should spawn away from the player" % [room.get_path(), wave_index + 1])
+		var verify_stationary_reload := str(room.get("room_type")) == "start" and wave_index == 0
+		var player_position_before_reload: Vector2 = player.global_position
+		var reload_wait_time: float = float(room.time_between_waves) + 0.2
+		if verify_stationary_reload:
+			player.weapon.set("_current_ammo", 0)
+			player.weapon.start_reload()
+			if player.weapon.weapon_data != null:
+				reload_wait_time = maxf(reload_wait_time, player.weapon.weapon_data.reload_duration + 0.1)
 		_kill_all_enemies()
-		await get_tree().create_timer(room.time_between_waves + 0.2).timeout
+		await get_tree().create_timer(reload_wait_time).timeout
 		await get_tree().physics_frame
+		if verify_stationary_reload:
+			_expect(player.global_position.distance_to(player_position_before_reload) <= 8.0, "Start room stationary reload should not force player position from %s to %s" % [player_position_before_reload, player.global_position])
 
 		if wave_index < wave_counts.size() - 1:
 			_expect(room.state == ROOM_STATE_COMBAT, "%s should stay in COMBAT between waves" % room.get_path())
