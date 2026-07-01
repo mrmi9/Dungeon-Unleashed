@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="PlayerCharacterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/PlayerCharacterData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"wanderer"
+display_name = "Wanderer"
+description = "Balanced shooter with stable health, armor, and energy."
+max_health = 6
+max_armor = 6
+max_energy = 120
+move_speed = 260.0
+skill_id = "dash"
+skill_name = "Phase Dash"
+skill_description = "Brief speed burst with short invulnerability."
+skill_cooldown = 7.5
+skill_duration = 1.2
+skill_energy_cost = 8
+skill_power = 0.65

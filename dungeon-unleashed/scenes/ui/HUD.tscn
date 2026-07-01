@@ -18,7 +18,7 @@ layout_mode = 1
 offset_left = 16.0
 offset_top = 14.0
 offset_right = 260.0
-offset_bottom = 206.0
+offset_bottom = 228.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
@@ -38,6 +38,11 @@ text = "Armor: 6 / 6"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.42, 0.72, 1, 1)
 text = "Energy: 120 / 120"
+
+[node name="SkillLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 1, 0.88, 1)
+text = "Skill: Phase Dash Ready"
 
 [node name="WeaponLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -347,6 +352,38 @@ theme_override_colors/font_color = Color(0.7, 0.78, 0.86, 1)
 theme_override_font_sizes/font_size = 11
 text = "Current: -- | Random"
 horizontal_alignment = 1
+
+[node name="CharacterNameLabel" type="Label" parent="MainMenuPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.28, 1)
+theme_override_font_sizes/font_size = 16
+text = "Character 1/3: Wanderer"
+horizontal_alignment = 1
+
+[node name="CharacterInfoLabel" type="Label" parent="MainMenuPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Balanced shooter with stable health, armor, and energy.\nSkill: Phase Dash - Brief speed burst with short invulnerability."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="CharacterButtonRow" type="HBoxContainer" parent="MainMenuPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PreviousCharacterButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer/CharacterButtonRow"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Previous"
+
+[node name="NextCharacterButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer/CharacterButtonRow"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Next"
 
 [node name="StartButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 44)

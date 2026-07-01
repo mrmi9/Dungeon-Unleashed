@@ -69,6 +69,7 @@ func _run() -> void:
 	_expect(int(summary.get("healing_received", 0)) == 2, "Run summary should track healing received")
 	_expect(int(summary.get("shield_absorbed", 0)) == 2, "Run summary should track shield absorption")
 	_expect(summary.get("boss_defeated", false) == true, "Run summary should track boss defeat")
+	_expect(str(summary.get("character", "")) == "Wanderer", "Run summary should include selected character")
 	_expect(str(summary.get("weapon", "")) == "Basic Pistol", "Run summary should include final weapon")
 	_expect(_array_has(summary.get("relic_names", []), "Sharp Rounds"), "Run summary should include relic names")
 	_expect(int(history.get("runs", 0)) == 1, "History should persist total runs")
@@ -77,6 +78,7 @@ func _run() -> void:
 
 	var result_text := str(hud.call("get_result_summary_text"))
 	_expect(result_text.contains("Weapon:"), "Result panel should show weapon details")
+	_expect(result_text.contains("Character:"), "Result panel should show character details")
 	_expect(result_text.contains("Relics:"), "Result panel should show relic details")
 	_expect(result_text.contains("Combat:"), "Result panel should show combat details")
 	_expect(result_text.contains("Crits 1"), "Result panel should show critical hit count")
@@ -86,6 +88,7 @@ func _run() -> void:
 	_expect(result_text.contains("Sharp Rounds"), "Result panel should show collected relic name")
 	_expect(int(hud.call("get_result_section_count")) == 6, "Result panel should expose six grouped sections")
 	_expect(str(hud.call("get_result_section_text", "Overview")).contains("Rooms 1"), "Overview result section should show room progress")
+	_expect(str(hud.call("get_result_section_text", "Build")).contains("Wanderer"), "Build result section should show selected character")
 	_expect(str(hud.call("get_result_section_text", "Build")).contains("Sharp Rounds"), "Build result section should show relic names")
 	_expect(str(hud.call("get_result_section_text", "Combat")).contains("Shield Blocked 2"), "Combat result section should show shield absorption")
 	_expect(str(hud.call("get_result_section_text", "Loot")).contains("Shop Buys 1"), "Loot result section should show shop purchases")

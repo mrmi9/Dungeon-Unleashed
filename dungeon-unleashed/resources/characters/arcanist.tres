@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="PlayerCharacterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/PlayerCharacterData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"arcanist"
+display_name = "Arcanist"
+description = "Fragile energy specialist that spikes weapon tempo."
+max_health = 5
+max_armor = 4
+max_energy = 160
+move_speed = 252.0
+skill_id = "surge"
+skill_name = "Energy Surge"
+skill_description = "Restores energy and briefly increases fire rate."
+skill_cooldown = 10.0
+skill_duration = 3.0
+skill_energy_cost = 0
+skill_power = 36.0

@@ -55,6 +55,7 @@ func _run() -> void:
 		var move_left: Dictionary = input_bindings.get("move_left", {})
 		var move_down: Dictionary = input_bindings.get("move_down", {})
 		var move_right: Dictionary = input_bindings.get("move_right", {})
+		var skill: Dictionary = input_bindings.get("skill", {})
 		var interact: Dictionary = input_bindings.get("interact", {})
 		var pause: Dictionary = input_bindings.get("pause", {})
 		_expect(input_hint.contains("Move"), "HUD should show movement input hint")
@@ -62,6 +63,7 @@ func _run() -> void:
 		_expect(input_hint.contains(str(move_left.get("label", ""))), "HUD should show move left binding")
 		_expect(input_hint.contains(str(move_down.get("label", ""))), "HUD should show move down binding")
 		_expect(input_hint.contains(str(move_right.get("label", ""))), "HUD should show move right binding")
+		_expect(input_hint.contains("Skill") and input_hint.contains(str(skill.get("label", ""))), "HUD should show skill input hint")
 		_expect(input_hint.contains("Interact") and input_hint.contains(str(interact.get("label", ""))), "HUD should show interaction input hint")
 		_expect(input_hint.contains("Pause") and input_hint.contains(str(pause.get("label", ""))), "HUD should show pause input hint")
 

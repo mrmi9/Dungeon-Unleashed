@@ -9,6 +9,8 @@ signal gold_changed(current_gold: int)
 signal weapon_changed(display_name: String)
 signal ammo_changed(current_ammo: int, magazine_size: int, is_reloading: bool)
 signal energy_changed(current_energy: int, max_energy: int)
+signal character_changed(display_name: String, description: String, skill_name: String, skill_description: String, index: int, total: int)
+signal skill_state_changed(skill_name: String, cooldown_remaining: float, cooldown_duration: float, active_remaining: float)
 
 @export var max_health: int = 6
 @export var move_speed: float = 260.0
@@ -20,6 +22,11 @@ signal energy_changed(current_energy: int, max_energy: int)
 @export var max_energy: int = 120
 @export var energy_regen_delay: float = 0.6
 @export var energy_regen_rate: float = 10.0
+@export var available_characters: Array[Resource] = [
+	preload("res://resources/characters/wanderer.tres"),
+	preload("res://resources/characters/warden.tres"),
+	preload("res://resources/characters/arcanist.tres"),
+]
 @export var weapon_loadout: Array[WeaponData] = [
 	preload("res://resources/weapons/basic_pistol.tres"),
 	preload("res://resources/weapons/shotgun.tres"),
@@ -34,6 +41,7 @@ var current_health: int
 var current_shield: int = 0
 var current_energy: int = 0
 var current_gold: int = 0
+var current_character_index: int = 0
 var current_weapon_index: int = 0
 var relic_damage_multiplier_bonus := 0.0
 var relic_fire_rate_multiplier_bonus := 0.0
@@ -41,6 +49,8 @@ var relic_projectile_count_bonus := 0
 var relic_pierce_bonus := 0
 var relic_crit_chance_bonus := 0.0
 var relic_reload_speed_multiplier_bonus := 0.0
+var _skill_damage_multiplier_bonus := 0.0
+var _skill_fire_rate_multiplier_bonus := 0.0
 var _temporary_speed_multiplier := 1.0
 var _speed_boost_timer := 0.0
 var _is_dead := false
@@ -50,20 +60,22 @@ var _shield_recharge_delay_timer := 0.0
 var _shield_recharge_accumulator := 0.0
 var _energy_regen_delay_timer := 0.0
 var _energy_regen_accumulator := 0.0
+var _skill_cooldown_timer := 0.0
+var _skill_active_timer := 0.0
 var _touching_enemies: Array[Node] = []
 
 
 func _ready() -> void:
 	add_to_group("player")
 	collision_mask = collision_mask & ~ENEMY_BODY_COLLISION_BIT
-	current_health = max_health
-	current_shield = max_shield
-	current_energy = max_energy
+	_apply_character_stats(current_character_index, true)
 	weapon.ammo_changed.connect(_on_weapon_ammo_changed)
 	_equip_weapon(0)
 	health_changed.emit(current_health, max_health)
 	shield_changed.emit(current_shield)
 	energy_changed.emit(current_energy, max_energy)
+	_emit_character_changed()
+	_emit_skill_state_changed()
 	gold_changed.emit(current_gold)
 	hurtbox.body_entered.connect(_on_hurtbox_body_entered)
 	hurtbox.body_exited.connect(_on_hurtbox_body_exited)
@@ -81,6 +93,8 @@ func _physics_process(delta: float) -> void:
 	_handle_weapon_switch_input()
 	if Input.is_action_just_pressed("reload"):
 		weapon.start_reload()
+	if Input.is_action_just_pressed("skill"):
+		try_use_skill()
 
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = input_vector * move_speed * _temporary_speed_multiplier
@@ -100,6 +114,75 @@ func get_weapon_display_name() -> String:
 	if weapon == null:
 		return "Unarmed"
 	return weapon.get_display_name()
+
+
+func get_character_display_name() -> String:
+	var data := get_current_character_data()
+	if data == null:
+		return "Adventurer"
+	return str(data.get("display_name"))
+
+
+func get_current_character_data() -> Resource:
+	if available_characters.is_empty():
+		return null
+	current_character_index = clampi(current_character_index, 0, available_characters.size() - 1)
+	return available_characters[current_character_index]
+
+
+func get_character_summary() -> Dictionary:
+	var data := get_current_character_data()
+	if data == null:
+		return {
+			"display_name": "Adventurer",
+			"description": "",
+			"skill_name": "Skill",
+			"skill_description": "",
+			"index": current_character_index,
+			"total": available_characters.size(),
+		}
+
+	return {
+		"id": data.get("id"),
+		"display_name": str(data.get("display_name")),
+		"description": str(data.get("description")),
+		"skill_id": str(data.get("skill_id")),
+		"skill_name": str(data.get("skill_name")),
+		"skill_description": str(data.get("skill_description")),
+		"skill_cooldown": float(data.get("skill_cooldown")),
+		"skill_energy_cost": int(data.get("skill_energy_cost")),
+		"index": current_character_index,
+		"total": available_characters.size(),
+	}
+
+
+func select_character(index: int) -> bool:
+	if available_characters.is_empty():
+		return false
+	if index < 0 or index >= available_characters.size():
+		return false
+
+	current_character_index = index
+	_apply_character_stats(current_character_index, true)
+	health_changed.emit(current_health, max_health)
+	shield_changed.emit(current_shield)
+	energy_changed.emit(current_energy, max_energy)
+	Events.player_energy_changed.emit(current_energy, max_energy)
+	_emit_character_changed()
+	_emit_skill_state_changed()
+	return true
+
+
+func select_next_character() -> bool:
+	if available_characters.is_empty():
+		return false
+	return select_character((current_character_index + 1) % available_characters.size())
+
+
+func select_previous_character() -> bool:
+	if available_characters.is_empty():
+		return false
+	return select_character(posmod(current_character_index - 1, available_characters.size()))
 
 
 func add_gold(amount: int) -> void:
@@ -229,6 +312,51 @@ func recover_energy(amount: int) -> void:
 		Events.player_energy_changed.emit(current_energy, max_energy)
 
 
+func try_use_skill() -> bool:
+	if _is_dead or _skill_cooldown_timer > 0.0:
+		return false
+
+	var data := get_current_character_data()
+	if data == null:
+		return false
+
+	var cost := maxi(int(data.get("skill_energy_cost")), 0)
+	if current_energy < cost:
+		return false
+	if cost > 0:
+		current_energy -= cost
+		_energy_regen_delay_timer = energy_regen_delay
+		_energy_regen_accumulator = 0.0
+		energy_changed.emit(current_energy, max_energy)
+		Events.player_energy_changed.emit(current_energy, max_energy)
+
+	_skill_cooldown_timer = maxf(float(data.get("skill_cooldown")), 0.05)
+	_skill_active_timer = maxf(float(data.get("skill_duration")), 0.0)
+	_apply_skill_effect(data)
+	_emit_skill_state_changed()
+	return true
+
+
+func get_skill_summary() -> Dictionary:
+	var data := get_current_character_data()
+	if data == null:
+		return {
+			"skill_name": "Skill",
+			"cooldown_remaining": 0.0,
+			"cooldown_duration": 0.0,
+			"active_remaining": 0.0,
+		}
+
+	return {
+		"skill_id": str(data.get("skill_id")),
+		"skill_name": str(data.get("skill_name")),
+		"cooldown_remaining": _skill_cooldown_timer,
+		"cooldown_duration": float(data.get("skill_cooldown")),
+		"active_remaining": _skill_active_timer,
+		"energy_cost": int(data.get("skill_energy_cost")),
+	}
+
+
 func apply_temporary_speed_boost(multiplier_bonus: float, duration: float) -> void:
 	if _is_dead:
 		return
@@ -242,11 +370,11 @@ func get_current_speed_multiplier() -> float:
 
 
 func get_damage_multiplier() -> float:
-	return maxf(1.0 + relic_damage_multiplier_bonus, 0.1)
+	return maxf(1.0 + relic_damage_multiplier_bonus + _skill_damage_multiplier_bonus, 0.1)
 
 
 func get_fire_rate_multiplier() -> float:
-	return maxf(1.0 + relic_fire_rate_multiplier_bonus, 0.1)
+	return maxf(1.0 + relic_fire_rate_multiplier_bonus + _skill_fire_rate_multiplier_bonus, 0.1)
 
 
 func get_projectile_count_bonus() -> int:
@@ -323,6 +451,16 @@ func _tick_timers(delta: float) -> void:
 		_speed_boost_timer = maxf(_speed_boost_timer - delta, 0.0)
 		if _speed_boost_timer <= 0.0:
 			_temporary_speed_multiplier = 1.0
+
+	if _skill_cooldown_timer > 0.0:
+		_skill_cooldown_timer = maxf(_skill_cooldown_timer - delta, 0.0)
+		_emit_skill_state_changed()
+
+	if _skill_active_timer > 0.0:
+		_skill_active_timer = maxf(_skill_active_timer - delta, 0.0)
+		if _skill_active_timer <= 0.0:
+			_clear_skill_modifiers()
+		_emit_skill_state_changed()
 
 	_tick_shield_recharge(delta)
 	_tick_energy_regen(delta)
@@ -410,6 +548,80 @@ func _get_weapon_energy_cost(weapon_data: Resource) -> int:
 	if weapon_data == null:
 		return 0
 	return maxi(int(weapon_data.get("energy_cost")), 0)
+
+
+func _apply_character_stats(index: int, refill_resources: bool) -> void:
+	if available_characters.is_empty():
+		current_character_index = 0
+		current_health = max_health
+		current_shield = max_shield
+		current_energy = max_energy
+		return
+
+	current_character_index = clampi(index, 0, available_characters.size() - 1)
+	var data := available_characters[current_character_index]
+	if data == null:
+		return
+
+	max_health = maxi(int(data.get("max_health")), 1)
+	max_shield = maxi(int(data.get("max_armor")), 0)
+	max_energy = maxi(int(data.get("max_energy")), 1)
+	move_speed = maxf(float(data.get("move_speed")), 80.0)
+	_skill_cooldown_timer = 0.0
+	_skill_active_timer = 0.0
+	_clear_skill_modifiers()
+	if refill_resources:
+		current_health = max_health
+		current_shield = max_shield
+		current_energy = max_energy
+	else:
+		current_health = mini(current_health, max_health)
+		current_shield = mini(current_shield, max_shield)
+		current_energy = mini(current_energy, max_energy)
+
+
+func _apply_skill_effect(data: Resource) -> void:
+	var skill_duration := maxf(float(data.get("skill_duration")), 0.0)
+	var skill_power := float(data.get("skill_power"))
+	match str(data.get("skill_id")):
+		"dash":
+			_invulnerability_timer = maxf(_invulnerability_timer, skill_duration)
+			apply_temporary_speed_boost(maxf(skill_power, 0.1), skill_duration)
+		"guard":
+			_invulnerability_timer = maxf(_invulnerability_timer, skill_duration)
+			add_shield(maxi(roundi(skill_power), 1))
+		"surge":
+			recover_energy(maxi(roundi(skill_power), 1))
+			_skill_fire_rate_multiplier_bonus = 0.35
+		_:
+			apply_temporary_speed_boost(0.35, skill_duration)
+
+
+func _clear_skill_modifiers() -> void:
+	_skill_damage_multiplier_bonus = 0.0
+	_skill_fire_rate_multiplier_bonus = 0.0
+
+
+func _emit_character_changed() -> void:
+	var summary := get_character_summary()
+	character_changed.emit(
+		str(summary.get("display_name", "Adventurer")),
+		str(summary.get("description", "")),
+		str(summary.get("skill_name", "Skill")),
+		str(summary.get("skill_description", "")),
+		int(summary.get("index", current_character_index)),
+		int(summary.get("total", available_characters.size()))
+	)
+
+
+func _emit_skill_state_changed() -> void:
+	var summary := get_skill_summary()
+	skill_state_changed.emit(
+		str(summary.get("skill_name", "Skill")),
+		float(summary.get("cooldown_remaining", 0.0)),
+		float(summary.get("cooldown_duration", 0.0)),
+		float(summary.get("active_remaining", 0.0))
+	)
 
 
 func _on_hurtbox_body_entered(body: Node) -> void:

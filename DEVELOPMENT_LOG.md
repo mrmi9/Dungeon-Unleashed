@@ -8047,3 +8047,53 @@ FullRunSmokeTest passed.
 - 切换到 Shotgun / Energy Staff / Ricochet Blaster 后连续开火，确认 Energy 会下降且不足时无法继续开火。
 - 故意受伤后躲避一段时间，确认 Armor 会逐点恢复。
 - 导出 exe 自检退出时仍出现一次 `1 ObjectDB instance was leaked at exit` 警告，未导致自检失败；后续可单独追踪该清理警告。
+
+## 2026-07-01 类元气骑士角色差异和主动技能第一批靠拢
+
+### 目标
+
+- 在已有 Energy/Armor 资源循环基础上，补上同类游戏常见的“开局选角色 + 角色主动技能”结构。
+- 本轮只实现原创占位角色和可测试机制，不复制《元气骑士》的角色名称、技能表现、美术或数值。
+
+### 新增内容
+
+- 新增 `PlayerCharacterData.gd`，用于数据化配置角色名称、说明、基础 HP、Armor、Energy、移动速度、主动技能、冷却、持续时间、消耗和效果强度。
+- 新增 3 个角色资源：`Wanderer`、`Warden`、`Arcanist`。
+- 主菜单新增角色切换区域，可以在开始 run 前选择角色；进入 run 后角色锁定。
+- 新增 `skill` 输入动作，默认按键为 `Space`。
+- HUD 左上角新增 Skill 状态显示，支持 Ready、Active 和 CD 状态。
+- 结算摘要新增角色字段，后续可用于角色胜率、解锁和局外成长统计。
+
+### 角色原型
+
+- `Wanderer`：均衡属性，技能 `Phase Dash` 提供短暂无敌和移速爆发。
+- `Warden`：更高 HP/Armor、更低 Energy 和较慢移动，技能 `Guard Pulse` 恢复 Armor 并提供短暂防护。
+- `Arcanist`：更高 Energy、更低 HP/Armor，技能 `Energy Surge` 恢复 Energy 并短时间提高射速。
+
+### 自动验证结果
+
+```text
+Godot headless project startup passed.
+CharacterSmokeTest passed.
+MenuFlowSmokeTest passed.
+RunSummarySmokeTest passed.
+SettingsSmokeTest passed.
+UILayoutSmokeTest passed.
+WeaponSmokeTest passed.
+RelicSmokeTest passed.
+RoomFlowSmokeTest passed.
+CombatFeedbackSmokeTest passed.
+EnemyVarietySmokeTest passed.
+BossSmokeTest passed.
+FullRunSmokeTest passed.
+RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=360.7
+Windows release export passed.
+Exported exe RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=435.8
+Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds\Dungeon_Unleashed_Windows_Prototype.zip
+```
+
+### 仍需人工复核
+
+- 在导出包主菜单中切换 3 个角色，确认说明文本、HP、Armor、Energy 和技能状态刷新正常。
+- 进入游戏后按 `Space` 使用主动技能，确认技能效果、冷却和 HUD 状态变化可感知。
+- 开局后确认角色不能在战斗中被切换。

@@ -20,6 +20,7 @@ const REBINDABLE_INPUT_ACTIONS := [
 	"move_left",
 	"move_right",
 	"reload",
+	"skill",
 	"interact",
 	"pause",
 ]
@@ -29,6 +30,7 @@ const DEFAULT_INPUT_KEYCODES := {
 	"move_left": KEY_A,
 	"move_right": KEY_D,
 	"reload": KEY_R,
+	"skill": KEY_SPACE,
 	"interact": KEY_E,
 	"pause": KEY_ESCAPE,
 }
@@ -115,6 +117,8 @@ func _ready() -> void:
 	player.health_changed.connect(_on_player_health_changed)
 	player.shield_changed.connect(_on_player_shield_changed)
 	player.energy_changed.connect(_on_player_energy_changed)
+	player.character_changed.connect(_on_player_character_changed)
+	player.skill_state_changed.connect(_on_player_skill_state_changed)
 	player.gold_changed.connect(_on_player_gold_changed)
 	player.weapon_changed.connect(_on_player_weapon_changed)
 	player.ammo_changed.connect(_on_player_ammo_changed)
@@ -122,6 +126,7 @@ func _ready() -> void:
 	hud.update_health(player.current_health, player.max_health)
 	hud.update_shield(player.current_shield, player.max_shield)
 	hud.update_energy(player.current_energy, player.max_energy)
+	_update_character_hud()
 	hud.update_gold(player.current_gold)
 	hud.set_weapon_name(player.get_weapon_display_name())
 	hud.update_relics(relic_system.get_relic_summaries())
@@ -368,6 +373,32 @@ func reset_input_bindings() -> void:
 		hud.show_message("Controls Reset")
 
 
+func select_next_character() -> bool:
+	if run_state != RunState.MAIN_MENU:
+		hud.show_message("Choose From Main Menu")
+		return false
+	var changed := player.select_next_character()
+	if changed:
+		_update_character_hud()
+	return changed
+
+
+func select_previous_character() -> bool:
+	if run_state != RunState.MAIN_MENU:
+		hud.show_message("Choose From Main Menu")
+		return false
+	var changed := player.select_previous_character()
+	if changed:
+		_update_character_hud()
+	return changed
+
+
+func get_character_selection_summary() -> Dictionary:
+	if player == null or not player.has_method("get_character_summary"):
+		return {}
+	return player.get_character_summary()
+
+
 func _on_projectile_hit(_projectile: Node, _target: Node, _damage: int) -> void:
 	_add_shake(3.5)
 	if _projectile != null and _projectile.has_method("was_last_hit_critical") and bool(_projectile.call("was_last_hit_critical")):
@@ -443,6 +474,14 @@ func _on_player_shield_changed(current_shield: int) -> void:
 
 func _on_player_energy_changed(current_energy: int, max_energy: int) -> void:
 	hud.update_energy(current_energy, max_energy)
+
+
+func _on_player_character_changed(display_name: String, description: String, skill_name: String, skill_description: String, index: int, total: int) -> void:
+	hud.update_character_selection(display_name, description, skill_name, skill_description, index, total)
+
+
+func _on_player_skill_state_changed(skill_name: String, cooldown_remaining: float, cooldown_duration: float, active_remaining: float) -> void:
+	hud.update_skill_status(skill_name, cooldown_remaining, cooldown_duration, active_remaining)
 
 
 func _on_player_gold_changed(current_gold: int) -> void:
@@ -912,6 +951,29 @@ func _get_keycode_label(keycode: int) -> String:
 	return label
 
 
+func _update_character_hud() -> void:
+	if player == null or hud == null:
+		return
+	if player.has_method("get_character_summary"):
+		var character_summary: Dictionary = player.call("get_character_summary")
+		hud.update_character_selection(
+			str(character_summary.get("display_name", "Adventurer")),
+			str(character_summary.get("description", "")),
+			str(character_summary.get("skill_name", "Skill")),
+			str(character_summary.get("skill_description", "")),
+			int(character_summary.get("index", 0)),
+			int(character_summary.get("total", 1))
+		)
+	if player.has_method("get_skill_summary"):
+		var skill_summary: Dictionary = player.call("get_skill_summary")
+		hud.update_skill_status(
+			str(skill_summary.get("skill_name", "Skill")),
+			float(skill_summary.get("cooldown_remaining", 0.0)),
+			float(skill_summary.get("cooldown_duration", 0.0)),
+			float(skill_summary.get("active_remaining", 0.0))
+		)
+
+
 func _get_room_label(room: Node) -> String:
 	var owner_room := room.get_parent()
 	if owner_room != null and owner_room.name.begins_with("Room"):
@@ -979,6 +1041,7 @@ func _build_run_summary(result_name: String = "In Progress") -> Dictionary:
 	var max_hp := 0
 	var shield := 0
 	var weapon_name := "Unarmed"
+	var character_name := "Adventurer"
 	var loadout_names: Array[String] = []
 	if is_instance_valid(player):
 		gold = player.current_gold
@@ -986,6 +1049,8 @@ func _build_run_summary(result_name: String = "In Progress") -> Dictionary:
 		max_hp = player.max_health
 		shield = player.current_shield
 		weapon_name = player.get_weapon_display_name()
+		if player.has_method("get_character_display_name"):
+			character_name = player.get_character_display_name()
 		loadout_names = _get_player_loadout_names()
 
 	return {
@@ -998,6 +1063,7 @@ func _build_run_summary(result_name: String = "In Progress") -> Dictionary:
 		"relic_count": relic_count,
 		"relic_stacks": relic_stacks,
 		"relic_names": relic_names,
+		"character": character_name,
 		"weapon": weapon_name,
 		"loadout": loadout_names,
 		"current_hp": current_hp,

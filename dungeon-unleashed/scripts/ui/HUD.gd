@@ -9,11 +9,12 @@ const CONTROL_REBIND_ACTIONS := [
 	{"action": "move_left", "label": "Left"},
 	{"action": "move_right", "label": "Right"},
 	{"action": "reload", "label": "Reload"},
+	{"action": "skill", "label": "Skill"},
 	{"action": "interact", "label": "Interact"},
 	{"action": "pause", "label": "Pause"},
 ]
 const UI_SAFE_MARGIN := 18.0
-const MAIN_MENU_PANEL_SIZE := Vector2(380.0, 344.0)
+const MAIN_MENU_PANEL_SIZE := Vector2(440.0, 492.0)
 const PAUSE_PANEL_SIZE := Vector2(340.0, 252.0)
 const SETTINGS_PANEL_SIZE := Vector2(460.0, 660.0)
 const RESULT_PANEL_SIZE := Vector2(580.0, 588.0)
@@ -23,6 +24,7 @@ const DEBUG_MAP_PANEL_SIZE := Vector2(760.0, 560.0)
 @onready var health_label: Label = $MarginContainer/VBoxContainer/HealthLabel
 @onready var shield_label: Label = $MarginContainer/VBoxContainer/ShieldLabel
 @onready var energy_label: Label = $MarginContainer/VBoxContainer/EnergyLabel
+@onready var skill_label: Label = $MarginContainer/VBoxContainer/SkillLabel
 @onready var weapon_label: Label = $MarginContainer/VBoxContainer/WeaponLabel
 @onready var ammo_label: Label = $MarginContainer/VBoxContainer/AmmoLabel
 @onready var gold_label: Label = $MarginContainer/VBoxContainer/GoldLabel
@@ -52,6 +54,10 @@ const DEBUG_MAP_PANEL_SIZE := Vector2(760.0, 560.0)
 @onready var main_menu_seed_status_label: Label = $MainMenuPanel/MarginContainer/VBoxContainer/SeedStatusLabel
 @onready var apply_seed_button: Button = $MainMenuPanel/MarginContainer/VBoxContainer/SeedButtonRow/ApplySeedButton
 @onready var random_seed_button: Button = $MainMenuPanel/MarginContainer/VBoxContainer/SeedButtonRow/RandomSeedButton
+@onready var character_name_label: Label = $MainMenuPanel/MarginContainer/VBoxContainer/CharacterNameLabel
+@onready var character_info_label: Label = $MainMenuPanel/MarginContainer/VBoxContainer/CharacterInfoLabel
+@onready var previous_character_button: Button = $MainMenuPanel/MarginContainer/VBoxContainer/CharacterButtonRow/PreviousCharacterButton
+@onready var next_character_button: Button = $MainMenuPanel/MarginContainer/VBoxContainer/CharacterButtonRow/NextCharacterButton
 @onready var start_button: Button = $MainMenuPanel/MarginContainer/VBoxContainer/StartButton
 @onready var main_settings_button: Button = $MainMenuPanel/MarginContainer/VBoxContainer/SettingsButton
 @onready var pause_panel: PanelContainer = $PausePanel
@@ -112,6 +118,8 @@ func _ready() -> void:
 	start_button.pressed.connect(_on_start_button_pressed)
 	apply_seed_button.pressed.connect(_on_apply_seed_button_pressed)
 	random_seed_button.pressed.connect(_on_random_seed_button_pressed)
+	previous_character_button.pressed.connect(_on_previous_character_button_pressed)
+	next_character_button.pressed.connect(_on_next_character_button_pressed)
 	main_settings_button.pressed.connect(_on_settings_button_pressed)
 	resume_button.pressed.connect(_on_resume_button_pressed)
 	pause_settings_button.pressed.connect(_on_settings_button_pressed)
@@ -171,6 +179,22 @@ func update_shield(current_shield: int, max_shield: int = -1) -> void:
 
 func update_energy(current_energy: int, max_energy: int) -> void:
 	energy_label.text = "Energy: %d / %d" % [current_energy, max_energy]
+
+
+func update_skill_status(skill_name: String, cooldown_remaining: float, cooldown_duration: float, active_remaining: float) -> void:
+	if active_remaining > 0.0:
+		skill_label.text = "Skill: %s Active %.1fs" % [skill_name, active_remaining]
+	elif cooldown_remaining > 0.0:
+		skill_label.text = "Skill: %s CD %.1fs" % [skill_name, cooldown_remaining]
+	elif cooldown_duration > 0.0:
+		skill_label.text = "Skill: %s Ready" % skill_name
+	else:
+		skill_label.text = "Skill: Ready"
+
+
+func update_character_selection(display_name: String, description: String, skill_name: String, skill_description: String, index: int, total: int) -> void:
+	character_name_label.text = "Character %d/%d: %s" % [index + 1, maxi(total, 1), display_name]
+	character_info_label.text = "%s\nSkill: %s - %s" % [description, skill_name, skill_description]
 
 
 func set_weapon_name(display_name: String) -> void:
@@ -448,6 +472,18 @@ func get_seed_status_text() -> String:
 
 func get_relic_label_text() -> String:
 	return relic_label.text
+
+
+func get_skill_label_text() -> String:
+	return skill_label.text
+
+
+func get_character_name_text() -> String:
+	return character_name_label.text
+
+
+func get_character_info_text() -> String:
+	return character_info_label.text
 
 
 func is_relic_choice_visible() -> bool:
@@ -753,7 +789,7 @@ func _format_run_summary(summary: Dictionary) -> String:
 	var history: Dictionary = summary.get("history", {})
 	var relic_names: Array = summary.get("relic_names", [])
 	var loadout_names: Array = summary.get("loadout", [])
-	return "Result: %s\nSeed: %d\nRooms: %d | Kills: %d | Time: %s\nGold: %d (earned %d / spent %d)\nWeapon: %s\nLoadout: %s\nRelics: %s\nRelic Stacks: %d\nSurvival: HP %d/%d | Shield %d | HP Damage %d\nCombat: Crits %d | Healing %d | Shield Blocked %d\nLoot: Rewards %d | Chests %d | Shop Buys %d\nBoss Defeated: %s\nRecord: Runs %d | Wins %d | Best Rooms %d | Best Kills %d | Best Gold %d" % [
+	return "Result: %s\nSeed: %d\nRooms: %d | Kills: %d | Time: %s\nGold: %d (earned %d / spent %d)\nCharacter: %s\nWeapon: %s\nLoadout: %s\nRelics: %s\nRelic Stacks: %d\nSurvival: HP %d/%d | Shield %d | HP Damage %d\nCombat: Crits %d | Healing %d | Shield Blocked %d\nLoot: Rewards %d | Chests %d | Shop Buys %d\nBoss Defeated: %s\nRecord: Runs %d | Wins %d | Best Rooms %d | Best Kills %d | Best Gold %d" % [
 		str(summary.get("result", "In Progress")),
 		int(summary.get("dungeon_seed", 0)),
 		int(summary.get("rooms_cleared", 0)),
@@ -762,6 +798,7 @@ func _format_run_summary(summary: Dictionary) -> String:
 		int(summary.get("gold", 0)),
 		int(summary.get("gold_earned", 0)),
 		int(summary.get("gold_spent", 0)),
+		str(summary.get("character", "Adventurer")),
 		str(summary.get("weapon", "Unarmed")),
 		_format_name_list(loadout_names),
 		_format_name_list(relic_names),
@@ -841,7 +878,8 @@ func _update_result_sections(summary: Dictionary) -> void:
 	)
 	_set_result_section(
 		"build",
-		"Weapon: %s\nLoadout: %s\nRelics: %s\nStacks: %d" % [
+		"Character: %s\nWeapon: %s\nLoadout: %s\nRelics: %s\nStacks: %d" % [
+			str(summary.get("character", "Adventurer")),
 			str(summary.get("weapon", "Unarmed")),
 			_format_name_list(loadout_names),
 			_format_name_list(relic_names),
@@ -991,12 +1029,13 @@ func _setup_control_rebind_buttons() -> void:
 
 
 func _update_input_hint() -> void:
-	input_hint_label.text = "Move %s/%s/%s/%s | Aim Mouse | Shoot LMB | Reload %s | Weapons 1/2/3 | Interact %s | Pause %s | Debug %s" % [
+	input_hint_label.text = "Move %s/%s/%s/%s | Aim Mouse | Shoot LMB | Reload %s | Skill %s | Weapons 1/2/3 | Interact %s | Pause %s | Debug %s" % [
 		_get_action_key_label("move_up"),
 		_get_action_key_label("move_left"),
 		_get_action_key_label("move_down"),
 		_get_action_key_label("move_right"),
 		_get_action_key_label("reload"),
+		_get_action_key_label("skill"),
 		_get_action_key_label("interact"),
 		_get_action_key_label("pause"),
 		_get_action_key_label("debug_map"),
@@ -1061,6 +1100,14 @@ func _on_apply_seed_button_pressed() -> void:
 
 func _on_random_seed_button_pressed() -> void:
 	_call_flow("randomize_dungeon_seed")
+
+
+func _on_previous_character_button_pressed() -> void:
+	_call_flow("select_previous_character")
+
+
+func _on_next_character_button_pressed() -> void:
+	_call_flow("select_next_character")
 
 
 func _on_settings_button_pressed() -> void:
