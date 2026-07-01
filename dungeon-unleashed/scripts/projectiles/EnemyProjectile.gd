@@ -8,7 +8,8 @@ const HIT_BURST_SCENE := preload("res://scenes/effects/HitBurst.tscn")
 var speed := 340.0
 var damage := 1
 var _direction := Vector2.RIGHT
-var _owner_body: Node
+var _owner_ref: WeakRef
+var _owner_rid := RID()
 var _distance_traveled := 0.0
 
 
@@ -20,7 +21,8 @@ func launch(direction: Vector2, projectile_speed: float, projectile_damage: int,
 	_direction = direction.normalized() if direction.length_squared() > 0.001 else Vector2.RIGHT
 	speed = projectile_speed
 	damage = projectile_damage
-	_owner_body = owner_body
+	_owner_ref = weakref(owner_body) if owner_body != null else null
+	_owner_rid = (owner_body as CollisionObject2D).get_rid() if owner_body is CollisionObject2D else RID()
 	global_rotation = _direction.angle()
 
 
@@ -44,15 +46,15 @@ func _physics_process(delta: float) -> void:
 func _raycast(start_position: Vector2, end_position: Vector2) -> Dictionary:
 	var query := PhysicsRayQueryParameters2D.create(start_position, end_position, collision_mask)
 	var excludes: Array[RID] = [get_rid()]
-	if _owner_body is CollisionObject2D:
-		excludes.append((_owner_body as CollisionObject2D).get_rid())
+	if _owner_rid.is_valid():
+		excludes.append(_owner_rid)
 	query.exclude = excludes
 	return get_world_2d().direct_space_state.intersect_ray(query)
 
 
 func _handle_collision(collider: Object) -> void:
 	if collider is Node and (collider as Node).has_method("take_damage"):
-		(collider as Node).call("take_damage", damage, _owner_body)
+		(collider as Node).call("take_damage", damage, _get_safe_owner_body())
 		_spawn_hit_effect()
 	queue_free()
 
@@ -63,3 +65,14 @@ func _spawn_hit_effect() -> void:
 		return
 	get_tree().current_scene.add_child(effect)
 	effect.global_position = global_position
+
+
+func _get_safe_owner_body() -> Node:
+	if _owner_ref == null:
+		return null
+	var owner := _owner_ref.get_ref() as Node
+	if owner == null or not is_instance_valid(owner):
+		return null
+	if owner.is_queued_for_deletion():
+		return null
+	return owner

@@ -1,6 +1,10 @@
 extends Node
 
 const MAIN_SCENE := preload("res://scenes/main/Main.tscn")
+const PROJECTILE_SCENE := preload("res://scenes/projectiles/Projectile.tscn")
+const ENEMY_PROJECTILE_SCENE := preload("res://scenes/projectiles/EnemyProjectile.tscn")
+const CHASER_SCENE := preload("res://scenes/enemies/ChaserEnemy.tscn")
+const SHOOTER_SCENE := preload("res://scenes/enemies/ShooterEnemy.tscn")
 
 var _failures: Array[String] = []
 
@@ -51,6 +55,9 @@ func _run() -> void:
 	var count_after_cleanup := int(main.call("get_floating_text_count"))
 	_expect(count_after_cleanup <= count_before, "Floating text should clean itself up after its duration, expected at most %d got %d" % [count_before, count_after_cleanup])
 
+	await _verify_projectile_hit_feedback_position(main)
+	await _verify_enemy_projectile_after_owner_death(player)
+
 	get_tree().paused = false
 	main.queue_free()
 	await get_tree().process_frame
@@ -72,6 +79,95 @@ func _has_text_containing(texts: Array[String], needle: String) -> bool:
 		if text.contains(needle):
 			return true
 	return false
+
+
+func _verify_projectile_hit_feedback_position(main: Node) -> void:
+	_clear_floating_texts()
+	var hit_position := Vector2(420, -180)
+	var enemy := CHASER_SCENE.instantiate()
+	get_tree().root.add_child(enemy)
+	enemy.global_position = hit_position + Vector2(12, 0)
+	await get_tree().process_frame
+
+	var projectile := PROJECTILE_SCENE.instantiate() as Projectile
+	get_tree().root.add_child(projectile)
+	projectile.global_position = hit_position
+	projectile.damage = 5
+	projectile.knockback = 0.0
+	projectile.crit_chance = 0.0
+	projectile.call("_handle_collision", enemy)
+	await get_tree().process_frame
+
+	var snapshots: Array = main.call("get_floating_text_snapshots")
+	var found_near_hit := false
+	for snapshot in snapshots:
+		if not (snapshot is Dictionary):
+			continue
+		if not str(snapshot.get("text", "")).contains("-5"):
+			continue
+		var position: Vector2 = snapshot.get("position", Vector2.ZERO)
+		if position.distance_to(hit_position) <= 28.0:
+			found_near_hit = true
+			break
+	_expect(found_near_hit, "Enemy damage floating text should appear near the projectile hit position")
+
+	if is_instance_valid(enemy):
+		enemy.queue_free()
+	if is_instance_valid(projectile):
+		projectile.queue_free()
+	_clear_floating_texts()
+
+
+func _verify_enemy_projectile_after_owner_death(player: Player) -> void:
+	_clear_enemy_projectiles()
+	_clear_enemies()
+	player.set("_is_dead", false)
+	player.current_health = player.max_health
+	player.current_shield = 0
+	player.set("_invulnerability_timer", 0.0)
+	player.global_position = Vector2(-1200, -760)
+	await get_tree().physics_frame
+	await get_tree().process_frame
+
+	var shooter := SHOOTER_SCENE.instantiate()
+	get_tree().root.add_child(shooter)
+	shooter.global_position = player.global_position + Vector2(-220, 0)
+	await get_tree().process_frame
+
+	var projectile := ENEMY_PROJECTILE_SCENE.instantiate() as EnemyProjectile
+	get_tree().root.add_child(projectile)
+	projectile.global_position = player.global_position + Vector2(-96, 0)
+	projectile.call("launch", Vector2.RIGHT, 720.0, 1, shooter)
+	shooter.call("apply_damage", 9999, null, Vector2.ZERO, 0.0)
+	await get_tree().process_frame
+
+	var start_health := player.current_health
+	player.set("_invulnerability_timer", 0.0)
+	for index in range(8):
+		await get_tree().physics_frame
+		await get_tree().process_frame
+	_expect(player.current_health == start_health - 1, "Enemy projectile should safely damage player after its owner dies")
+
+	_clear_enemy_projectiles()
+	_clear_enemies()
+
+
+func _clear_floating_texts() -> void:
+	for node in get_tree().get_nodes_in_group("floating_text"):
+		if is_instance_valid(node):
+			node.queue_free()
+
+
+func _clear_enemy_projectiles() -> void:
+	for projectile in get_tree().get_nodes_in_group("enemy_projectiles"):
+		if is_instance_valid(projectile):
+			projectile.queue_free()
+
+
+func _clear_enemies() -> void:
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(enemy):
+			enemy.queue_free()
 
 
 func _expect(condition: bool, message: String) -> void:

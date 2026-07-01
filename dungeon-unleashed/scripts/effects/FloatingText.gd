@@ -26,6 +26,7 @@ func setup(new_text: String, new_color: Color, new_font_size: int = 20, new_rise
 	font_size = new_font_size
 	rise_distance = new_rise_distance
 	side_drift = new_side_drift
+	_start_position = position
 	_apply_label_style()
 
 

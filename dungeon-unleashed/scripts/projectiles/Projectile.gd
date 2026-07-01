@@ -17,6 +17,7 @@ var _distance_traveled := 0.0
 var _remaining_pierce := 0
 var _remaining_bounces := 0
 var _last_hit_was_critical := false
+var _last_hit_position := Vector2.ZERO
 var _hit_rids: Array[RID] = []
 
 
@@ -66,8 +67,9 @@ func _raycast(start_position: Vector2, end_position: Vector2) -> Dictionary:
 	var query := PhysicsRayQueryParameters2D.create(start_position, end_position, collision_mask)
 	var excludes: Array[RID] = [get_rid()]
 	excludes.append_array(_hit_rids)
-	if _owner_body is CollisionObject2D:
-		excludes.append((_owner_body as CollisionObject2D).get_rid())
+	var owner_body := _get_safe_owner_body()
+	if owner_body is CollisionObject2D:
+		excludes.append((owner_body as CollisionObject2D).get_rid())
 	query.exclude = excludes
 
 	return get_world_2d().direct_space_state.intersect_ray(query)
@@ -76,16 +78,20 @@ func _raycast(start_position: Vector2, end_position: Vector2) -> Dictionary:
 func _handle_collision(collider: Object) -> void:
 	if collider is Node and (collider as Node).has_method("apply_damage"):
 		var target := collider as Node
+		var hit_position := global_position
+		var owner_body := _get_safe_owner_body()
 		var damage_roll := _roll_damage()
 		var final_damage := int(damage_roll.get("damage", damage))
 		var was_critical := bool(damage_roll.get("critical", false))
 		_last_hit_was_critical = was_critical
-		target.call("apply_damage", final_damage, _owner_body, _direction, knockback)
+		_last_hit_position = hit_position
+		set_meta(&"last_hit_position", hit_position)
+		_track_hit_target(collider)
+		target.call("apply_damage", final_damage, owner_body, _direction, knockback)
 		Events.projectile_hit.emit(self, target, final_damage)
 		if was_critical:
 			Events.projectile_critical_hit.emit(self, target, final_damage)
-		_track_hit_target(collider)
-		_apply_explosion_damage(target, final_damage)
+		_apply_explosion_damage(target, final_damage, owner_body)
 		_spawn_hit_effect(was_critical)
 		if _remaining_pierce > 0:
 			_remaining_pierce -= 1
@@ -135,12 +141,16 @@ func was_last_hit_critical() -> bool:
 	return _last_hit_was_critical
 
 
+func get_last_hit_position() -> Vector2:
+	return _last_hit_position
+
+
 func _track_hit_target(collider: Object) -> void:
 	if collider is CollisionObject2D:
 		_hit_rids.append((collider as CollisionObject2D).get_rid())
 
 
-func _apply_explosion_damage(primary_target: Node, final_damage: int) -> void:
+func _apply_explosion_damage(primary_target: Node, final_damage: int, owner_body: Node) -> void:
 	if explosion_radius <= 0.0:
 		return
 
@@ -154,7 +164,7 @@ func _apply_explosion_damage(primary_target: Node, final_damage: int) -> void:
 		var distance := enemy_node.global_position.distance_to(global_position)
 		if distance <= explosion_radius:
 			var direction := (enemy_node.global_position - global_position).normalized()
-			(enemy as Node).call("apply_damage", final_damage, _owner_body, direction, knockback * 0.7)
+			(enemy as Node).call("apply_damage", final_damage, owner_body, direction, knockback * 0.7)
 
 
 func _get_collision_normal() -> Vector2:
@@ -183,3 +193,11 @@ func _get_owner_crit_chance_bonus(owner_body: Node) -> float:
 	if owner_body != null and owner_body.has_method("get_crit_chance_bonus"):
 		return clampf(float(owner_body.call("get_crit_chance_bonus")), 0.0, 1.0)
 	return 0.0
+
+
+func _get_safe_owner_body() -> Node:
+	if _owner_body == null or not is_instance_valid(_owner_body):
+		return null
+	if _owner_body.is_queued_for_deletion():
+		return null
+	return _owner_body

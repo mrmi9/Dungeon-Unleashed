@@ -7875,3 +7875,47 @@ Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds
 
 - 需要用最新导出包进行 10 分钟以上实机游玩，重点观察召唤型敌人较多时是否仍有卡顿。
 - 需要在不同 seed 下进入普通房、精英房和 Boss 房，确认敌人/召唤物不会出生贴脸扣血。
+
+## 2026-07-01 命中浮字位置与敌方子弹 owner 生命周期修复
+
+### 问题现象
+
+- 玩家子弹打击敌人时，跳出的扣血浮字会出现在怪物附近以外的位置，实际表现接近玩家或世界原点。
+- 发射子弹的敌人射出的弹药命中玩家，同时玩家子弹击杀该敌人时，仍有概率触发崩溃。
+
+### 根因确认
+
+- `FloatingText.gd` 在 `_ready()` 中记录初始运动起点，但 `Main.gd` 是在节点添加后才设置世界坐标；下一帧浮字运动会回到旧的 `(0,0)` 起点。
+- 玩家子弹命中敌人后会先调用 `apply_damage()`，敌人死亡时进入 `queue_free()`，随后 UI 仍可能通过目标节点推导浮字位置，位置来源不稳定。
+- 敌方子弹持有发射者敌人的强引用，并在后续 raycast / 命中伤害中继续读取 owner；当发射者同帧被玩家击杀释放时，存在访问已释放对象的风险。
+
+### 修复内容
+
+- `FloatingText.setup()` 现在会在 Main 设置好浮字世界坐标后刷新运动起点，浮字不会再被下一帧拉回原点。
+- `Projectile.gd` 在命中瞬间缓存 `last_hit_position`，并写入 metadata；`Main.gd` 的命中浮字优先使用该坐标，不再依赖死亡/释放中的敌人节点。
+- `Projectile.gd` 的 owner 读取增加有效性检查，避免从已释放 owner 读取 RID 或作为伤害来源传递。
+- `EnemyProjectile.gd` 改为发射时缓存 owner RID，并使用 `WeakRef` 安全读取 owner；发射者死亡后命中玩家时，伤害来源会安全降级为 `null`。
+- `CombatFeedbackSmokeTest.gd` 新增两个回归场景：
+  - 玩家子弹击杀敌人后，扣血浮字必须出现在 projectile 命中点附近。
+  - 敌方子弹发射者死亡并释放后，子弹仍能安全命中玩家。
+
+### 自动验证结果
+
+```text
+CombatFeedbackSmokeTest passed.
+WeaponSmokeTest passed.
+EnemyVarietySmokeTest passed.
+BossSmokeTest passed.
+RoomFlowSmokeTest passed.
+FullRunSmokeTest passed.
+Godot headless project startup passed.
+RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=359.0
+Windows release export passed.
+Exported exe RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=434.1
+Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds\Dungeon_Unleashed_Windows_Prototype.zip
+```
+
+### 仍需人工复核
+
+- 请在导出包中重点复测远程敌人：让 Shooter 敌人发射子弹，同时用玩家子弹击杀该 Shooter，观察是否还会崩溃。
+- 导出 exe 自检退出时出现一次 `1 ObjectDB instance was leaked at exit` 警告，未导致自检失败；后续若持续出现，需要单独追踪泄漏对象。

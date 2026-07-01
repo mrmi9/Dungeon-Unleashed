@@ -370,14 +370,14 @@ func _on_projectile_hit(_projectile: Node, _target: Node, _damage: int) -> void:
 	_add_shake(3.5)
 	if _projectile != null and _projectile.has_method("was_last_hit_critical") and bool(_projectile.call("was_last_hit_critical")):
 		return
-	_spawn_floating_text(_get_feedback_position(_target, _projectile), "-%d" % maxi(_damage, 0), Color(1.0, 0.86, 0.34, 1.0), 20, 42.0)
+	_spawn_floating_text(_get_projectile_feedback_position(_projectile, _target), "-%d" % maxi(_damage, 0), Color(1.0, 0.86, 0.34, 1.0), 20, 42.0)
 
 
 func _on_projectile_critical_hit(_projectile: Node, _target: Node, _damage: int) -> void:
 	if run_state == RunState.RUNNING:
 		_critical_hits += 1
 	_add_shake(6.5)
-	_spawn_floating_text(_get_feedback_position(_target, _projectile), "CRIT %d" % maxi(_damage, 0), Color(1.0, 0.3, 0.12, 1.0), 26, 58.0)
+	_spawn_floating_text(_get_projectile_feedback_position(_projectile, _target), "CRIT %d" % maxi(_damage, 0), Color(1.0, 0.3, 0.12, 1.0), 26, 58.0)
 
 
 func _on_enemy_died(enemy: Node) -> void:
@@ -628,10 +628,40 @@ func get_floating_text_count() -> int:
 	return count
 
 
+func get_floating_text_snapshots() -> Array[Dictionary]:
+	var snapshots: Array[Dictionary] = []
+	for node in get_tree().get_nodes_in_group("floating_text"):
+		if not is_instance_valid(node) or node.is_queued_for_deletion():
+			continue
+		var text := ""
+		if node.has_method("get_text"):
+			text = str(node.call("get_text"))
+		var position := Vector2.ZERO
+		if node is Node2D:
+			position = (node as Node2D).global_position
+		snapshots.append({
+			"text": text,
+			"position": position,
+		})
+	return snapshots
+
+
+func _get_projectile_feedback_position(projectile: Node, target: Node) -> Vector2:
+	if projectile != null and is_instance_valid(projectile) and projectile.has_meta(&"last_hit_position"):
+		var metadata_hit_position = projectile.get_meta(&"last_hit_position")
+		if typeof(metadata_hit_position) == TYPE_VECTOR2:
+			return metadata_hit_position
+	if projectile != null and is_instance_valid(projectile) and projectile.has_method("get_last_hit_position"):
+		var hit_position = projectile.call("get_last_hit_position")
+		if typeof(hit_position) == TYPE_VECTOR2:
+			return hit_position
+	return _get_feedback_position(target, projectile)
+
+
 func _get_feedback_position(primary: Node, fallback: Node) -> Vector2:
-	if primary is Node2D:
+	if primary is Node2D and is_instance_valid(primary) and not primary.is_queued_for_deletion():
 		return (primary as Node2D).global_position
-	if fallback is Node2D:
+	if fallback is Node2D and is_instance_valid(fallback) and not fallback.is_queued_for_deletion():
 		return (fallback as Node2D).global_position
 	if is_instance_valid(player):
 		return player.global_position
