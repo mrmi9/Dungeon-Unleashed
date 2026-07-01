@@ -143,6 +143,12 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("debug_map"):
+		if hud != null and hud.has_method("toggle_debug_map_panel"):
+			hud.call("toggle_debug_map_panel")
+			get_viewport().set_input_as_handled()
+		return
+
 	if event.is_action_pressed("pause"):
 		if run_state == RunState.RUNNING:
 			pause_run()
@@ -748,6 +754,7 @@ func _ensure_input_actions() -> void:
 	_bind_key(&"weapon_slot_1", KEY_1)
 	_bind_key(&"weapon_slot_2", KEY_2)
 	_bind_key(&"weapon_slot_3", KEY_3)
+	_bind_key(&"debug_map", KEY_F3)
 	_bind_mouse_button(&"shoot", MOUSE_BUTTON_LEFT)
 
 

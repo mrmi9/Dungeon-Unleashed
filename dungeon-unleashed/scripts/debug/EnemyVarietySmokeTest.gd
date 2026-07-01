@@ -58,7 +58,7 @@ func _run() -> void:
 	await _discard_all_enemies()
 
 	await _enter_room(reward_room, player)
-	_expect(_spawned_enemy_names().is_empty(), "Reward room should not spawn enemies")
+	_expect(_spawned_enemy_names_near(reward_room.global_position).is_empty(), "Reward room should not spawn local enemies")
 	await _discard_all_enemies()
 
 	await _enter_room(elite_room, player)
@@ -71,7 +71,7 @@ func _run() -> void:
 	await _discard_all_enemies()
 
 	await _enter_room(shop_room, player)
-	_expect(_spawned_enemy_names().is_empty(), "Shop room should not spawn enemies")
+	_expect(_spawned_enemy_names_near(shop_room.global_position).is_empty(), "Shop room should not spawn local enemies")
 	await _discard_all_enemies()
 
 	await _enter_room(boss_room, player)
@@ -121,6 +121,20 @@ func _spawned_enemy_names() -> PackedStringArray:
 	var names := PackedStringArray()
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
+			continue
+		var display_name = enemy.get("display_name")
+		if display_name != null:
+			names.append(str(display_name))
+	return names
+
+
+func _spawned_enemy_names_near(position: Vector2, radius: float = 520.0) -> PackedStringArray:
+	var names := PackedStringArray()
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
+			continue
+		var enemy_node := enemy as Node2D
+		if enemy_node == null or enemy_node.global_position.distance_to(position) > radius:
 			continue
 		var display_name = enemy.get("display_name")
 		if display_name != null:

@@ -18,6 +18,7 @@ dungeon-unleashed/builds/**/*.zip
 dungeon-unleashed/builds/Dungeon_Unleashed_Windows_Prototype/
 
 # OS/editor noise
+**/.vs/
 *.log
 Thumbs.db
 .DS_Store

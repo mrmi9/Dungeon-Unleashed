@@ -70,6 +70,16 @@ func _run() -> void:
 		_expect(str(hud.call("get_minimap_debug_text")).contains(last_room_id), "HUD debug tooltip should include dungeon map details")
 	else:
 		_expect(false, "HUD should expose dungeon seed and debug map text for smoke tests")
+	if hud != null and hud.has_method("show_debug_map_panel") and hud.has_method("get_debug_map_panel_text"):
+		hud.call("show_debug_map_panel")
+		await get_tree().process_frame
+		_expect(bool(hud.call("is_debug_map_visible")), "HUD should show the debug map panel")
+		_expect(str(hud.call("get_debug_map_panel_text")).contains("Seed: 424242"), "Debug map panel should include active seed")
+		_expect(str(hud.call("get_debug_map_panel_text")).contains(last_room_id), "Debug map panel should include final boss room id")
+		_expect(bool(hud.call("copy_debug_map_to_clipboard")), "Debug map panel should expose copy-to-clipboard flow")
+		hud.call("hide_debug_map_panel")
+	else:
+		_expect(false, "HUD should expose a debug map panel for playtest reproduction")
 
 	await _verify_exploration_state(controller, combat_rooms, main.get_node("Player"), hud)
 

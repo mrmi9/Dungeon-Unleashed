@@ -20,7 +20,7 @@
 - 武器系统支持射速、散射、多弹丸、弹匣、换弹、暴击、穿透、反弹和爆炸字段。
 - 子弹支持直线飞行、射程销毁、命中敌人、命中墙体、击退和命中特效。
 - 已实现可种子复现的 10-14 房间变量分支路线：主路径 7-9 个节点，支路 3-5 个节点，Boss 固定在主路径末端；奖励房、商店房、可选精英/战斗支路和布局资源会按生成种子选择。
-- HUD 小地图会显示当前地牢 seed；主菜单支持输入固定 seed 或回到随机 seed，结算页支持 Replay Seed；`DungeonController.get_debug_map_text()` 可输出 seed、网格、房间坐标、连接方向和布局，便于复现地图问题。
+- HUD 小地图会显示当前地牢 seed；主菜单支持输入固定 seed 或回到随机 seed，结算页支持 Replay Seed；`DungeonController.get_debug_map_text()` 可输出 seed、网格、房间坐标、连接方向和布局，`F3` 可打开开发者 Debug Map 面板并复制地图文本，便于复现地图问题。
 - 战斗房支持进入触发、锁门、敌人波次、清房开门和奖励生成。
 - 已实现地牢房间数据资源、房间布局资源、房间生成控制器、`layout_data`/`layout_profile` 元数据和 HUD 小地图。
 - 已建立 `resources/room_layouts` 布局库，当前包含 22 个 `.tres` 布局资源；布局资源可配置地面色、刷怪点、奖励点和矩形障碍物。
@@ -7660,7 +7660,7 @@ Shared-read zip contents check passed.
 ### 当前已知限制
 
 - 当前已经不再是固定房间数量和固定房间类型序列，但仍使用一个 `PrototypeCombatRoom.tscn` 配合 `.tres` 布局资源，并非正式 TileMap/独立房间模板库。
-- Debug map 仍主要作为开发辅助文本存在，尚未做成正式游戏内调试面板。
+- `F3` Debug Map 面板已可查看并复制当前 seed 和地图文本，但仍是开发者辅助界面，不是最终玩家 UI。
 - 变量图规则还比较保守，尚未实现多层地牢、事件房、Boss 前休整房或正式地图选择界面。
 - 导出 Windows `.exe` 的自动 CLI 启动验证本轮不稳定，需要人工运行确认真实窗口、音频和输入。
 - 仍缺少人工完整通关试玩对支路可读性、商店时机、Boss 节奏和视觉噪音的确认。
@@ -7668,5 +7668,89 @@ Shared-read zip contents check passed.
 ### 下一步建议
 
 1. 用导出的 Windows 包人工跑 3 个不同 seed，记录路线长度、商店前金币、支路理解成本和 Boss 前资源状态。
-2. 增加正式 debug map 面板或开发者快捷键，支持复制当前 seed 和地图文本。
+2. 继续打磨 Debug Map 面板的信息层级、复制反馈和试玩问题记录格式。
 3. 继续补真实房间模板/TileMap，减少对单一原型场景和矩形障碍物的依赖。
+
+## 2026-07-01 Debug Map 面板与 GitHub 上传前复核
+
+### 本次目标
+
+- 把地牢生成 debug map 从 tooltip/文本能力推进为可在游戏内打开的开发者面板。
+- 在上传 GitHub 前重新验证烟测、主场景启动、静态资源引用、Windows 导出和 zip 包内容。
+- 同步试玩说明、已知问题和开发日志，避免文档仍描述旧状态。
+
+### 已实现
+
+- `Main.gd` 新增 `debug_map` 输入动作处理，默认按键为 `F3`。
+- `HUD.tscn` 新增居中的 `DebugMapPanel`，包含只读地图文本、`Copy Map` 和 `Close` 按钮。
+- `HUD.gd` 新增 Debug Map 面板显示/隐藏、文本刷新、复制剪贴板、响应式布局和输入提示同步。
+- `DungeonGenerationSmokeTest.gd` 新增 Debug Map 面板可见性、seed 文本、最终 Boss 房间 ID 和复制流程断言。
+- `UILayoutSmokeTest.gd` 新增 1280x720、1600x900、1920x1080 下 Debug Map 面板布局检查。
+- `EnemyVarietySmokeTest.gd` 的奖励/商店房无敌人检查改为房间局部范围检查，避免完整烟测套件中残留敌人干扰结论。
+- `.gitignore` 新增 `**/.vs/`，避免本地 IDE 缓存进入版本库或试玩包。
+- `README_PLAYTEST.md` 和 `KNOWN_ISSUES.md` 已同步说明 `F3` Debug Map 面板和 `Copy Map` 反馈用途。
+
+### 自动验证结果
+
+```text
+DungeonGenerationSmokeTest passed.
+UILayoutSmokeTest passed.
+EnemyVarietySmokeTest passed.
+All smoke tests passed.
+Main scene startup passed.
+Resource reference check passed.
+Scene/resource load_steps check passed.
+git diff --check passed.
+Windows release export passed.
+Windows prototype zip contents check passed.
+```
+
+完整烟测套件包含：
+
+```text
+AudioFeedbackSmokeTest
+BalanceSmokeTest
+BossSmokeTest
+ChestSmokeTest
+CombatFeedbackSmokeTest
+DungeonGenerationSmokeTest
+EnemyVarietySmokeTest
+FullRunSmokeTest
+MenuFlowSmokeTest
+RelicSmokeTest
+RoomFlowSmokeTest
+RunSummarySmokeTest
+SettingsSmokeTest
+ShopSmokeTest
+UILayoutSmokeTest
+WeaponSmokeTest
+```
+
+### Windows 导出包复核
+
+当前文件：
+
+```text
+E:\Dungeon Unleashed\dungeon-unleashed\builds\windows\Dungeon Unleashed.exe
+大小：109358904 bytes
+时间：2026-07-01 10:11:36
+
+E:\Dungeon Unleashed\dungeon-unleashed\builds\Dungeon_Unleashed_Windows_Prototype.zip
+大小：38208344 bytes
+时间：2026-07-01 10:11:50
+```
+
+zip 内容：
+
+```text
+Dungeon Unleashed.exe
+KNOWN_ISSUES.md
+PLAYTEST_FEEDBACK.md
+README_PLAYTEST.md
+```
+
+### 当前已知限制
+
+- Debug Map 面板仍是开发者辅助界面，未做成最终玩家 UI。
+- 导出 Windows `.exe` 的自动 CLI 启动验证仍不计入通过，需要人工双击运行确认窗口、音频和输入。
+- 仍缺少人工完整通关试玩对支路可读性、商店时机、Boss 节奏和视觉噪音的确认。

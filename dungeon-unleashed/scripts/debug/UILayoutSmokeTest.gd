@@ -62,6 +62,11 @@ func _check_resolution(resolution: Vector2i) -> void:
 	_check_modal_panel(hud, "RelicChoicePanel", "relic choice panel", resolution)
 
 	hud.call("hide_relic_choices")
+	hud.call("show_debug_map_panel")
+	await get_tree().process_frame
+	_check_modal_panel(hud, "DebugMapPanel", "debug map panel", resolution)
+
+	hud.call("hide_debug_map_panel")
 	hud.call("hide_flow_panels")
 	await get_tree().process_frame
 	_check_gameplay_overlay(hud, resolution)

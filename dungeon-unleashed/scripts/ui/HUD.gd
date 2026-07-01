@@ -18,6 +18,7 @@ const PAUSE_PANEL_SIZE := Vector2(340.0, 252.0)
 const SETTINGS_PANEL_SIZE := Vector2(460.0, 660.0)
 const RESULT_PANEL_SIZE := Vector2(580.0, 588.0)
 const RELIC_CHOICE_PANEL_SIZE := Vector2(720.0, 356.0)
+const DEBUG_MAP_PANEL_SIZE := Vector2(760.0, 560.0)
 
 @onready var health_label: Label = $MarginContainer/VBoxContainer/HealthLabel
 @onready var shield_label: Label = $MarginContainer/VBoxContainer/ShieldLabel
@@ -76,6 +77,10 @@ const RELIC_CHOICE_PANEL_SIZE := Vector2(720.0, 356.0)
 @onready var result_replay_seed_button: Button = $ResultPanel/MarginContainer/VBoxContainer/ReplaySeedButton
 @onready var result_restart_button: Button = $ResultPanel/MarginContainer/VBoxContainer/RestartButton
 @onready var result_menu_button: Button = $ResultPanel/MarginContainer/VBoxContainer/MainMenuButton
+@onready var debug_map_panel: PanelContainer = $DebugMapPanel
+@onready var debug_map_text: TextEdit = $DebugMapPanel/MarginContainer/VBoxContainer/DebugMapText
+@onready var debug_map_copy_button: Button = $DebugMapPanel/MarginContainer/VBoxContainer/ButtonRow/CopyButton
+@onready var debug_map_close_button: Button = $DebugMapPanel/MarginContainer/VBoxContainer/ButtonRow/CloseButton
 
 var _minimap_current_room_id := ""
 var _minimap_debug_text := ""
@@ -119,6 +124,8 @@ func _ready() -> void:
 	result_replay_seed_button.pressed.connect(_on_replay_seed_button_pressed)
 	result_restart_button.pressed.connect(_on_restart_button_pressed)
 	result_menu_button.pressed.connect(_on_main_menu_button_pressed)
+	debug_map_copy_button.pressed.connect(_on_debug_map_copy_button_pressed)
+	debug_map_close_button.pressed.connect(_on_debug_map_close_button_pressed)
 
 
 func _notification(what: int) -> void:
@@ -291,6 +298,7 @@ func hide_flow_panels() -> void:
 	pause_panel.visible = false
 	settings_panel.visible = false
 	result_panel.visible = false
+	debug_map_panel.visible = false
 	_refresh_input_hint_panel_visibility()
 
 
@@ -314,6 +322,8 @@ func update_dungeon_debug_info(seed: int, debug_map_text: String = "") -> void:
 	minimap_seed_label.text = "Seed: %d" % seed
 	_minimap_debug_text = debug_map_text
 	minimap_seed_label.tooltip_text = debug_map_text
+	if debug_map_panel.visible:
+		_refresh_debug_map_panel_text()
 
 
 func update_seed_controls(active_seed: int, configured_seed: int = 0) -> void:
@@ -384,6 +394,40 @@ func get_minimap_seed_text() -> String:
 
 func get_minimap_debug_text() -> String:
 	return _minimap_debug_text
+
+
+func toggle_debug_map_panel() -> void:
+	if debug_map_panel.visible:
+		hide_debug_map_panel()
+	else:
+		show_debug_map_panel()
+
+
+func show_debug_map_panel() -> void:
+	_refresh_debug_map_panel_text()
+	debug_map_panel.visible = true
+	_refresh_input_hint_panel_visibility()
+
+
+func hide_debug_map_panel() -> void:
+	debug_map_panel.visible = false
+	_refresh_input_hint_panel_visibility()
+
+
+func copy_debug_map_to_clipboard() -> bool:
+	var text := get_debug_map_panel_text()
+	if text.is_empty():
+		return false
+	DisplayServer.clipboard_set(text)
+	return true
+
+
+func is_debug_map_visible() -> bool:
+	return debug_map_panel.visible
+
+
+func get_debug_map_panel_text() -> String:
+	return debug_map_text.text
 
 
 func get_seed_input_text() -> String:
@@ -514,6 +558,7 @@ func _update_responsive_layout() -> void:
 	_fit_centered_panel(settings_panel, SETTINGS_PANEL_SIZE, viewport_size)
 	_fit_centered_panel(result_panel, RESULT_PANEL_SIZE, viewport_size)
 	_fit_centered_panel(relic_choice_panel, RELIC_CHOICE_PANEL_SIZE, viewport_size)
+	_fit_centered_panel(debug_map_panel, DEBUG_MAP_PANEL_SIZE, viewport_size)
 	_fit_input_hint_panel(viewport_size)
 
 
@@ -552,6 +597,7 @@ func _refresh_input_hint_panel_visibility() -> void:
 		or settings_panel.visible
 		or result_panel.visible
 		or relic_choice_panel.visible
+		or debug_map_panel.visible
 	)
 
 
@@ -937,7 +983,7 @@ func _setup_control_rebind_buttons() -> void:
 
 
 func _update_input_hint() -> void:
-	input_hint_label.text = "Move %s/%s/%s/%s | Aim Mouse | Shoot LMB | Reload %s | Weapons 1/2/3 | Interact %s | Pause %s" % [
+	input_hint_label.text = "Move %s/%s/%s/%s | Aim Mouse | Shoot LMB | Reload %s | Weapons 1/2/3 | Interact %s | Pause %s | Debug %s" % [
 		_get_action_key_label("move_up"),
 		_get_action_key_label("move_left"),
 		_get_action_key_label("move_down"),
@@ -945,7 +991,15 @@ func _update_input_hint() -> void:
 		_get_action_key_label("reload"),
 		_get_action_key_label("interact"),
 		_get_action_key_label("pause"),
+		_get_action_key_label("debug_map"),
 	]
+
+
+func _refresh_debug_map_panel_text() -> void:
+	if _minimap_debug_text.is_empty():
+		debug_map_text.text = "No dungeon debug map available."
+		return
+	debug_map_text.text = _minimap_debug_text
 
 
 func _update_control_rebind_buttons() -> void:
@@ -1044,3 +1098,14 @@ func _on_settings_back_button_pressed() -> void:
 
 func _on_replay_seed_button_pressed() -> void:
 	_call_flow("replay_current_seed")
+
+
+func _on_debug_map_copy_button_pressed() -> void:
+	if copy_debug_map_to_clipboard():
+		show_message("Debug Map Copied")
+	else:
+		show_message("No Debug Map")
+
+
+func _on_debug_map_close_button_pressed() -> void:
+	hide_debug_map_panel()
