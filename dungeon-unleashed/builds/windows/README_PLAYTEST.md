@@ -2,6 +2,7 @@
 
 Build date: 2026-07-01
 Engine: Godot 4.7 stable
+Renderer: GL Compatibility / OpenGL
 
 ## How To Run
 

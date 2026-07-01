@@ -7754,3 +7754,86 @@ README_PLAYTEST.md
 - Debug Map 面板仍是开发者辅助界面，未做成最终玩家 UI。
 - 导出 Windows `.exe` 的自动 CLI 启动验证仍不计入通过，需要人工双击运行确认窗口、音频和输入。
 - 仍缺少人工完整通关试玩对支路可读性、商店时机、Boss 节奏和视觉噪音的确认。
+
+## 2026-07-01 Windows 导出无敌人与访问冲突修复
+
+### 问题现象
+
+- 验证导出 `.exe` 时多次出现 Windows 应用程序错误，错误表现为访问冲突读取 `0x0000000000000050`。
+- 解压 `Dungeon_Unleashed_Windows_Prototype.zip` 后启动游戏，房间会直接进入清理状态，整局没有敌人。
+
+### 根因确认
+
+- 新增导出运行时自检 `--runtime-room-check` 后，旧导出包复现为：
+
+```text
+RuntimeRoomSpawnCheck failed: first_room_state=3 enemies=0 expected_wave=0
+```
+
+- 这说明导出包内第一间房直接变成 `CLEARED`，并且 `wave_enemy_counts` 在导出运行时为空。
+- 根因不是敌人场景缺失，而是导出后的自定义 `RoomData.tres -> .res` 运行时字段读取不可靠，导致地牢控制器通过动态 `Resource.get()`/`Node.set()` 写入 CombatRoom 的核心字段时拿到空配置。
+
+### 修复内容
+
+- `DungeonController.gd` 增加房间配置 fallback 表：
+  - start、combat、reward、elite、shop、boss 六类房间的核心配置可由代码常量恢复。
+  - fallback 覆盖房间类型、布局、敌人场景、敌人名称、波次、奖励场景、锁门规则、自动清房规则和精英参数。
+- `DungeonController.gd` 改为强类型写入 `CombatRoom` 字段，减少导出后动态反射失效风险。
+- `CombatRoom.gd` 改为强类型读取 `RoomLayoutData`，避免布局字段在导出运行时失效。
+- `CombatRoom.gd` 增加未进入状态下的物理帧 overlap 兜底检查，避免一次性延迟检查错过玩家导致房间不触发。
+- `Main.gd` 增加仅命令行触发的 `--runtime-room-check` 导出运行时自检：
+  - 固定 seed `424242`。
+  - 启动新局。
+  - 等待第一间房触发。
+  - 断言第一间房进入 Combat 且生成第一波敌人。
+- `RoomFlowSmokeTest.gd` 新增从主菜单开始后第一间房自然刷怪断言。
+- `project.godot` 默认渲染改为 GL Compatibility / OpenGL，降低 Windows D3D12 导出运行时访问冲突风险。
+
+### 自动验证结果
+
+```text
+RuntimeRoomSpawnCheck passed in Godot project.
+All smoke tests passed.
+Main scene startup passed.
+Resource reference check passed.
+Scene/resource load_steps check passed.
+git diff --check passed.
+Windows release export passed.
+Exported exe runtime room-spawn check passed.
+Windows prototype zip contents check passed.
+```
+
+导出 `.exe` 运行时自检结果：
+
+```text
+Godot Engine v4.7.stable.official.5b4e0cb0f
+OpenGL API 3.3.0 - Compatibility
+RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2
+```
+
+### Windows 导出包复核
+
+当前文件：
+
+```text
+E:\Dungeon Unleashed\dungeon-unleashed\builds\windows\Dungeon Unleashed.exe
+大小：109366488 bytes
+时间：2026-07-01 10:31:27
+
+E:\Dungeon Unleashed\dungeon-unleashed\builds\Dungeon_Unleashed_Windows_Prototype.zip
+大小：38215397 bytes
+时间：2026-07-01 10:32:45
+```
+
+zip 内容：
+
+```text
+Dungeon Unleashed.exe
+KNOWN_ISSUES.md
+PLAYTEST_FEEDBACK.md
+README_PLAYTEST.md
+```
+
+### 当前仍需人工复核
+
+- 导出包已经验证可以启动运行时刷怪，但仍需要人工完整通关确认窗口显示、真实输入、音频、节奏和 Boss 体验。

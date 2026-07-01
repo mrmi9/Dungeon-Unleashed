@@ -4,7 +4,7 @@ Last updated: 2026-07-01
 
 ## High Priority
 
-- Full manual gameplay validation is still required on the exported Windows build. Godot project headless startup, export generation, and zip packaging have passed; exported `.exe` automatic startup validation is currently unreliable in CLI and should be confirmed by a human launch.
+- Full manual gameplay validation is still required on the exported Windows build. Godot project headless startup, export generation, zip packaging, and exported `.exe` runtime room-spawn validation have passed; a human full playthrough is still required for controls, audio, and pacing.
 - Basic UI layout is now covered by an automated 1280x720 / 1600x900 / 1920x1080 smoke test, but manual visual review is still required for final spacing, hierarchy, and readability.
 - A first automated balance pass is in place for route economy, shop prices, elite pressure, and boss health, but manual playtest tuning is still required.
 - Boss fight is still prototype-grade. It now has a clear phase transition pause, warning, and basic floor hazard arena pressure, but still needs final encounter tuning.
@@ -32,7 +32,7 @@ Last updated: 2026-07-01
 
 - Main Godot scene starts in headless CLI.
 - Windows release `.exe` export completed.
-- Exported `.exe` automatic headless startup was attempted this round but is not counted as passed because the exported runner did not reliably quit from CLI.
+- Exported `.exe` startup and first-room enemy spawning are verified through the OpenGL/Compatibility runtime room-spawn check.
 - Full smoke test suite passes.
 - Resource reference and scene `load_steps` checks pass.
 - Windows prototype zip is generated.

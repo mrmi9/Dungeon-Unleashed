@@ -34,6 +34,12 @@ func _run() -> void:
 		_finish()
 		return
 
+	var start_room = rooms[0]
+	_expect(start_room.state == ROOM_STATE_COMBAT, "Start room should naturally enter COMBAT after starting from main menu")
+	var start_wave_counts = start_room.wave_enemy_counts
+	if start_wave_counts.size() > 0:
+		_expect(_enemy_count() == start_wave_counts[0], "Start room should spawn the first enemy wave without test teleport")
+
 	for room in rooms:
 		await _complete_room(room, player)
 

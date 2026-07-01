@@ -91,6 +91,13 @@ func _process(delta: float) -> void:
 	_boss_arena_hazard_timer = boss_arena_hazard_interval
 
 
+func _physics_process(_delta: float) -> void:
+	if _room_stopped or state != RoomState.UNENTERED:
+		return
+
+	_check_initial_overlap()
+
+
 func get_state_name() -> String:
 	match state:
 		RoomState.UNENTERED:
@@ -513,45 +520,33 @@ func _apply_layout_data(data: Resource) -> bool:
 	if data == null:
 		return false
 
-	var layout_id = data.get("id")
-	if layout_id != null and not str(layout_id).is_empty():
-		layout_profile = str(layout_id)
+	var layout := data as RoomLayoutData
+	if layout == null:
+		return false
 
-	var color_value = data.get("floor_color")
-	if color_value is Color:
-		_set_floor_color(color_value)
+	if not str(layout.id).is_empty():
+		layout_profile = str(layout.id)
 
-	var spawn_value = data.get("spawn_positions")
-	if spawn_value != null and spawn_value.size() > 0:
-		_set_spawn_positions(spawn_value)
+	_set_floor_color(layout.floor_color)
+	if layout.spawn_positions.size() > 0:
+		_set_spawn_positions(layout.spawn_positions)
 
-	var reward_value = data.get("reward_position")
-	if reward_value is Vector2:
-		reward_spawn.position = reward_value
+	reward_spawn.position = layout.reward_position
 
-	var obstacle_names_value = data.get("obstacle_names")
-	var obstacle_positions_value = data.get("obstacle_positions")
-	var obstacle_sizes_value = data.get("obstacle_sizes")
-	var obstacle_colors_value = data.get("obstacle_colors")
-	if obstacle_positions_value == null or obstacle_sizes_value == null:
-		return true
-
-	var obstacle_count: int = mini(obstacle_positions_value.size(), obstacle_sizes_value.size())
+	var obstacle_count: int = layout.get_obstacle_count()
 	for index in range(obstacle_count):
 		var obstacle_name := "%sObstacle%d" % [layout_profile.capitalize().replace(" ", ""), index + 1]
-		if obstacle_names_value != null and index < obstacle_names_value.size():
-			obstacle_name = str(obstacle_names_value[index])
+		if index < layout.obstacle_names.size():
+			obstacle_name = str(layout.obstacle_names[index])
 
 		var obstacle_color := Color(0.24, 0.26, 0.29, 1.0)
-		if obstacle_colors_value != null and index < obstacle_colors_value.size():
-			var color_candidate = obstacle_colors_value[index]
-			if color_candidate is Color:
-				obstacle_color = color_candidate
+		if index < layout.obstacle_colors.size():
+			obstacle_color = layout.obstacle_colors[index]
 
 		_add_layout_obstacle(
 			obstacle_name,
-			obstacle_positions_value[index],
-			obstacle_sizes_value[index],
+			layout.obstacle_positions[index],
+			layout.obstacle_sizes[index],
 			obstacle_color
 		)
 

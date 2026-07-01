@@ -4,6 +4,9 @@ const SETTINGS_PATH := "user://settings.cfg"
 const SFX_BUS := "SFX"
 const MUSIC_BUS := "Music"
 const MAX_DUNGEON_SEED := 2147483647
+const RUNTIME_ROOM_CHECK_ARG := "--runtime-room-check"
+const RUNTIME_ROOM_CHECK_SEED := 424242
+const RUNTIME_ROOM_CHECK_FAILURE_EXIT_CODE := 61
 const AVAILABLE_RESOLUTIONS := [
 	Vector2i(1280, 720),
 	Vector2i(1600, 900),
@@ -126,6 +129,8 @@ func _ready() -> void:
 	hud.update_settings_controls(_settings_master_volume, _settings_sfx_volume, _settings_music_volume, _settings_fullscreen, _settings_resolution_index)
 	hud.refresh_input_bindings()
 	_enter_main_menu()
+	if _has_user_argument(RUNTIME_ROOM_CHECK_ARG):
+		call_deferred("_run_runtime_room_spawn_check")
 
 
 func _process(delta: float) -> void:
@@ -654,6 +659,51 @@ func sync_dungeon_hud() -> void:
 	_sync_dungeon_hud()
 
 
+func _run_runtime_room_spawn_check() -> void:
+	var controller := _get_dungeon_controller()
+	if controller != null and controller.has_method("regenerate_with_seed"):
+		controller.call("regenerate_with_seed", RUNTIME_ROOM_CHECK_SEED)
+
+	start_new_run()
+	await get_tree().process_frame
+	await get_tree().physics_frame
+	await get_tree().create_timer(0.2).timeout
+
+	var rooms: Array = []
+	if controller != null and controller.has_method("get_combat_rooms"):
+		rooms = controller.call("get_combat_rooms")
+
+	if rooms.is_empty():
+		push_error("RuntimeRoomSpawnCheck failed: no combat rooms generated")
+		get_tree().quit(RUNTIME_ROOM_CHECK_FAILURE_EXIT_CODE)
+		return
+
+	var first_room := rooms[0] as CombatRoom
+	var enemy_count := _runtime_alive_enemy_count()
+	var expected_wave_count := 0
+	var wave_counts := PackedInt32Array()
+	if first_room != null:
+		wave_counts = first_room.wave_enemy_counts
+	if wave_counts.size() > 0:
+		expected_wave_count = int(wave_counts[0])
+
+	if first_room == null or first_room.state != 2 or enemy_count <= 0 or expected_wave_count <= 0:
+		push_error("RuntimeRoomSpawnCheck failed: first_room_state=%s enemies=%d expected_wave=%d" % [
+			str(first_room.state if first_room != null else "missing"),
+			enemy_count,
+			expected_wave_count,
+		])
+		get_tree().quit(RUNTIME_ROOM_CHECK_FAILURE_EXIT_CODE)
+		return
+
+	print("RuntimeRoomSpawnCheck passed: first_room_state=%s enemies=%d expected_wave=%d" % [
+		str(first_room.state),
+		enemy_count,
+		expected_wave_count,
+	])
+	get_tree().quit(0)
+
+
 func _apply_dungeon_seed_text(seed_text: String, show_feedback: bool) -> bool:
 	if run_state != RunState.MAIN_MENU:
 		if show_feedback:
@@ -729,6 +779,24 @@ func _get_active_dungeon_seed() -> int:
 func _refresh_seed_controls() -> void:
 	if hud != null and hud.has_method("update_seed_controls"):
 		hud.call("update_seed_controls", _get_active_dungeon_seed(), _settings_dungeon_seed)
+
+
+func _runtime_alive_enemy_count() -> int:
+	var count := 0
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(node) or node.is_queued_for_deletion():
+			continue
+		if node.has_method("is_dead") and node.call("is_dead"):
+			continue
+		count += 1
+	return count
+
+
+func _has_user_argument(argument: String) -> bool:
+	for candidate in OS.get_cmdline_user_args():
+		if candidate == argument:
+			return true
+	return false
 
 
 func _reset_run_stats() -> void:

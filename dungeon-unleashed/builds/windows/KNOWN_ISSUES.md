@@ -14,4 +14,4 @@ Last updated: 2026-07-01
 - Key rebinding supports movement, reload, interact, and pause; mouse shoot and weapon number slots are still fixed.
 - Result screen uses grouped text sections, but still needs visual polish.
 - Build is unsigned and may trigger a Windows security warning.
-- Godot project headless startup, export generation, and zip packaging are verified. Exported `.exe` automatic startup validation is currently unreliable in CLI, so a human launch and full manual playthrough are still required.
+- Godot project headless startup, export generation, zip packaging, and exported `.exe` runtime room-spawn validation are verified. A human launch and full manual playthrough are still required for controls, audio, pacing, and final feel.

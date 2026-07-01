@@ -30,6 +30,19 @@ const NARROW_GAP_LAYOUT := preload("res://resources/room_layouts/narrow_gap.tres
 const OPEN_CROSS_LAYOUT := preload("res://resources/room_layouts/open_cross.tres")
 const TWIN_ISLANDS_LAYOUT := preload("res://resources/room_layouts/twin_islands.tres")
 const WIDE_ARENA_LAYOUT := preload("res://resources/room_layouts/wide_arena.tres")
+const COIN_PICKUP_SCENE := preload("res://scenes/pickups/CoinPickup.tscn")
+const RELIC_PICKUP_SCENE := preload("res://scenes/pickups/RelicPickup.tscn")
+const NORMAL_CHEST_SCENE := preload("res://scenes/chests/NormalChest.tscn")
+const PREMIUM_CHEST_SCENE := preload("res://scenes/chests/PremiumChest.tscn")
+const BOSS_REWARD_CHEST_SCENE := preload("res://scenes/chests/BossRewardChest.tscn")
+const SHOP_INVENTORY_SCENE := preload("res://scenes/shop/ShopInventory.tscn")
+const CHASER_ENEMY_SCENE := preload("res://scenes/enemies/ChaserEnemy.tscn")
+const SHOOTER_ENEMY_SCENE := preload("res://scenes/enemies/ShooterEnemy.tscn")
+const CHARGER_ENEMY_SCENE := preload("res://scenes/enemies/ChargerEnemy.tscn")
+const SUMMONER_ENEMY_SCENE := preload("res://scenes/enemies/SummonerEnemy.tscn")
+const SHIELD_ENEMY_SCENE := preload("res://scenes/enemies/ShieldEnemy.tscn")
+const BOMBER_ENEMY_SCENE := preload("res://scenes/enemies/BomberEnemy.tscn")
+const BOSS_ENEMY_SCENE := preload("res://scenes/enemies/BossEnemy.tscn")
 const MAIN_PATH_MIN_ROOMS := 7
 const MAIN_PATH_MAX_ROOMS := 9
 const BRANCH_MIN_ROOMS := 3
@@ -181,10 +194,10 @@ func _build_room_record(index: int, _room_count: int, room_data: Resource, defin
 		"layout_profile": _get_layout_id(room_data, layout_data),
 		"enemy_pool": _get_room_data_packed_strings(room_data, "enemy_names"),
 		"wave_counts": _get_room_data_wave_counts(room_data),
-		"auto_clear": bool(room_data.get("auto_clear_on_enter")),
-		"locks_doors": bool(room_data.get("lock_doors_during_combat")),
-		"has_reward": room_data.get("reward_scene") != null,
-		"elite_enemies": bool(room_data.get("elite_enemies")),
+		"auto_clear": _get_room_data_auto_clear(room_data),
+		"locks_doors": _get_room_data_lock_doors(room_data),
+		"has_reward": _get_room_data_reward_scene(room_data) != null,
+		"elite_enemies": _get_room_data_elite_enemies(room_data),
 		"visited": false,
 		"cleared": false,
 		"current": false,
@@ -193,23 +206,27 @@ func _build_room_record(index: int, _room_count: int, room_data: Resource, defin
 
 
 func _apply_room_config(combat_room: Node, room_data: Resource, connections: PackedStringArray, layout_override = null) -> void:
+	var typed_room := combat_room as CombatRoom
+	if typed_room == null:
+		return
+
 	var layout_data := layout_override as Resource
 	if layout_data == null:
 		layout_data = _get_room_layout_data(room_data)
-	combat_room.set("room_type", _get_room_data_string(room_data, "room_type", "combat"))
-	combat_room.set("layout_profile", _get_layout_id(room_data, layout_data))
-	combat_room.set("layout_data", layout_data)
-	combat_room.set("connected_directions", connections)
-	combat_room.set("enemy_scenes", room_data.get("enemy_scenes"))
-	combat_room.set("wave_enemy_counts", _get_room_data_wave_counts(room_data))
-	combat_room.set("reward_scene", room_data.get("reward_scene"))
-	combat_room.set("lock_doors_during_combat", bool(room_data.get("lock_doors_during_combat")))
-	combat_room.set("auto_clear_on_enter", bool(room_data.get("auto_clear_on_enter")))
-	combat_room.set("elite_enemies", bool(room_data.get("elite_enemies")))
-	combat_room.set("elite_health_multiplier", float(room_data.get("elite_health_multiplier")))
-	combat_room.set("elite_damage_multiplier", float(room_data.get("elite_damage_multiplier")))
-	combat_room.set("elite_death_explosion_radius", float(room_data.get("elite_death_explosion_radius")))
-	combat_room.set("elite_death_explosion_damage", int(room_data.get("elite_death_explosion_damage")))
+	typed_room.room_type = _get_room_data_string(room_data, "room_type", "combat")
+	typed_room.layout_profile = _get_layout_id(room_data, layout_data)
+	typed_room.layout_data = layout_data
+	typed_room.connected_directions = connections
+	typed_room.enemy_scenes = _get_room_data_enemy_scenes(room_data)
+	typed_room.wave_enemy_counts = _get_room_data_wave_counts(room_data)
+	typed_room.reward_scene = _get_room_data_reward_scene(room_data)
+	typed_room.lock_doors_during_combat = _get_room_data_lock_doors(room_data)
+	typed_room.auto_clear_on_enter = _get_room_data_auto_clear(room_data)
+	typed_room.elite_enemies = _get_room_data_elite_enemies(room_data)
+	typed_room.elite_health_multiplier = _get_room_data_elite_health_multiplier(room_data)
+	typed_room.elite_damage_multiplier = _get_room_data_elite_damage_multiplier(room_data)
+	typed_room.elite_death_explosion_radius = _get_room_data_elite_death_explosion_radius(room_data)
+	typed_room.elite_death_explosion_damage = _get_room_data_elite_death_explosion_damage(room_data)
 
 
 func _get_room_definitions() -> Array[Dictionary]:
@@ -439,30 +456,53 @@ func _layout_pool_for_room_data(room_data: Resource) -> Array:
 
 
 func _get_room_scene(room_data: Resource) -> PackedScene:
-	var scene := room_data.get("room_scene") as PackedScene
-	if scene != null:
-		return scene
+	var config := _get_room_data_config(room_data)
+	if config.has("room_scene") and config["room_scene"] is PackedScene:
+		return config["room_scene"] as PackedScene
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null and typed_room_data.room_scene != null:
+		return typed_room_data.room_scene
 	return PROTOTYPE_ROOM_SCENE
 
 
 func _get_room_data_id(room_data: Resource) -> String:
-	var value = room_data.get("id")
-	if value == null:
+	var config := _get_room_data_config(room_data)
+	if config.has("id"):
+		return str(config["id"])
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data == null:
 		return ""
-	return str(value)
+	return str(typed_room_data.id)
 
 
 func _get_room_data_string(room_data: Resource, property_name: String, fallback: String) -> String:
-	var value = room_data.get(property_name)
-	if value == null:
+	var config := _get_room_data_config(room_data)
+	if config.has(property_name):
+		return str(config[property_name])
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data == null:
 		return fallback
-	return str(value)
+	match property_name:
+		"room_type":
+			return typed_room_data.room_type
+		"template_id":
+			return typed_room_data.template_id
+		"layout_profile":
+			return typed_room_data.layout_profile
+	return fallback
 
 
 func _get_room_layout_data(room_data: Resource) -> Resource:
-	var value = room_data.get("layout_data")
-	if value is Resource:
-		return value
+	var config := _get_room_data_config(room_data)
+	if config.has("layout_data") and config["layout_data"] is Resource:
+		return config["layout_data"] as Resource
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null and typed_room_data.layout_data != null:
+		return typed_room_data.layout_data
 	return null
 
 
@@ -478,9 +518,9 @@ func _get_layout_id(room_data: Resource, layout_override: Resource = null) -> St
 	if layout_data == null:
 		layout_data = _get_room_layout_data(room_data)
 	if layout_data != null:
-		var layout_id = layout_data.get("id")
-		if layout_id != null and not str(layout_id).is_empty():
-			return str(layout_id)
+		var typed_layout := layout_data as RoomLayoutData
+		if typed_layout != null and not str(typed_layout.id).is_empty():
+			return str(typed_layout.id)
 	return _get_room_data_string(room_data, "layout_profile", "crossfire")
 
 
@@ -527,12 +567,10 @@ func _pick_layout(pool: Array, used_layout_ids: Dictionary) -> Resource:
 
 
 func _get_layout_resource_id(layout: Resource) -> String:
-	if layout == null:
+	var typed_layout := layout as RoomLayoutData
+	if typed_layout == null:
 		return ""
-	var value = layout.get("id")
-	if value == null:
-		return ""
-	return str(value)
+	return str(typed_layout.id)
 
 
 func _packed_connections(values: Array) -> PackedStringArray:
@@ -631,17 +669,246 @@ func _boss_layout_pool() -> Array:
 
 
 func _get_room_data_packed_strings(room_data: Resource, property_name: String) -> PackedStringArray:
-	var value = room_data.get(property_name)
-	if value is PackedStringArray:
-		return value
+	var config := _get_room_data_config(room_data)
+	if config.has(property_name) and config[property_name] is PackedStringArray:
+		return config[property_name]
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null and property_name == "enemy_names":
+		return typed_room_data.enemy_names
 	return PackedStringArray()
 
 
 func _get_room_data_wave_counts(room_data: Resource) -> PackedInt32Array:
-	var value = room_data.get("wave_enemy_counts")
-	if value is PackedInt32Array:
-		return value
+	var config := _get_room_data_config(room_data)
+	if config.has("wave_enemy_counts") and config["wave_enemy_counts"] is PackedInt32Array:
+		return config["wave_enemy_counts"]
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null:
+		return typed_room_data.wave_enemy_counts
 	return PackedInt32Array()
+
+
+func _get_room_data_enemy_scenes(room_data: Resource) -> Array[PackedScene]:
+	var config := _get_room_data_config(room_data)
+	if config.has("enemy_scenes"):
+		var configured_scenes: Array[PackedScene] = []
+		for scene in config["enemy_scenes"]:
+			if scene is PackedScene:
+				configured_scenes.append(scene)
+		return configured_scenes
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null:
+		return typed_room_data.enemy_scenes
+	return []
+
+
+func _get_room_data_reward_scene(room_data: Resource) -> PackedScene:
+	var config := _get_room_data_config(room_data)
+	if config.has("reward_scene") and config["reward_scene"] is PackedScene:
+		return config["reward_scene"] as PackedScene
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null:
+		return typed_room_data.reward_scene
+	return null
+
+
+func _get_room_data_lock_doors(room_data: Resource) -> bool:
+	var config := _get_room_data_config(room_data)
+	if config.has("lock_doors_during_combat"):
+		return bool(config["lock_doors_during_combat"])
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null:
+		return typed_room_data.lock_doors_during_combat
+	return true
+
+
+func _get_room_data_auto_clear(room_data: Resource) -> bool:
+	var config := _get_room_data_config(room_data)
+	if config.has("auto_clear_on_enter"):
+		return bool(config["auto_clear_on_enter"])
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null:
+		return typed_room_data.auto_clear_on_enter
+	return false
+
+
+func _get_room_data_elite_enemies(room_data: Resource) -> bool:
+	var config := _get_room_data_config(room_data)
+	if config.has("elite_enemies"):
+		return bool(config["elite_enemies"])
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null:
+		return typed_room_data.elite_enemies
+	return false
+
+
+func _get_room_data_elite_health_multiplier(room_data: Resource) -> float:
+	var config := _get_room_data_config(room_data)
+	if config.has("elite_health_multiplier"):
+		return float(config["elite_health_multiplier"])
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null:
+		return typed_room_data.elite_health_multiplier
+	return 1.0
+
+
+func _get_room_data_elite_damage_multiplier(room_data: Resource) -> float:
+	var config := _get_room_data_config(room_data)
+	if config.has("elite_damage_multiplier"):
+		return float(config["elite_damage_multiplier"])
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null:
+		return typed_room_data.elite_damage_multiplier
+	return 1.0
+
+
+func _get_room_data_elite_death_explosion_radius(room_data: Resource) -> float:
+	var config := _get_room_data_config(room_data)
+	if config.has("elite_death_explosion_radius"):
+		return float(config["elite_death_explosion_radius"])
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null:
+		return typed_room_data.elite_death_explosion_radius
+	return 0.0
+
+
+func _get_room_data_elite_death_explosion_damage(room_data: Resource) -> int:
+	var config := _get_room_data_config(room_data)
+	if config.has("elite_death_explosion_damage"):
+		return int(config["elite_death_explosion_damage"])
+
+	var typed_room_data := room_data as RoomData
+	if typed_room_data != null:
+		return typed_room_data.elite_death_explosion_damage
+	return 0
+
+
+func _get_room_data_config(room_data: Resource) -> Dictionary:
+	match _get_room_data_key(room_data):
+		"start_room":
+			return {
+				"id": "start_room",
+				"room_type": "start",
+				"template_id": "prototype_combat_room",
+				"layout_profile": "training",
+				"layout_data": TRAINING_LAYOUT,
+				"room_scene": PROTOTYPE_ROOM_SCENE,
+				"enemy_scenes": [CHASER_ENEMY_SCENE],
+				"enemy_names": PackedStringArray(["Chaser"]),
+				"wave_enemy_counts": PackedInt32Array([2, 4]),
+				"reward_scene": COIN_PICKUP_SCENE,
+				"lock_doors_during_combat": true,
+				"auto_clear_on_enter": false,
+			}
+		"combat_room":
+			return {
+				"id": "combat_room",
+				"room_type": "combat",
+				"template_id": "prototype_combat_room",
+				"layout_profile": "crossfire",
+				"layout_data": CROSSFIRE_LAYOUT,
+				"room_scene": PROTOTYPE_ROOM_SCENE,
+				"enemy_scenes": [CHASER_ENEMY_SCENE, SHOOTER_ENEMY_SCENE, BOMBER_ENEMY_SCENE],
+				"enemy_names": PackedStringArray(["Chaser", "Shooter", "Bomber"]),
+				"wave_enemy_counts": PackedInt32Array([3, 5]),
+				"reward_scene": NORMAL_CHEST_SCENE,
+				"lock_doors_during_combat": true,
+				"auto_clear_on_enter": false,
+			}
+		"reward_room":
+			return {
+				"id": "reward_room",
+				"room_type": "reward",
+				"template_id": "prototype_combat_room",
+				"layout_profile": "reward_cache",
+				"layout_data": REWARD_CACHE_LAYOUT,
+				"room_scene": PROTOTYPE_ROOM_SCENE,
+				"enemy_scenes": [],
+				"enemy_names": PackedStringArray(),
+				"wave_enemy_counts": PackedInt32Array(),
+				"reward_scene": RELIC_PICKUP_SCENE,
+				"lock_doors_during_combat": false,
+				"auto_clear_on_enter": true,
+			}
+		"elite_room":
+			return {
+				"id": "elite_room",
+				"room_type": "elite",
+				"template_id": "prototype_combat_room",
+				"layout_profile": "pillars",
+				"layout_data": PILLARS_LAYOUT,
+				"room_scene": PROTOTYPE_ROOM_SCENE,
+				"enemy_scenes": [SHOOTER_ENEMY_SCENE, CHARGER_ENEMY_SCENE, SUMMONER_ENEMY_SCENE, SHIELD_ENEMY_SCENE, BOMBER_ENEMY_SCENE, CHASER_ENEMY_SCENE],
+				"enemy_names": PackedStringArray(["Shooter", "Charger", "Summoner", "Shielded", "Bomber", "Chaser"]),
+				"wave_enemy_counts": PackedInt32Array([4, 5]),
+				"reward_scene": PREMIUM_CHEST_SCENE,
+				"lock_doors_during_combat": true,
+				"auto_clear_on_enter": false,
+				"elite_enemies": true,
+				"elite_health_multiplier": 1.65,
+				"elite_damage_multiplier": 1.35,
+				"elite_death_explosion_radius": 120.0,
+				"elite_death_explosion_damage": 1,
+			}
+		"shop_room":
+			return {
+				"id": "shop_room",
+				"room_type": "shop",
+				"template_id": "prototype_combat_room",
+				"layout_profile": "market",
+				"layout_data": MARKET_LAYOUT,
+				"room_scene": PROTOTYPE_ROOM_SCENE,
+				"enemy_scenes": [],
+				"enemy_names": PackedStringArray(),
+				"wave_enemy_counts": PackedInt32Array(),
+				"reward_scene": SHOP_INVENTORY_SCENE,
+				"lock_doors_during_combat": false,
+				"auto_clear_on_enter": true,
+			}
+		"boss_placeholder_room", "boss_room":
+			return {
+				"id": "boss_room",
+				"room_type": "boss",
+				"template_id": "prototype_combat_room",
+				"layout_profile": "boss_arena",
+				"layout_data": BOSS_ARENA_LAYOUT,
+				"room_scene": PROTOTYPE_ROOM_SCENE,
+				"enemy_scenes": [BOSS_ENEMY_SCENE],
+				"enemy_names": PackedStringArray(["Dungeon Core"]),
+				"wave_enemy_counts": PackedInt32Array([1]),
+				"reward_scene": BOSS_REWARD_CHEST_SCENE,
+				"lock_doors_during_combat": true,
+				"auto_clear_on_enter": false,
+			}
+	return {}
+
+
+func _get_room_data_key(room_data: Resource) -> String:
+	if room_data == START_ROOM_DATA:
+		return "start_room"
+	if room_data == COMBAT_ROOM_DATA:
+		return "combat_room"
+	if room_data == REWARD_ROOM_DATA:
+		return "reward_room"
+	if room_data == ELITE_ROOM_DATA:
+		return "elite_room"
+	if room_data == SHOP_ROOM_DATA:
+		return "shop_room"
+	if room_data == BOSS_PLACEHOLDER_ROOM_DATA:
+		return "boss_placeholder_room"
+	if room_data != null and not room_data.resource_path.is_empty():
+		return room_data.resource_path.get_file().get_basename()
+	return ""
 
 
 func _get_debug_grid_lines() -> PackedStringArray:
