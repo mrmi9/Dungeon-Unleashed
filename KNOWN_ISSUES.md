@@ -13,11 +13,11 @@ Last updated: 2026-07-01
 
 - Visuals are placeholder geometry.
 - Audio is procedural placeholder audio, not authored final sound.
-- Room layout data now includes 22 `.tres` layouts, and the playable route is now a seeded 10-14 room graph with a 7-9 room main path and 3-5 branch rooms. It still uses one prototype room scene, not a true 20 to 30 distinct instantiated room-template layer or TileMap room set.
+- Room layout data now includes 22 `.tres` layouts, and the playable route is now a seeded 12-15 room graph with a 7-9 room main path and 5-6 branch rooms, including reward, armory, healing, shop, and optional combat/elite branches. It still uses one prototype room scene, not a true 20 to 30 distinct instantiated room-template layer or TileMap room set.
 - The active dungeon seed is visible on the minimap, the main menu supports fixed seed entry/random seed mode, the result screen can replay the current seed, and `F3` opens a developer debug map panel with copy support. The panel is functional but still developer-facing rather than polished production UI.
 - Resolution settings support only three presets: 1280x720, 1600x900, 1920x1080.
 - Key rebinding supports movement, reload, interact, and pause; mouse shoot and weapon number slots are still fixed.
-- Relic rewards now use separate `.tres` drop table resources for reward rooms, shops, normal chests, premium chests, and boss chests, but pity rules and deeper rarity tuning are not implemented.
+- Relic rewards now use separate `.tres` drop table resources for reward rooms, shops, normal chests, premium chests, and boss chests; armory and healing rooms have dedicated chests, but pity rules and deeper rarity tuning are not implemented.
 - Chest and shop presentation is functional but still visually plain.
 - Result screen now uses grouped text sections, but still needs icons, stronger visual hierarchy, and final layout polish.
 

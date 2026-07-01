@@ -37,8 +37,8 @@ func _run() -> void:
 	await get_tree().create_timer(0.15).timeout
 
 	var rooms := _get_rooms(main)
-	_expect(rooms.size() >= 10 and rooms.size() <= 14, "Balance route should contain a variable 10-14 room route")
-	if rooms.size() < 10:
+	_expect(rooms.size() >= 12 and rooms.size() <= 15, "Balance route should contain a variable 12-15 room route")
+	if rooms.size() < 12:
 		_finish()
 		return
 
@@ -100,7 +100,7 @@ func _complete_pre_shop_room(room: Node, player: Player, hud: Node) -> void:
 	var room_type := str(room.get("room_type"))
 	if room_type in ["start", "combat", "elite"]:
 		await _complete_combat_room(room, player, hud)
-	elif room_type == "reward":
+	elif room_type in ["reward", "armory", "healing"]:
 		await _claim_reward_room(room, player, hud)
 
 

@@ -173,6 +173,10 @@ func _update_visual() -> void:
 			visual.modulate = Color(0.42, 0.45, 0.48, 1.0)
 		elif chest_type == "premium":
 			visual.modulate = Color(0.78, 0.46, 1.0, 1.0)
+		elif chest_type == "weapon":
+			visual.modulate = Color(0.24, 0.58, 0.92, 1.0)
+		elif chest_type == "healing":
+			visual.modulate = Color(0.24, 0.74, 0.42, 1.0)
 		elif chest_type == "boss":
 			visual.modulate = Color(1.0, 0.72, 0.22, 1.0)
 		else:
@@ -183,6 +187,10 @@ func _get_label_text() -> String:
 	match chest_type:
 		"premium":
 			return "Premium Chest"
+		"weapon":
+			return "Weapon Chest"
+		"healing":
+			return "Healing Cache"
 		"boss":
 			return "Boss Chest"
 	return "Chest"

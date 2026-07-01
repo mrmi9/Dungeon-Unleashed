@@ -28,21 +28,25 @@ func _run() -> void:
 		return
 
 	var rooms := _get_rooms(main)
-	_expect(rooms.size() >= 10, "Main scene should contain the generated branching route")
-	if rooms.size() < 10:
+	_expect(rooms.size() >= 12, "Main scene should contain the generated branching route")
+	if rooms.size() < 12:
 		_finish()
 		return
 	var combat_room := _first_room_by_type(rooms, "combat")
 	var reward_room := _first_room_by_type(rooms, "reward")
+	var armory_room := _first_room_by_type(rooms, "armory")
+	var healing_room := _first_room_by_type(rooms, "healing")
 	var elite_room := _first_room_by_type(rooms, "elite")
 	var shop_room := _first_room_by_type(rooms, "shop")
 	var boss_room := _first_room_by_type(rooms, "boss")
 	_expect(combat_room != null, "Generated route should include a combat room")
 	_expect(reward_room != null, "Generated route should include a reward room")
+	_expect(armory_room != null, "Generated route should include an armory room")
+	_expect(healing_room != null, "Generated route should include a healing room")
 	_expect(elite_room != null, "Generated route should include an elite room")
 	_expect(shop_room != null, "Generated route should include a shop room")
 	_expect(boss_room != null, "Generated route should include a boss room")
-	if combat_room == null or reward_room == null or elite_room == null or shop_room == null or boss_room == null:
+	if combat_room == null or reward_room == null or armory_room == null or healing_room == null or elite_room == null or shop_room == null or boss_room == null:
 		_finish()
 		return
 
@@ -60,6 +64,14 @@ func _run() -> void:
 
 	await _enter_room(reward_room, player)
 	_expect(_spawned_enemy_names_near(reward_room.global_position).is_empty(), "Reward room should not spawn local enemies")
+	await _discard_all_enemies()
+
+	await _enter_room(armory_room, player)
+	_expect(_spawned_enemy_names_near(armory_room.global_position).is_empty(), "Armory room should not spawn local enemies")
+	await _discard_all_enemies()
+
+	await _enter_room(healing_room, player)
+	_expect(_spawned_enemy_names_near(healing_room.global_position).is_empty(), "Healing room should not spawn local enemies")
 	await _discard_all_enemies()
 
 	await _enter_room(elite_room, player)

@@ -2,9 +2,9 @@ extends Resource
 class_name RoomData
 
 @export var id: StringName = &"combat_room"
-@export_enum("start", "combat", "reward", "elite", "shop", "boss", "boss_placeholder") var room_type: String = "combat"
+@export_enum("start", "combat", "reward", "armory", "healing", "elite", "shop", "boss", "boss_placeholder") var room_type: String = "combat"
 @export var template_id: String = "prototype_combat_room"
-@export_enum("training", "crossfire", "reward_cache", "pillars", "market", "boss_arena") var layout_profile: String = "crossfire"
+@export_enum("training", "crossfire", "reward_cache", "shrine", "open_cross", "pillars", "market", "boss_arena") var layout_profile: String = "crossfire"
 @export var layout_data: Resource
 @export var room_scene: PackedScene = preload("res://scenes/rooms/PrototypeCombatRoom.tscn")
 @export var enemy_scenes: Array[PackedScene] = []

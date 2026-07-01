@@ -54,13 +54,15 @@ func _run() -> void:
 	_expect(str(main.call("get_run_state_name")) == "Running", "Starting from menu should enter running state")
 
 	var rooms := _get_rooms(main)
-	_expect(rooms.size() >= 10 and rooms.size() <= 14, "Generated full route should contain 10-14 rooms, got %d: %s" % [rooms.size(), _room_type_signature(rooms)])
-	if rooms.size() < 10:
+	_expect(rooms.size() >= 12 and rooms.size() <= 15, "Generated full route should contain 12-15 rooms, got %d: %s" % [rooms.size(), _room_type_signature(rooms)])
+	if rooms.size() < 12:
 		_finish()
 		return
 	_expect(str(rooms[0].get("room_type")) == "start", "Generated full route should start with a start room")
 	_expect(str(rooms[rooms.size() - 1].get("room_type")) == "boss", "Generated full route should end with a boss room")
 	_expect(_has_room_type(rooms, "reward"), "Generated full route should include at least one reward branch")
+	_expect(_has_room_type(rooms, "armory"), "Generated full route should include a weapon armory branch")
+	_expect(_has_room_type(rooms, "healing"), "Generated full route should include a healing branch")
 	_expect(_has_room_type(rooms, "shop"), "Generated full route should include a shop branch")
 	_expect(_has_room_type(rooms, "elite"), "Generated full route should include an elite room")
 
@@ -70,6 +72,10 @@ func _run() -> void:
 			await _complete_combat_room(room, player, hud)
 		elif room_type == "reward":
 			await _claim_reward_room(room, player, hud, relic_system)
+		elif room_type == "armory":
+			await _claim_armory_room(room, player, hud)
+		elif room_type == "healing":
+			await _claim_healing_room(room, player, hud)
 		elif room_type == "shop":
 			await _use_shop_room(room, player)
 		elif room_type == "boss":
@@ -81,14 +87,14 @@ func _run() -> void:
 	_expect(str(main.call("get_run_state_name")) == "Victory", "Full route should end in Victory")
 	_expect(bool(hud.call("is_result_visible")), "Victory should show the result panel")
 	_expect(str(hud.call("get_result_title_text")) == "Run Complete", "Victory result title should be Run Complete")
-	_expect(int(summary.get("rooms_cleared", 0)) >= 10, "Full run summary should include all cleared rooms")
+	_expect(int(summary.get("rooms_cleared", 0)) >= 12, "Full run summary should include all cleared rooms")
 	_expect(int(summary.get("kills", 0)) >= 35, "Full run summary should include expanded combat and boss kills")
 	_expect(int(summary.get("relic_count", 0)) >= 2, "Full run should collect branch reward relics")
 	_expect(int(summary.get("shop_purchases", 0)) >= 1, "Full run should include a shop purchase")
-	_expect(int(summary.get("chests_opened", 0)) >= 3, "Full run should open normal, premium, and boss chests")
+	_expect(int(summary.get("chests_opened", 0)) >= 5, "Full run should open combat, armory, healing, premium, and boss chests")
 	_expect(summary.get("boss_defeated", false) == true, "Full run summary should record boss defeat")
 	_expect(_purchases_seen >= 1, "Full run should emit a shop purchase event")
-	_expect(_chests_seen >= 3, "Full run should emit chest opened events")
+	_expect(_chests_seen >= 5, "Full run should emit chest opened events")
 	_expect(str(hud.call("get_result_section_text", "Overview")).contains("Rooms"), "Grouped result should include Overview details")
 	_expect(str(hud.call("get_result_section_text", "Build")).contains("Relics:"), "Grouped result should include Build details")
 	_expect(str(hud.call("get_result_section_text", "Loot")).contains("Chests"), "Grouped result should include Loot details")
@@ -125,6 +131,28 @@ func _claim_reward_room(room: Node, player: Player, hud: Node, relic_system: Nod
 	await _choose_relic_if_prompted(hud)
 	_expect(_get_total_relic_stacks(relic_system) > relic_stacks_before, "Reward room should grant a relic or stack; room=%s seed=%s state=%s" % [room.get_path(), _get_generation_seed_text(room), str(room.get("state"))])
 	_expect(int(room.get("state")) == ROOM_STATE_REWARD_CLAIMED, "Reward room should mark reward claimed")
+
+
+func _claim_armory_room(room: Node, player: Player, hud: Node) -> void:
+	await _enter_room(room, player)
+	_expect(str(room.get("room_type")) == "armory", "Armory branch room should be an armory room")
+	_expect(int(room.get("state")) == 3, "Armory room should auto-clear on entry")
+	await _collect_reward_near(room.global_position, player, hud, room)
+	_expect(player.weapon_loadout.size() > 0, "Armory room should leave the player with a weapon loadout")
+	_expect(player.weapon != null and player.weapon.weapon_data != null, "Armory room should equip a valid weapon")
+	_expect(int(room.get("state")) == ROOM_STATE_REWARD_CLAIMED, "Armory room should mark reward claimed")
+
+
+func _claim_healing_room(room: Node, player: Player, hud: Node) -> void:
+	await _enter_room(room, player)
+	_expect(str(room.get("room_type")) == "healing", "Healing branch room should be a healing room")
+	_expect(int(room.get("state")) == 3, "Healing room should auto-clear on entry")
+	player.current_health = maxi(player.max_health - 2, 1)
+	player.health_changed.emit(player.current_health, player.max_health)
+	var health_before := player.current_health
+	await _collect_reward_near(room.global_position, player, hud, room)
+	_expect(player.current_health > health_before, "Healing room should restore player health")
+	_expect(int(room.get("state")) == ROOM_STATE_REWARD_CLAIMED, "Healing room should mark reward claimed")
 
 
 func _use_shop_room(room: Node, player: Player) -> void:

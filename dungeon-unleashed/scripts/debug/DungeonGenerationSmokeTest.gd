@@ -39,7 +39,7 @@ func _run() -> void:
 	if controller.has_method("get_debug_map_text"):
 		debug_map_text = str(controller.call("get_debug_map_text"))
 	var last_room_id := "Room%02d" % records.size()
-	_expect(records.size() >= 10 and records.size() <= 14, "Dungeon should generate a variable 10-14 room route")
+	_expect(records.size() >= 12 and records.size() <= 15, "Dungeon should generate a variable 12-15 room route")
 	_expect(combat_rooms.size() == records.size(), "Every generated room record should have one CombatRoom")
 	_expect(int(controller.call("get_generation_seed")) == 424242, "Seeded generation should report the active seed")
 	_expect(debug_map_text.contains("Seed: 424242"), "Debug map should include active seed")
@@ -49,11 +49,13 @@ func _run() -> void:
 	_expect(records[0]["room_type"] == "start", "First generated room should be marked as start")
 	_expect(records[records.size() - 1]["room_type"] == "boss", "Last generated room should be marked as boss")
 	_expect(_has_room_type(records, "reward"), "Generated route should include a reward room")
+	_expect(_has_room_type(records, "armory"), "Generated route should include an armory room")
+	_expect(_has_room_type(records, "healing"), "Generated route should include a healing room")
 	_expect(_has_room_type(records, "elite"), "Generated route should include an elite room")
 	_expect(_has_room_type(records, "shop"), "Generated route should include a shop room")
 	_expect(_get_first_record_by_type(records, "elite").get("elite_enemies", false), "Elite room record should enable elite enemies")
 	_expect(_get_path_role_count(records, "main") >= 7 and _get_path_role_count(records, "main") <= 9, "Dungeon should vary main path length within first-version bounds")
-	_expect(_get_path_role_count(records, "branch") >= 3 and _get_path_role_count(records, "branch") <= 5, "Dungeon should vary branch count within first-version bounds")
+	_expect(_get_path_role_count(records, "branch") >= 5 and _get_path_role_count(records, "branch") <= 6, "Dungeon should vary branch count within first-version bounds")
 	_expect(_get_branch_anchor_count(records) >= 2, "Dungeon should attach branches to multiple main-path anchors")
 	_expect(_get_unique_layout_profile_count(records) >= 8, "Generated route should include broad layout variety")
 	_validate_connection_graph(records)
@@ -115,7 +117,7 @@ func _validate_room_record(record: Dictionary, index: int, combat_rooms: Array) 
 		_expect(room.get("auto_clear_on_enter") == record["auto_clear"], "%s auto-clear config should match metadata" % expected_id)
 		_expect(room.get("lock_doors_during_combat") == record["locks_doors"], "%s door-lock config should match metadata" % expected_id)
 
-	if room_type == "reward" or room_type == "shop":
+	if room_type in ["reward", "armory", "healing", "shop"]:
 		_expect(str(record.get("path_role", "")) == "branch", "%s %s room should be generated as a branch room" % [expected_id, room_type])
 		_expect(int(record.get("branch_of", -1)) >= 1, "%s %s room should record its main-path anchor" % [expected_id, room_type])
 		_expect(enemy_pool.is_empty(), "%s %s room should not define enemy pool metadata" % [expected_id, room_type])
@@ -156,6 +158,8 @@ func _verify_exploration_state(controller: Node, combat_rooms: Array, player: Pl
 	_expect(records[0]["cleared"], "Clearing first room should mark it cleared in dungeon records")
 
 	await _verify_reward_room_state(controller, combat_rooms, player)
+	await _verify_special_room_state(controller, combat_rooms, player, "armory")
+	await _verify_special_room_state(controller, combat_rooms, player, "healing")
 
 
 func _verify_reward_room_state(controller: Node, combat_rooms: Array, player: Player) -> void:
@@ -176,6 +180,26 @@ func _verify_reward_room_state(controller: Node, combat_rooms: Array, player: Pl
 		return
 
 	_expect(false, "Reward room should be present for reward room state verification")
+
+
+func _verify_special_room_state(controller: Node, combat_rooms: Array, player: Player, room_type: String) -> void:
+	var records: Array = controller.call("get_room_records")
+	for index in range(records.size()):
+		if str(records[index]["room_type"]) != room_type:
+			continue
+
+		var room = combat_rooms[index]
+		await _enter_room(room, player)
+		await get_tree().process_frame
+		await get_tree().physics_frame
+		records = controller.call("get_room_records")
+		_expect(records[index]["visited"], "Entering %s room should mark it visited" % room_type)
+		_expect(records[index]["cleared"], "%s room should auto-clear after entry" % room_type.capitalize())
+		_expect(room.doors_are_unlocked(), "%s room doors should remain unlocked" % room_type.capitalize())
+		_expect(_enemy_count_near(room.global_position) == 0, "%s room should not spawn local enemies" % room_type.capitalize())
+		return
+
+	_expect(false, "%s room should be present for special room state verification" % room_type.capitalize())
 
 
 func _expect(condition: bool, message: String) -> void:

@@ -3,6 +3,8 @@ extends Node
 const MAIN_SCENE := preload("res://scenes/main/Main.tscn")
 const NORMAL_CHEST := preload("res://scenes/chests/NormalChest.tscn")
 const PREMIUM_CHEST := preload("res://scenes/chests/PremiumChest.tscn")
+const WEAPON_CHEST := preload("res://scenes/chests/WeaponChest.tscn")
+const HEALING_CHEST := preload("res://scenes/chests/HealingChest.tscn")
 const BOSS_CHEST := preload("res://scenes/chests/BossRewardChest.tscn")
 
 var _failures: Array[String] = []
@@ -41,10 +43,12 @@ func _run() -> void:
 
 	await _verify_normal_chest(player)
 	await _verify_premium_chest(player, relic_system)
+	await _verify_weapon_chest(player)
+	await _verify_healing_chest(player)
 	await _verify_chest_source_pools(player, relic_system)
 	await _verify_boss_chest(player)
 
-	_expect(_opened_count == 6, "Each test chest should emit chest_opened once")
+	_expect(_opened_count == 8, "Each test chest should emit chest_opened once")
 	_finish()
 
 
@@ -81,6 +85,28 @@ func _verify_premium_chest(player: Player, relic_system: Node) -> void:
 	_expect(bool(chest.call("open_for_player", player)), "Premium chest should open for player")
 	_expect(player.current_health > health_before, "Premium chest should heal when heal is in drop pool")
 	_expect(int(relic_system.call("get_relic_count")) > relic_count_before, "Premium chest should grant a relic when relic is in drop pool")
+
+
+func _verify_weapon_chest(player: Player) -> void:
+	var chest := WEAPON_CHEST.instantiate()
+	get_tree().root.add_child(chest)
+	var weapon_before := ""
+	if player.weapon != null and player.weapon.weapon_data != null:
+		weapon_before = str(player.weapon.weapon_data.display_name)
+	_expect(bool(chest.call("open_for_player", player)), "Weapon chest should open for player")
+	_expect(player.weapon != null and player.weapon.weapon_data != null, "Weapon chest should equip a weapon")
+	if player.weapon != null and player.weapon.weapon_data != null and not weapon_before.is_empty():
+		_expect(str(player.weapon.weapon_data.display_name) != weapon_before, "Weapon chest should replace the current weapon")
+
+
+func _verify_healing_chest(player: Player) -> void:
+	var chest := HEALING_CHEST.instantiate()
+	get_tree().root.add_child(chest)
+	player.current_health = maxi(player.max_health - 2, 1)
+	player.health_changed.emit(player.current_health, player.max_health)
+	var health_before := player.current_health
+	_expect(bool(chest.call("open_for_player", player)), "Healing chest should open for player")
+	_expect(player.current_health > health_before, "Healing chest should restore health")
 
 
 func _verify_boss_chest(player: Player) -> void:

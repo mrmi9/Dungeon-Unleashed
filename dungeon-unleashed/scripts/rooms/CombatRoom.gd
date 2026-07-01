@@ -23,7 +23,7 @@ const BOSS_ARENA_HAZARD_POSITIONS := [
 
 @export var enemy_scene: PackedScene = preload("res://scenes/enemies/Enemy.tscn")
 @export var room_type: String = "combat"
-@export_enum("training", "crossfire", "reward_cache", "pillars", "market", "boss_arena") var layout_profile: String = "crossfire"
+@export_enum("training", "crossfire", "reward_cache", "shrine", "open_cross", "pillars", "market", "boss_arena") var layout_profile: String = "crossfire"
 @export var layout_data: Resource
 @export var connected_directions: PackedStringArray = PackedStringArray(["west", "east"])
 @export var enemy_scenes: Array[PackedScene] = [

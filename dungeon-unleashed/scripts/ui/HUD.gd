@@ -758,6 +758,10 @@ func _get_room_marker_text(room_type: String) -> String:
 			return "E"
 		"reward":
 			return "R"
+		"armory":
+			return "A"
+		"healing":
+			return "H"
 		"shop":
 			return "$"
 		"boss":
@@ -776,6 +780,10 @@ func _get_minimap_marker_color(room_type: String, visited: bool, cleared: bool, 
 		return Color(0.5, 0.76, 1.0, 1.0)
 	if room_type == "reward":
 		return Color(1.0, 0.82, 0.28, 0.9)
+	if room_type == "armory":
+		return Color(0.32, 0.72, 1.0, 0.9)
+	if room_type == "healing":
+		return Color(0.42, 1.0, 0.54, 0.9)
 	if room_type == "shop":
 		return Color(0.32, 1.0, 0.82, 0.9)
 	if room_type == "boss" or room_type == "boss_placeholder":

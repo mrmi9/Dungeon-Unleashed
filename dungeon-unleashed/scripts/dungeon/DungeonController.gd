@@ -5,6 +5,8 @@ const PROTOTYPE_ROOM_SCENE := preload("res://scenes/rooms/PrototypeCombatRoom.ts
 const START_ROOM_DATA := preload("res://resources/rooms/start_room.tres")
 const COMBAT_ROOM_DATA := preload("res://resources/rooms/combat_room.tres")
 const REWARD_ROOM_DATA := preload("res://resources/rooms/reward_room.tres")
+const ARMORY_ROOM_DATA := preload("res://resources/rooms/armory_room.tres")
+const HEALING_ROOM_DATA := preload("res://resources/rooms/healing_room.tres")
 const ELITE_ROOM_DATA := preload("res://resources/rooms/elite_room.tres")
 const SHOP_ROOM_DATA := preload("res://resources/rooms/shop_room.tres")
 const BOSS_PLACEHOLDER_ROOM_DATA := preload("res://resources/rooms/boss_placeholder_room.tres")
@@ -34,6 +36,8 @@ const COIN_PICKUP_SCENE := preload("res://scenes/pickups/CoinPickup.tscn")
 const RELIC_PICKUP_SCENE := preload("res://scenes/pickups/RelicPickup.tscn")
 const NORMAL_CHEST_SCENE := preload("res://scenes/chests/NormalChest.tscn")
 const PREMIUM_CHEST_SCENE := preload("res://scenes/chests/PremiumChest.tscn")
+const WEAPON_CHEST_SCENE := preload("res://scenes/chests/WeaponChest.tscn")
+const HEALING_CHEST_SCENE := preload("res://scenes/chests/HealingChest.tscn")
 const BOSS_REWARD_CHEST_SCENE := preload("res://scenes/chests/BossRewardChest.tscn")
 const SHOP_INVENTORY_SCENE := preload("res://scenes/shop/ShopInventory.tscn")
 const CHASER_ENEMY_SCENE := preload("res://scenes/enemies/ChaserEnemy.tscn")
@@ -45,8 +49,8 @@ const BOMBER_ENEMY_SCENE := preload("res://scenes/enemies/BomberEnemy.tscn")
 const BOSS_ENEMY_SCENE := preload("res://scenes/enemies/BossEnemy.tscn")
 const MAIN_PATH_MIN_ROOMS := 7
 const MAIN_PATH_MAX_ROOMS := 9
-const BRANCH_MIN_ROOMS := 3
-const BRANCH_MAX_ROOMS := 5
+const BRANCH_MIN_ROOMS := 5
+const BRANCH_MAX_ROOMS := 6
 
 @export var rooms_parent_path: NodePath = ^"../Rooms"
 @export var room_spacing := Vector2(1320, 820)
@@ -311,6 +315,8 @@ func _get_room_data_sequence() -> Array[Resource]:
 		START_ROOM_DATA,
 		COMBAT_ROOM_DATA,
 		REWARD_ROOM_DATA,
+		ARMORY_ROOM_DATA,
+		HEALING_ROOM_DATA,
 		ELITE_ROOM_DATA,
 		SHOP_ROOM_DATA,
 		BOSS_PLACEHOLDER_ROOM_DATA,
@@ -358,6 +364,8 @@ func _build_branch_specs(main_path_room_count: int, elite_x: int) -> Array[Dicti
 	_add_branch_spec(specs, candidates, REWARD_ROOM_DATA, -1, true)
 	_add_branch_spec(specs, candidates, SHOP_ROOM_DATA, elite_x, true)
 	_add_branch_spec(specs, candidates, REWARD_ROOM_DATA, -1, false)
+	_add_branch_spec(specs, candidates, ARMORY_ROOM_DATA, -1, true)
+	_add_branch_spec(specs, candidates, HEALING_ROOM_DATA, -1, true)
 
 	var optional_rooms := [
 		ELITE_ROOM_DATA,
@@ -444,8 +452,10 @@ func _layout_pool_for_room_data(room_data: Resource) -> Array:
 	match room_type:
 		"start":
 			return _start_layout_pool()
-		"reward":
+		"reward", "armory":
 			return _reward_layout_pool()
+		"healing":
+			return _healing_layout_pool()
 		"elite":
 			return _elite_layout_pool()
 		"shop":
@@ -637,6 +647,15 @@ func _reward_layout_pool() -> Array:
 		SHRINE_LAYOUT,
 		OPEN_CROSS_LAYOUT,
 		CRESCENT_LAYOUT,
+		TWIN_ISLANDS_LAYOUT,
+	]
+
+
+func _healing_layout_pool() -> Array:
+	return [
+		SHRINE_LAYOUT,
+		OPEN_CROSS_LAYOUT,
+		REWARD_CACHE_LAYOUT,
 		TWIN_ISLANDS_LAYOUT,
 	]
 
@@ -840,6 +859,36 @@ func _get_room_data_config(room_data: Resource) -> Dictionary:
 				"lock_doors_during_combat": false,
 				"auto_clear_on_enter": true,
 			}
+		"armory_room":
+			return {
+				"id": "armory_room",
+				"room_type": "armory",
+				"template_id": "prototype_combat_room",
+				"layout_profile": "reward_cache",
+				"layout_data": REWARD_CACHE_LAYOUT,
+				"room_scene": PROTOTYPE_ROOM_SCENE,
+				"enemy_scenes": [],
+				"enemy_names": PackedStringArray(),
+				"wave_enemy_counts": PackedInt32Array(),
+				"reward_scene": WEAPON_CHEST_SCENE,
+				"lock_doors_during_combat": false,
+				"auto_clear_on_enter": true,
+			}
+		"healing_room":
+			return {
+				"id": "healing_room",
+				"room_type": "healing",
+				"template_id": "prototype_combat_room",
+				"layout_profile": "shrine",
+				"layout_data": SHRINE_LAYOUT,
+				"room_scene": PROTOTYPE_ROOM_SCENE,
+				"enemy_scenes": [],
+				"enemy_names": PackedStringArray(),
+				"wave_enemy_counts": PackedInt32Array(),
+				"reward_scene": HEALING_CHEST_SCENE,
+				"lock_doors_during_combat": false,
+				"auto_clear_on_enter": true,
+			}
 		"elite_room":
 			return {
 				"id": "elite_room",
@@ -900,6 +949,10 @@ func _get_room_data_key(room_data: Resource) -> String:
 		return "combat_room"
 	if room_data == REWARD_ROOM_DATA:
 		return "reward_room"
+	if room_data == ARMORY_ROOM_DATA:
+		return "armory_room"
+	if room_data == HEALING_ROOM_DATA:
+		return "healing_room"
 	if room_data == ELITE_ROOM_DATA:
 		return "elite_room"
 	if room_data == SHOP_ROOM_DATA:
@@ -947,6 +1000,10 @@ func _get_debug_room_marker(room_type: String) -> String:
 			return "S"
 		"reward":
 			return "R"
+		"armory":
+			return "A"
+		"healing":
+			return "H"
 		"elite":
 			return "E"
 		"shop":

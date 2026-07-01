@@ -22,13 +22,13 @@ Run `Dungeon Unleashed.exe`.
 
 ## What To Test
 
-- Start from the main menu and complete the seeded 10-14 room branching route.
+- Start from the main menu and complete the seeded 12-15 room branching route.
 - Try the main menu seed field: leave it blank for a random route, enter a number for a fixed route, and use Replay Seed on the result screen to reproduce the same route.
-- Check whether the start, combat, reward, elite, shop, branch reward, late combat, and boss rooms feel visually and spatially distinct despite using placeholder art. Main-path length, branch count, branch placement, and selected room layouts now vary by generation seed, but this build still uses one prototype room scene with data-driven layouts.
+- Check whether the start, combat, reward, armory, healing, elite, shop, branch reward, late combat, and boss rooms feel visually and spatially distinct despite using placeholder art. Main-path length, branch count, branch placement, and selected room layouts now vary by generation seed, but this build still uses one prototype room scene with data-driven layouts.
 - Check the top-right minimap seed label. If you report a map/layout issue, include this seed so the layout can be reproduced in development.
 - Press `F3` to open the developer debug map panel. Use `Copy Map` when reporting route, seed, or room-connection issues.
 - Verify combat rooms lock and unlock correctly.
-- Collect rewards, open chests, buy shop items, and choose relics.
+- Collect rewards, open chests, replace weapons in armory rooms, recover in healing rooms, buy shop items, and choose relics.
 - Check whether shop prices force a meaningful choice instead of letting you buy everything.
 - Fight the boss, watch the phase-two arena floor hazards, and open the boss reward chest to finish the run.
 - Try death and victory flows, then restart or return to main menu.
