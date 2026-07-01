@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"diagonal_blocks"
+display_name = "Diagonal Blocks"
+floor_color = Color(0.095, 0.1, 0.13, 1)
+spawn_positions = PackedVector2Array(-455, -230, -120, -245, 455, 230, 120, 245)
+reward_position = Vector2(0, -55)
+obstacle_names = PackedStringArray("DiagA", "DiagB", "DiagC")
+obstacle_positions = PackedVector2Array(-245, -145, 0, 0, 245, 145)
+obstacle_sizes = PackedVector2Array(150, 62, 150, 62, 150, 62)

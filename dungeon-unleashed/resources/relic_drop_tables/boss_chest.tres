@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RelicDropTableData" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicDropTableData.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/relics/split_chamber.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/relics/phase_tip.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/relics/vampire_fang.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/relics/guardian_ward.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/relics/adrenaline_charm.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/relics/lucky_primer.tres" id="7"]
+[ext_resource type="Resource" path="res://resources/relics/heart_core.tres" id="8"]
+
+[resource]
+script = ExtResource("1")
+source_id = &"boss_chest"
+display_name = "Boss Chest"
+relic_pool = Array[Resource]([ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8")])
+common_weight = 20.0
+rare_weight = 90.0
+epic_weight = 60.0
+legendary_weight = 20.0

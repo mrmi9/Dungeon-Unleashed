@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"bunker"
+display_name = "Bunker"
+floor_color = Color(0.11, 0.1, 0.095, 1)
+spawn_positions = PackedVector2Array(420, -210, -420, -210, 420, 210, -420, 210)
+reward_position = Vector2(0, 45)
+obstacle_names = PackedStringArray("BunkerNorth", "BunkerCenter", "BunkerSouth")
+obstacle_positions = PackedVector2Array(0, -170, 0, 0, 0, 170)
+obstacle_sizes = PackedVector2Array(240, 54, 300, 64, 240, 54)

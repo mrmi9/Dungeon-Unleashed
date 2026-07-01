@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="1"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_shooter"]
+radius = 17.0
+
+[node name="ShooterEnemy" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1")
+display_name = "Shooter"
+behavior_type = 1
+max_health = 2
+move_speed = 78.0
+contact_damage = 1
+attack_damage = 1
+attack_cooldown = 1.25
+attack_range = 360.0
+preferred_range = 250.0
+projectile_speed = 360.0
+
+[node name="Visual" type="Polygon2D" parent="."]
+color = Color(0.95, 0.55, 0.18, 1)
+polygon = PackedVector2Array(18, 0, 5, -16, -15, -9, -15, 9, 5, 16)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_shooter")

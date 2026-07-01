@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ricochet_blaster"
+display_name = "Ricochet Blaster"
+description = "Shop weapon that trades raw damage for bouncing shots."
+damage = 1
+fire_rate = 4.2
+projectile_speed = 680.0
+projectile_range = 760.0
+projectile_count = 2
+spread_angle = 8.0
+magazine_size = 10
+reload_duration = 1.15
+knockback = 110.0
+crit_chance = 0.1
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 2
+explosion_radius = 0.0
+tags = PackedStringArray("shop", "bounce", "multi_shot")

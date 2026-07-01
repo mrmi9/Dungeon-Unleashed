@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"pillars"
+display_name = "Four Pillars"
+floor_color = Color(0.105, 0.095, 0.125, 1)
+spawn_positions = PackedVector2Array(390, -205, -390, -205, 390, 205, -390, 205)
+reward_position = Vector2(0, -35)
+obstacle_names = PackedStringArray("PillarNW", "PillarNE", "PillarSW", "PillarSE")
+obstacle_positions = PackedVector2Array(-245, -145, 245, -145, -245, 145, 245, 145)
+obstacle_sizes = PackedVector2Array(74, 74, 74, 74, 74, 74, 74, 74)

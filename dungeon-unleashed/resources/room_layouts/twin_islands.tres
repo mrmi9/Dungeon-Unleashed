@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"twin_islands"
+display_name = "Twin Islands"
+floor_color = Color(0.085, 0.11, 0.125, 1)
+spawn_positions = PackedVector2Array(-420, -190, -420, 190, 420, -190, 420, 190)
+reward_position = Vector2(0, -45)
+obstacle_names = PackedStringArray("IslandLeft", "IslandRight")
+obstacle_positions = PackedVector2Array(-190, 0, 190, 0)
+obstacle_sizes = PackedVector2Array(138, 138, 138, 138)

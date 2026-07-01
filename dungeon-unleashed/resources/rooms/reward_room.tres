@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="RoomData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomData.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/rooms/PrototypeCombatRoom.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/pickups/RelicPickup.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/room_layouts/reward_cache.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = &"reward_room"
+room_type = "reward"
+template_id = "prototype_combat_room"
+layout_profile = "reward_cache"
+layout_data = ExtResource("4")
+room_scene = ExtResource("2")
+enemy_scenes = Array[PackedScene]([])
+enemy_names = PackedStringArray()
+wave_enemy_counts = PackedInt32Array()
+reward_scene = ExtResource("3")
+lock_doors_during_combat = false
+auto_clear_on_enter = true

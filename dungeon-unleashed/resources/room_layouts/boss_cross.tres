@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"boss_cross"
+display_name = "Boss Cross"
+floor_color = Color(0.125, 0.085, 0.105, 1)
+spawn_positions = PackedVector2Array(0, -120, -340, 160, 340, 160, 0, 240)
+reward_position = Vector2(0, -20)
+obstacle_names = PackedStringArray("BossNorth", "BossEast", "BossSouth", "BossWest")
+obstacle_positions = PackedVector2Array(0, -205, 360, 0, 0, 205, -360, 0)
+obstacle_sizes = PackedVector2Array(140, 52, 52, 140, 140, 52, 52, 140)

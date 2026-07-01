@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"split_cover"
+display_name = "Split Cover"
+floor_color = Color(0.09, 0.11, 0.12, 1)
+spawn_positions = PackedVector2Array(-410, -185, -410, 185, 410, -185, 410, 185)
+reward_position = Vector2(0, -65)
+obstacle_names = PackedStringArray("SplitLeft", "SplitRight")
+obstacle_positions = PackedVector2Array(-155, 0, 155, 0)
+obstacle_sizes = PackedVector2Array(70, 250, 70, 250)

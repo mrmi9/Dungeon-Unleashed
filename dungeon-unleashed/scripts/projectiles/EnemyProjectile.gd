@@ -1,0 +1,65 @@
+extends Area2D
+class_name EnemyProjectile
+
+const HIT_BURST_SCENE := preload("res://scenes/effects/HitBurst.tscn")
+
+@export var max_range: float = 620.0
+
+var speed := 340.0
+var damage := 1
+var _direction := Vector2.RIGHT
+var _owner_body: Node
+var _distance_traveled := 0.0
+
+
+func _ready() -> void:
+	add_to_group("enemy_projectiles")
+
+
+func launch(direction: Vector2, projectile_speed: float, projectile_damage: int, owner_body: Node = null) -> void:
+	_direction = direction.normalized() if direction.length_squared() > 0.001 else Vector2.RIGHT
+	speed = projectile_speed
+	damage = projectile_damage
+	_owner_body = owner_body
+	global_rotation = _direction.angle()
+
+
+func _physics_process(delta: float) -> void:
+	var travel_distance := speed * delta
+	var start_position := global_position
+	var end_position := start_position + _direction * travel_distance
+	var hit := _raycast(start_position, end_position)
+
+	if not hit.is_empty():
+		global_position = hit["position"]
+		_handle_collision(hit["collider"])
+		return
+
+	global_position = end_position
+	_distance_traveled += travel_distance
+	if _distance_traveled >= max_range:
+		queue_free()
+
+
+func _raycast(start_position: Vector2, end_position: Vector2) -> Dictionary:
+	var query := PhysicsRayQueryParameters2D.create(start_position, end_position, collision_mask)
+	var excludes: Array[RID] = [get_rid()]
+	if _owner_body is CollisionObject2D:
+		excludes.append((_owner_body as CollisionObject2D).get_rid())
+	query.exclude = excludes
+	return get_world_2d().direct_space_state.intersect_ray(query)
+
+
+func _handle_collision(collider: Object) -> void:
+	if collider is Node and (collider as Node).has_method("take_damage"):
+		(collider as Node).call("take_damage", damage, _owner_body)
+		_spawn_hit_effect()
+	queue_free()
+
+
+func _spawn_hit_effect() -> void:
+	var effect := HIT_BURST_SCENE.instantiate() as Node2D
+	if effect == null:
+		return
+	get_tree().current_scene.add_child(effect)
+	effect.global_position = global_position

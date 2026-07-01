@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ambush_corners"
+display_name = "Ambush Corners"
+floor_color = Color(0.105, 0.09, 0.09, 1)
+spawn_positions = PackedVector2Array(-520, -260, 520, -260, -520, 260, 520, 260)
+reward_position = Vector2(0, -35)
+obstacle_names = PackedStringArray("AmbushNW", "AmbushNE", "AmbushSW", "AmbushSE")
+obstacle_positions = PackedVector2Array(-390, -220, 390, -220, -390, 220, 390, 220)
+obstacle_sizes = PackedVector2Array(120, 80, 120, 80, 120, 80, 120, 80)

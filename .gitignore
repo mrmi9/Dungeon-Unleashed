@@ -1,0 +1,23 @@
+# Local Codex/app state
+.agents/
+.codex/
+
+# Godot generated/editor state
+**/.godot/
+godot_user_data/
+export_templates/
+feature_profiles/
+script_templates/
+text_editor_themes/
+dungeon-unleashed/Godot/
+
+# Exported builds and binary packages
+dungeon-unleashed/builds/**/*.exe
+dungeon-unleashed/builds/**/*.pck
+dungeon-unleashed/builds/**/*.zip
+dungeon-unleashed/builds/Dungeon_Unleashed_Windows_Prototype/
+
+# OS/editor noise
+*.log
+Thumbs.db
+.DS_Store

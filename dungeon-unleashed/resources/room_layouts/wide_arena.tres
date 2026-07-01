@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"wide_arena"
+display_name = "Wide Arena"
+floor_color = Color(0.095, 0.11, 0.105, 1)
+spawn_positions = PackedVector2Array(420, -240, -420, -240, 420, 240, -420, 240)
+reward_position = Vector2(0, -55)
+obstacle_names = PackedStringArray("WideSmallNW", "WideSmallNE", "WideSmallSW", "WideSmallSE")
+obstacle_positions = PackedVector2Array(-150, -90, 150, -90, -150, 90, 150, 90)
+obstacle_sizes = PackedVector2Array(58, 58, 58, 58, 58, 58, 58, 58)

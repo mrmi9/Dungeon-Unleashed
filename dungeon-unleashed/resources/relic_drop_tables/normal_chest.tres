@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RelicDropTableData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicDropTableData.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/relics/sharp_rounds.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/relics/quick_trigger.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/relics/swift_loader.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/relics/vampire_fang.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/relics/guardian_ward.tres" id="6"]
+
+[resource]
+script = ExtResource("1")
+source_id = &"normal_chest"
+display_name = "Normal Chest"
+relic_pool = Array[Resource]([ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6")])
+common_weight = 120.0
+rare_weight = 30.0
+epic_weight = 8.0
+legendary_weight = 2.0

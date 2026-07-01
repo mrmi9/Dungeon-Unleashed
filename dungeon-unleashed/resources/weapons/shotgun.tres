@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"shotgun"
+display_name = "Shotgun"
+description = "Close-range burst weapon with wide spread and heavy knockback."
+damage = 1
+fire_rate = 1.8
+projectile_speed = 620.0
+projectile_range = 430.0
+projectile_count = 6
+spread_angle = 34.0
+magazine_size = 6
+reload_duration = 1.35
+knockback = 190.0
+crit_chance = 0.08
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+tags = PackedStringArray("burst", "close_range", "spread")

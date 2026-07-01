@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lucky_primer"
+display_name = "Lucky Primer"
+description = "Projectiles gain 12% critical chance."
+rarity = "rare"
+effect_type = "crit_chance_bonus"
+effect_value = 0.12
+stackable = true
+max_stacks = 3
+tags = PackedStringArray("crit", "projectile")

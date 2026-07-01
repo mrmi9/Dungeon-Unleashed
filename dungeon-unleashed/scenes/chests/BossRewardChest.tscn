@@ -1,0 +1,45 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/chests/RewardChest.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/relics/vampire_fang.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/relics/adrenaline_charm.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/weapons/ricochet_blaster.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/weapons/energy_staff.tres" id="5"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_chest"]
+size = Vector2(78, 58)
+
+[node name="BossRewardChest" type="Area2D"]
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("1")
+chest_type = "boss"
+reward_count = 3
+drop_pool = PackedStringArray("weapon", "relic", "gold")
+gold_min = 50
+gold_max = 80
+heal_amount = 3
+relic_pool = Array[Resource]([ExtResource("2"), ExtResource("3")])
+weapon_pool = Array[Resource]([ExtResource("4"), ExtResource("5")])
+complete_run_on_open = true
+
+[node name="Visual" type="Polygon2D" parent="."]
+color = Color(1, 0.72, 0.22, 1)
+polygon = PackedVector2Array(-39, -16, 39, -16, 39, 29, -39, 29)
+
+[node name="Lid" type="Polygon2D" parent="."]
+color = Color(1, 0.92, 0.34, 1)
+polygon = PackedVector2Array(-44, -35, 44, -35, 39, -14, -39, -14)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -92.0
+offset_top = 40.0
+offset_right = 92.0
+offset_bottom = 64.0
+theme_override_colors/font_color = Color(1, 0.92, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "Boss Chest"
+horizontal_alignment = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_chest")

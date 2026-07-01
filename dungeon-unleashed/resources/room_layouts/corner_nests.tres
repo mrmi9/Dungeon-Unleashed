@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"corner_nests"
+display_name = "Corner Nests"
+floor_color = Color(0.085, 0.105, 0.11, 1)
+spawn_positions = PackedVector2Array(-465, -235, 465, -235, -465, 235, 465, 235)
+reward_position = Vector2(0, 0)
+obstacle_names = PackedStringArray("NestNW", "NestNE", "NestSW", "NestSE")
+obstacle_positions = PackedVector2Array(-360, -210, 360, -210, -360, 210, 360, 210)
+obstacle_sizes = PackedVector2Array(108, 54, 108, 54, 108, 54, 108, 54)

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"training"
+display_name = "Training Yard"
+floor_color = Color(0.095, 0.105, 0.12, 1)
+spawn_positions = PackedVector2Array(250, -105, -250, -85, 285, 145, -225, 165)
+reward_position = Vector2(0, -80)

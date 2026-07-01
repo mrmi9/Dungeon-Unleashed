@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/BurstEffect.gd" id="1"]
+
+[node name="HitBurst" type="Node2D"]
+script = ExtResource("1")
+duration = 0.14
+radius = 24.0
+color = Color(1, 0.85, 0.25, 1)
+line_width = 2.0

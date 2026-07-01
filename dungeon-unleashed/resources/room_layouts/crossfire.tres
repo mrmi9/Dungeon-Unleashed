@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"crossfire"
+display_name = "Crossfire"
+floor_color = Color(0.095, 0.105, 0.12, 1)
+spawn_positions = PackedVector2Array(370, -210, -370, -190, 390, 205, -390, 185)
+reward_position = Vector2(0, -40)
+obstacle_names = PackedStringArray("CrossfireNorth", "CrossfireSouth")
+obstacle_positions = PackedVector2Array(0, -150, 0, 150)
+obstacle_sizes = PackedVector2Array(92, 92, 92, 92)

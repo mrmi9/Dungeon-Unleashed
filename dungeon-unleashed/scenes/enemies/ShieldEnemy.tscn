@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="1"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_shield"]
+radius = 19.0
+
+[node name="ShieldEnemy" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1")
+display_name = "Shielded"
+behavior_type = 5
+max_health = 5
+move_speed = 76.0
+contact_damage = 1
+shield_front_arc_degrees = 125.0
+shield_front_damage_multiplier = 0.2
+
+[node name="Visual" type="Polygon2D" parent="."]
+color = Color(0.18, 0.45, 1, 1)
+polygon = PackedVector2Array(18, 0, 6, -18, -15, -13, -20, 0, -15, 13, 6, 18)
+
+[node name="ShieldVisual" type="Polygon2D" parent="."]
+color = Color(0.55, 0.8, 1, 0.82)
+polygon = PackedVector2Array(10, -22, 30, -12, 30, 12, 10, 22)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_shield")

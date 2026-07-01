@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoomLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/RoomLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"center_ring"
+display_name = "Center Ring"
+floor_color = Color(0.105, 0.1, 0.115, 1)
+spawn_positions = PackedVector2Array(0, -245, 420, 0, 0, 245, -420, 0)
+reward_position = Vector2(0, 0)
+obstacle_names = PackedStringArray("RingNorth", "RingEast", "RingSouth", "RingWest")
+obstacle_positions = PackedVector2Array(0, -96, 96, 0, 0, 96, -96, 0)
+obstacle_sizes = PackedVector2Array(88, 44, 44, 88, 88, 44, 44, 88)

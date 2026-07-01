@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"sharp_rounds"
+display_name = "Sharp Rounds"
+description = "Projectiles deal 25% more damage."
+rarity = "common"
+effect_type = "damage_multiplier"
+effect_value = 0.25
+stackable = true
+max_stacks = 3
+tags = PackedStringArray("damage", "projectile")

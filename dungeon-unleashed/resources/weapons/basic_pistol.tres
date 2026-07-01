@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"basic_pistol"
+display_name = "Basic Pistol"
+description = "Stable mid-range sidearm for baseline testing."
+damage = 1
+fire_rate = 6.0
+projectile_speed = 720.0
+projectile_range = 720.0
+projectile_count = 1
+spread_angle = 0.0
+magazine_size = 12
+reload_duration = 1.0
+knockback = 120.0
+crit_chance = 0.05
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+tags = PackedStringArray("precise", "starter")

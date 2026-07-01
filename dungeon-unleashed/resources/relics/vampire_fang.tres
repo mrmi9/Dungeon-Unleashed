@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"vampire_fang"
+display_name = "Vampire Fang"
+description = "Heal 1 HP after every 3 enemy kills."
+rarity = "rare"
+effect_type = "kill_heal"
+effect_value = 1.0
+effect_duration = 0.0
+stackable = true
+max_stacks = 2
+tags = PackedStringArray("heal", "kill")

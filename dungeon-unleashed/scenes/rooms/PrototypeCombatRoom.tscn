@@ -1,0 +1,151 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/CombatRoom.gd" id="1"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
+size = Vector2(1360, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_side_wall_segment"]
+size = Vector2(40, 275)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_entry_area"]
+size = Vector2(1260, 700)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(42, 150)
+
+[node name="PrototypeCombatRoom" type="Node2D"]
+
+[node name="Arena" type="Node2D" parent="."]
+
+[node name="Floor" type="Polygon2D" parent="Arena"]
+color = Color(0.095, 0.105, 0.12, 1)
+polygon = PackedVector2Array(-640, -360, 640, -360, 640, 360, -640, 360)
+
+[node name="WallTop" type="StaticBody2D" parent="Arena"]
+position = Vector2(0, -380)
+collision_layer = 8
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="Arena/WallTop"]
+color = Color(0.22, 0.24, 0.27, 1)
+polygon = PackedVector2Array(-680, -20, 680, -20, 680, 20, -680, 20)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arena/WallTop"]
+shape = SubResource("RectangleShape2D_horizontal_wall")
+
+[node name="WallBottom" type="StaticBody2D" parent="Arena"]
+position = Vector2(0, 380)
+collision_layer = 8
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="Arena/WallBottom"]
+color = Color(0.22, 0.24, 0.27, 1)
+polygon = PackedVector2Array(-680, -20, 680, -20, 680, 20, -680, 20)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arena/WallBottom"]
+shape = SubResource("RectangleShape2D_horizontal_wall")
+
+[node name="WallLeftTop" type="StaticBody2D" parent="Arena"]
+position = Vector2(-660, -262.5)
+collision_layer = 8
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="Arena/WallLeftTop"]
+color = Color(0.22, 0.24, 0.27, 1)
+polygon = PackedVector2Array(-20, -137.5, 20, -137.5, 20, 137.5, -20, 137.5)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arena/WallLeftTop"]
+shape = SubResource("RectangleShape2D_side_wall_segment")
+
+[node name="WallLeftBottom" type="StaticBody2D" parent="Arena"]
+position = Vector2(-660, 262.5)
+collision_layer = 8
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="Arena/WallLeftBottom"]
+color = Color(0.22, 0.24, 0.27, 1)
+polygon = PackedVector2Array(-20, -137.5, 20, -137.5, 20, 137.5, -20, 137.5)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arena/WallLeftBottom"]
+shape = SubResource("RectangleShape2D_side_wall_segment")
+
+[node name="WallRightTop" type="StaticBody2D" parent="Arena"]
+position = Vector2(660, -262.5)
+collision_layer = 8
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="Arena/WallRightTop"]
+color = Color(0.22, 0.24, 0.27, 1)
+polygon = PackedVector2Array(-20, -137.5, 20, -137.5, 20, 137.5, -20, 137.5)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arena/WallRightTop"]
+shape = SubResource("RectangleShape2D_side_wall_segment")
+
+[node name="WallRightBottom" type="StaticBody2D" parent="Arena"]
+position = Vector2(660, 262.5)
+collision_layer = 8
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="Arena/WallRightBottom"]
+color = Color(0.22, 0.24, 0.27, 1)
+polygon = PackedVector2Array(-20, -137.5, 20, -137.5, 20, 137.5, -20, 137.5)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arena/WallRightBottom"]
+shape = SubResource("RectangleShape2D_side_wall_segment")
+
+[node name="CombatRoom" type="Node2D" parent="."]
+script = ExtResource("1")
+wave_enemy_counts = PackedInt32Array(3, 4)
+
+[node name="EntryArea" type="Area2D" parent="CombatRoom"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CombatRoom/EntryArea"]
+shape = SubResource("RectangleShape2D_entry_area")
+
+[node name="Doors" type="Node2D" parent="CombatRoom"]
+
+[node name="EntranceDoor" type="StaticBody2D" parent="CombatRoom/Doors"]
+position = Vector2(-660, 0)
+collision_layer = 8
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="CombatRoom/Doors/EntranceDoor"]
+color = Color(0.2, 0.95, 0.45, 0.55)
+polygon = PackedVector2Array(-21, -75, 21, -75, 21, 75, -21, 75)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CombatRoom/Doors/EntranceDoor"]
+disabled = true
+shape = SubResource("RectangleShape2D_door")
+
+[node name="ExitDoor" type="StaticBody2D" parent="CombatRoom/Doors"]
+position = Vector2(660, 0)
+collision_layer = 8
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="CombatRoom/Doors/ExitDoor"]
+color = Color(0.2, 0.95, 0.45, 0.55)
+polygon = PackedVector2Array(-21, -75, 21, -75, 21, 75, -21, 75)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CombatRoom/Doors/ExitDoor"]
+disabled = true
+shape = SubResource("RectangleShape2D_door")
+
+[node name="EnemySpawns" type="Node2D" parent="CombatRoom"]
+
+[node name="SpawnA" type="Marker2D" parent="CombatRoom/EnemySpawns"]
+position = Vector2(270, -120)
+
+[node name="SpawnB" type="Marker2D" parent="CombatRoom/EnemySpawns"]
+position = Vector2(-285, -90)
+
+[node name="SpawnC" type="Marker2D" parent="CombatRoom/EnemySpawns"]
+position = Vector2(330, 155)
+
+[node name="SpawnD" type="Marker2D" parent="CombatRoom/EnemySpawns"]
+position = Vector2(-230, 175)
+
+[node name="RewardSpawn" type="Marker2D" parent="CombatRoom"]
+position = Vector2(0, -80)
