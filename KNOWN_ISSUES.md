@@ -1,10 +1,10 @@
 # Dungeon Unleashed Known Issues
 
-Last updated: 2026-06-30
+Last updated: 2026-07-01
 
 ## High Priority
 
-- Full manual gameplay validation is still required on the exported Windows build. Headless startup and real Windows display/audio startup have passed, but a human should still play through the run and inspect visual layout/audio feel.
+- Full manual gameplay validation is still required on the exported Windows build. Godot project headless startup, export generation, and zip packaging have passed; exported `.exe` automatic startup validation is currently unreliable in CLI and should be confirmed by a human launch.
 - Basic UI layout is now covered by an automated 1280x720 / 1600x900 / 1920x1080 smoke test, but manual visual review is still required for final spacing, hierarchy, and readability.
 - A first automated balance pass is in place for route economy, shop prices, elite pressure, and boss health, but manual playtest tuning is still required.
 - Boss fight is still prototype-grade. It now has a clear phase transition pause, warning, and basic floor hazard arena pressure, but still needs final encounter tuning.
@@ -13,7 +13,7 @@ Last updated: 2026-06-30
 
 - Visuals are placeholder geometry.
 - Audio is procedural placeholder audio, not authored final sound.
-- Room layout data now includes 22 `.tres` layouts, and the playable route is now a seeded 10-room graph with randomized north/south branch direction and layout selection. It still uses one prototype room scene and a fixed room-count/type sequence, not a true 20 to 30 distinct instantiated room-template layer or fully randomized dungeon graph.
+- Room layout data now includes 22 `.tres` layouts, and the playable route is now a seeded 10-14 room graph with a 7-9 room main path and 3-5 branch rooms. It still uses one prototype room scene, not a true 20 to 30 distinct instantiated room-template layer or TileMap room set.
 - The active dungeon seed is visible on the minimap, the main menu supports fixed seed entry/random seed mode, and the result screen can replay the current seed. The debug map text remains developer-facing rather than a polished in-game panel.
 - Resolution settings support only three presets: 1280x720, 1600x900, 1920x1080.
 - Key rebinding supports movement, reload, interact, and pause; mouse shoot and weapon number slots are still fixed.
@@ -31,8 +31,8 @@ Last updated: 2026-06-30
 ## Already Verified
 
 - Main Godot scene starts in headless CLI.
-- Exported Windows `.exe` starts in headless CLI.
-- Exported Windows `.exe` starts with Windows display/audio drivers.
+- Windows release `.exe` export completed.
+- Exported `.exe` automatic headless startup was attempted this round but is not counted as passed because the exported runner did not reliably quit from CLI.
 - Full smoke test suite passes.
 - Resource reference and scene `load_steps` checks pass.
 - Windows prototype zip is generated.

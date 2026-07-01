@@ -38,19 +38,23 @@ func _run() -> void:
 	var debug_map_text := ""
 	if controller.has_method("get_debug_map_text"):
 		debug_map_text = str(controller.call("get_debug_map_text"))
-	_expect(records.size() == 10, "Dungeon should generate the first branching 10-room route")
+	var last_room_id := "Room%02d" % records.size()
+	_expect(records.size() >= 10 and records.size() <= 14, "Dungeon should generate a variable 10-14 room route")
 	_expect(combat_rooms.size() == records.size(), "Every generated room record should have one CombatRoom")
 	_expect(int(controller.call("get_generation_seed")) == 424242, "Seeded generation should report the active seed")
 	_expect(debug_map_text.contains("Seed: 424242"), "Debug map should include active seed")
 	_expect(debug_map_text.contains("Grid:"), "Debug map should include a grid block")
 	_expect(debug_map_text.contains("Room01"), "Debug map should list room ids")
-	_expect(debug_map_text.contains("Room10"), "Debug map should list boss room id")
+	_expect(debug_map_text.contains(last_room_id), "Debug map should list final boss room id")
 	_expect(records[0]["room_type"] == "start", "First generated room should be marked as start")
 	_expect(records[records.size() - 1]["room_type"] == "boss", "Last generated room should be marked as boss")
 	_expect(_has_room_type(records, "reward"), "Generated route should include a reward room")
 	_expect(_has_room_type(records, "elite"), "Generated route should include an elite room")
 	_expect(_has_room_type(records, "shop"), "Generated route should include a shop room")
 	_expect(_get_first_record_by_type(records, "elite").get("elite_enemies", false), "Elite room record should enable elite enemies")
+	_expect(_get_path_role_count(records, "main") >= 7 and _get_path_role_count(records, "main") <= 9, "Dungeon should vary main path length within first-version bounds")
+	_expect(_get_path_role_count(records, "branch") >= 3 and _get_path_role_count(records, "branch") <= 5, "Dungeon should vary branch count within first-version bounds")
+	_expect(_get_branch_anchor_count(records) >= 2, "Dungeon should attach branches to multiple main-path anchors")
 	_expect(_get_unique_layout_profile_count(records) >= 8, "Generated route should include broad layout variety")
 	_validate_connection_graph(records)
 
@@ -63,7 +67,7 @@ func _run() -> void:
 		_expect(false, "HUD should expose minimap marker count for smoke tests")
 	if hud != null and hud.has_method("get_minimap_seed_text") and hud.has_method("get_minimap_debug_text"):
 		_expect(str(hud.call("get_minimap_seed_text")).contains("424242"), "HUD minimap should expose the active dungeon seed")
-		_expect(str(hud.call("get_minimap_debug_text")).contains("Room10"), "HUD debug tooltip should include dungeon map details")
+		_expect(str(hud.call("get_minimap_debug_text")).contains(last_room_id), "HUD debug tooltip should include dungeon map details")
 	else:
 		_expect(false, "HUD should expose dungeon seed and debug map text for smoke tests")
 
@@ -85,6 +89,7 @@ func _validate_room_record(record: Dictionary, index: int, combat_rooms: Array) 
 	_expect(record["id"] == expected_id, "Generated room id should be sequential")
 	_expect(int(record.get("generation_seed", 0)) == 424242, "%s should record active generation seed" % expected_id)
 	_expect(record["template_id"] == "prototype_combat_room", "%s should use the prototype room template" % expected_id)
+	_expect(str(record.get("path_role", "")).length() > 0, "%s should record its dungeon graph role" % expected_id)
 	_expect(not layout_profile.is_empty(), "%s should define a layout profile" % expected_id)
 	_expect(not connections.is_empty(), "%s should define at least one connection" % expected_id)
 	_expect(room != null, "%s should have a CombatRoom instance" % expected_id)
@@ -101,6 +106,8 @@ func _validate_room_record(record: Dictionary, index: int, combat_rooms: Array) 
 		_expect(room.get("lock_doors_during_combat") == record["locks_doors"], "%s door-lock config should match metadata" % expected_id)
 
 	if room_type == "reward" or room_type == "shop":
+		_expect(str(record.get("path_role", "")) == "branch", "%s %s room should be generated as a branch room" % [expected_id, room_type])
+		_expect(int(record.get("branch_of", -1)) >= 1, "%s %s room should record its main-path anchor" % [expected_id, room_type])
 		_expect(enemy_pool.is_empty(), "%s %s room should not define enemy pool metadata" % [expected_id, room_type])
 		_expect(wave_counts.is_empty(), "%s %s room should not define wave count metadata" % [expected_id, room_type])
 		_expect(record["auto_clear"], "%s %s room should auto-clear on enter" % [expected_id, room_type])
@@ -215,6 +222,22 @@ func _get_first_record_by_type(records: Array, room_type: String) -> Dictionary:
 		if record is Dictionary and str(record.get("room_type", "")) == room_type:
 			return record
 	return {}
+
+
+func _get_path_role_count(records: Array, role_name: String) -> int:
+	var count := 0
+	for record in records:
+		if record is Dictionary and str(record.get("path_role", "")) == role_name:
+			count += 1
+	return count
+
+
+func _get_branch_anchor_count(records: Array) -> int:
+	var anchors := {}
+	for record in records:
+		if record is Dictionary and str(record.get("path_role", "")) == "branch":
+			anchors[int(record.get("branch_of", -1))] = true
+	return anchors.size()
 
 
 func _verify_room_layout_library() -> void:

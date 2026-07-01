@@ -54,11 +54,15 @@ func _run() -> void:
 	_expect(str(main.call("get_run_state_name")) == "Running", "Starting from menu should enter running state")
 
 	var rooms := _get_rooms(main)
-	_expect(rooms.size() == 10, "Default branching route should contain 10 rooms, got %d: %s" % [rooms.size(), _room_type_signature(rooms)])
-	if rooms.size() != 10:
+	_expect(rooms.size() >= 10 and rooms.size() <= 14, "Generated full route should contain 10-14 rooms, got %d: %s" % [rooms.size(), _room_type_signature(rooms)])
+	if rooms.size() < 10:
 		_finish()
 		return
-	_expect(_room_type_signature(rooms) == "start>combat>reward>combat>elite>shop>combat>reward>combat>boss", "Default room route should match the first branching sequence")
+	_expect(str(rooms[0].get("room_type")) == "start", "Generated full route should start with a start room")
+	_expect(str(rooms[rooms.size() - 1].get("room_type")) == "boss", "Generated full route should end with a boss room")
+	_expect(_has_room_type(rooms, "reward"), "Generated full route should include at least one reward branch")
+	_expect(_has_room_type(rooms, "shop"), "Generated full route should include a shop branch")
+	_expect(_has_room_type(rooms, "elite"), "Generated full route should include an elite room")
 
 	for room in rooms:
 		var room_type := str(room.get("room_type"))
@@ -244,6 +248,13 @@ func _room_type_signature(rooms: Array) -> String:
 	for room in rooms:
 		parts.append(str(room.get("room_type")))
 	return ">".join(parts)
+
+
+func _has_room_type(rooms: Array, type_name: String) -> bool:
+	for room in rooms:
+		if str(room.get("room_type")) == type_name:
+			return true
+	return false
 
 
 func _kill_all_enemies() -> void:

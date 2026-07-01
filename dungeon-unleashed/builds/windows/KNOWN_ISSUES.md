@@ -1,11 +1,11 @@
 # Dungeon Unleashed Known Issues
 
-Last updated: 2026-06-30
+Last updated: 2026-07-01
 
 - Visuals are placeholder geometry.
 - Audio is procedural placeholder audio.
 - A first automated balance pass is in place, but manual playtest tuning is still required.
-- Room layout data includes 22 `.tres` layouts, and the playable route is now a seeded 10-room graph with randomized north/south branch direction and layout selection. It still uses one prototype room scene and a fixed room-count/type sequence, not a full instantiated 20+ room-template layer or fully randomized dungeon graph.
+- Room layout data includes 22 `.tres` layouts, and the playable route is now a seeded 10-14 room graph with a 7-9 room main path and 3-5 branch rooms. It still uses one prototype room scene, not a full instantiated 20+ room-template layer or TileMap room set.
 - The active dungeon seed is visible on the minimap, the main menu supports fixed seed entry/random seed mode, and the result screen can replay the current seed. The debug map remains developer-facing rather than a polished in-game panel.
 - Relic drop tables are configurable `.tres` resources, but pity rules and deeper rarity tuning are not implemented.
 - Boss fight is prototype-grade. It has a clearer phase transition pause, warning, and basic floor hazard arena pressure, but still needs final tuning.
@@ -14,4 +14,4 @@ Last updated: 2026-06-30
 - Key rebinding supports movement, reload, interact, and pause; mouse shoot and weapon number slots are still fixed.
 - Result screen uses grouped text sections, but still needs visual polish.
 - Build is unsigned and may trigger a Windows security warning.
-- Headless and window startup are verified, but a full manual playthrough is still required.
+- Godot project headless startup, export generation, and zip packaging are verified. Exported `.exe` automatic startup validation is currently unreliable in CLI, so a human launch and full manual playthrough are still required.

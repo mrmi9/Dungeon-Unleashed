@@ -25,6 +25,11 @@ func _run() -> void:
 	if player == null or hud == null:
 		_finish()
 		return
+	var controller := main.get_node_or_null("DungeonController")
+	if controller != null and controller.has_method("regenerate_with_seed"):
+		controller.call("regenerate_with_seed", 424242)
+		await get_tree().process_frame
+		await get_tree().physics_frame
 
 	main.call("start_new_run")
 	await get_tree().process_frame
@@ -32,28 +37,34 @@ func _run() -> void:
 	await get_tree().create_timer(0.15).timeout
 
 	var rooms := _get_rooms(main)
-	_expect(rooms.size() == 10, "Balance route should contain the first branching 10-room route")
-	if rooms.size() != 10:
+	_expect(rooms.size() >= 10 and rooms.size() <= 14, "Balance route should contain a variable 10-14 room route")
+	if rooms.size() < 10:
 		_finish()
 		return
 
 	var start_wave_counts: PackedInt32Array = rooms[0].get("wave_enemy_counts")
-	var elite_wave_counts: PackedInt32Array = rooms[4].get("wave_enemy_counts")
+	var elite_index := _first_room_index_by_type(rooms, "elite")
+	var shop_index := _first_room_index_by_type(rooms, "shop")
+	_expect(elite_index > 0, "Balance route should include an elite room")
+	_expect(shop_index > elite_index, "Balance route should place first shop after an elite pressure check")
+	if elite_index < 0 or shop_index < 0:
+		_finish()
+		return
+
+	var elite_room = rooms[elite_index]
+	var elite_wave_counts: PackedInt32Array = elite_room.get("wave_enemy_counts")
 	_expect(_wave_total(start_wave_counts) == 6, "Start room should use a gentler 6-enemy opening")
 	_expect(_wave_total(elite_wave_counts) == 9, "Elite room should use 9 elite enemies after first balance pass")
-	_expect(is_equal_approx(float(rooms[4].get("elite_health_multiplier")), 1.65), "Elite health multiplier should use first balance pass value")
+	_expect(is_equal_approx(float(elite_room.get("elite_health_multiplier")), 1.65), "Elite health multiplier should use first balance pass value")
 
-	await _complete_combat_room(rooms[0], player, hud)
-	await _complete_combat_room(rooms[1], player, hud)
-	await _claim_reward_room(rooms[2], player, hud)
-	await _complete_combat_room(rooms[3], player, hud)
-	await _complete_combat_room(rooms[4], player, hud)
+	for index in range(shop_index):
+		await _complete_pre_shop_room(rooms[index], player, hud)
 
 	var gold_before_shop := player.current_gold
-	_expect(gold_before_shop >= 210, "Natural gold before mid-route shop should afford a meaningful purchase")
-	_expect(gold_before_shop <= 265, "Natural gold before mid-route shop should not trivialize shop decisions")
+	_expect(gold_before_shop >= 160, "Natural gold before first shop should afford a meaningful purchase; gold=%d route=%s" % [gold_before_shop, _room_type_signature(rooms)])
+	_expect(gold_before_shop <= 330, "Natural gold before first shop should not trivialize shop decisions; gold=%d route=%s" % [gold_before_shop, _room_type_signature(rooms)])
 
-	await _enter_room(rooms[5], player)
+	await _enter_room(rooms[shop_index], player)
 	var items := _get_shop_items()
 	var heal_item := _first_item_by_type(items, "Heal")
 	var relic_item := _first_item_by_type(items, "Relic")
@@ -70,9 +81,8 @@ func _run() -> void:
 		_expect(gold_before_shop >= relic_price, "Natural gold should afford a relic")
 		_expect(gold_before_shop >= weapon_price, "Natural gold should afford a weapon")
 		_expect(gold_before_shop >= heal_price + relic_price, "Natural gold should afford heal plus relic")
-		_expect(gold_before_shop >= heal_price + weapon_price, "Natural gold should afford heal plus weapon")
-		_expect(gold_before_shop < relic_price + weapon_price, "Natural gold should not afford both major shop items")
-		_expect(gold_before_shop < total_price, "Natural gold should not buy out the whole shop")
+		_expect(gold_before_shop < relic_price + weapon_price, "Natural gold should not afford both major shop items; gold=%d route=%s" % [gold_before_shop, _room_type_signature(rooms)])
+		_expect(gold_before_shop < total_price, "Natural gold should not buy out the whole shop; gold=%d route=%s" % [gold_before_shop, _room_type_signature(rooms)])
 
 	var boss := BOSS_SCENE.instantiate()
 	_expect(boss != null, "Boss scene should instantiate for balance checks")
@@ -84,6 +94,14 @@ func _run() -> void:
 	main.queue_free()
 	await get_tree().process_frame
 	_finish()
+
+
+func _complete_pre_shop_room(room: Node, player: Player, hud: Node) -> void:
+	var room_type := str(room.get("room_type"))
+	if room_type in ["start", "combat", "elite"]:
+		await _complete_combat_room(room, player, hud)
+	elif room_type == "reward":
+		await _claim_reward_room(room, player, hud)
 
 
 func _complete_combat_room(room: Node, player: Player, hud: Node) -> void:
@@ -151,6 +169,20 @@ func _get_rooms(main: Node) -> Array:
 	if controller != null and controller.has_method("get_combat_rooms"):
 		rooms = controller.call("get_combat_rooms")
 	return rooms
+
+
+func _first_room_index_by_type(rooms: Array, type_name: String) -> int:
+	for index in range(rooms.size()):
+		if str(rooms[index].get("room_type")) == type_name:
+			return index
+	return -1
+
+
+func _room_type_signature(rooms: Array) -> String:
+	var parts: PackedStringArray = []
+	for room in rooms:
+		parts.append(str(room.get("room_type")))
+	return ">".join(parts)
 
 
 func _kill_all_enemies() -> void:

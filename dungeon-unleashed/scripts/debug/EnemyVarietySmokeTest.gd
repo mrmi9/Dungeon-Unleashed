@@ -31,13 +31,17 @@ func _run() -> void:
 	if rooms.size() < 10:
 		_finish()
 		return
+	var combat_room := _first_room_by_type(rooms, "combat")
+	var reward_room := _first_room_by_type(rooms, "reward")
 	var elite_room := _first_room_by_type(rooms, "elite")
 	var shop_room := _first_room_by_type(rooms, "shop")
 	var boss_room := _first_room_by_type(rooms, "boss")
+	_expect(combat_room != null, "Generated route should include a combat room")
+	_expect(reward_room != null, "Generated route should include a reward room")
 	_expect(elite_room != null, "Generated route should include an elite room")
 	_expect(shop_room != null, "Generated route should include a shop room")
 	_expect(boss_room != null, "Generated route should include a boss room")
-	if elite_room == null or shop_room == null or boss_room == null:
+	if combat_room == null or reward_room == null or elite_room == null or shop_room == null or boss_room == null:
 		_finish()
 		return
 
@@ -46,15 +50,15 @@ func _run() -> void:
 	_expect(not _spawned_enemy_names().has("Shooter"), "Room01 first wave should not spawn Shooter enemies")
 	await _discard_all_enemies()
 
-	await _enter_room(rooms[1], player)
-	var room_2_names := _spawned_enemy_names()
-	_expect(room_2_names.has("Chaser"), "Room02 should include Chaser enemies")
-	_expect(room_2_names.has("Shooter"), "Room02 should include Shooter enemies")
-	_expect(room_2_names.has("Bomber"), "Room02 should include Bomber enemies")
+	await _enter_room(combat_room, player)
+	var combat_names := _spawned_enemy_names()
+	_expect(combat_names.has("Chaser"), "Combat room should include Chaser enemies")
+	_expect(combat_names.has("Shooter"), "Combat room should include Shooter enemies")
+	_expect(combat_names.has("Bomber"), "Combat room should include Bomber enemies")
 	await _discard_all_enemies()
 
-	await _enter_room(rooms[2], player)
-	_expect(_spawned_enemy_names().is_empty(), "Room03 reward room should not spawn enemies")
+	await _enter_room(reward_room, player)
+	_expect(_spawned_enemy_names().is_empty(), "Reward room should not spawn enemies")
 	await _discard_all_enemies()
 
 	await _enter_room(elite_room, player)
@@ -127,7 +131,10 @@ func _spawned_enemy_names() -> PackedStringArray:
 func _discard_all_enemies() -> void:
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if is_instance_valid(enemy):
-			enemy.queue_free()
+			var parent := enemy.get_parent()
+			if parent != null:
+				parent.remove_child(enemy)
+			enemy.free()
 	for index in range(2):
 		await get_tree().physics_frame
 		await get_tree().process_frame

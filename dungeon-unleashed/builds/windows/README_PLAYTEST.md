@@ -1,6 +1,6 @@
 # Dungeon Unleashed Windows Prototype
 
-Build date: 2026-06-30
+Build date: 2026-07-01
 Engine: Godot 4.7 stable
 
 ## How To Run
@@ -20,9 +20,9 @@ Run `Dungeon Unleashed.exe`.
 
 ## What To Test
 
-- Start from the main menu and complete the 10-room branching route.
+- Start from the main menu and complete the seeded 10-14 room branching route.
 - Try the main menu seed field: leave it blank for a random route, enter a number for a fixed route, and use Replay Seed on the result screen to reproduce the same route.
-- Check whether the start, combat, reward, elite, shop, branch reward, late combat, and boss rooms feel visually and spatially distinct despite using placeholder art. Branch direction and selected room layouts now vary by generation seed, but this build still uses one prototype room scene with data-driven layouts.
+- Check whether the start, combat, reward, elite, shop, branch reward, late combat, and boss rooms feel visually and spatially distinct despite using placeholder art. Main-path length, branch count, branch placement, and selected room layouts now vary by generation seed, but this build still uses one prototype room scene with data-driven layouts.
 - Check the top-right minimap seed label. If you report a map/layout issue, include this seed so the layout can be reproduced in development.
 - Verify combat rooms lock and unlock correctly.
 - Collect rewards, open chests, buy shop items, and choose relics.

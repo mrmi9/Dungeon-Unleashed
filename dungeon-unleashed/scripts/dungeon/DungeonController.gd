@@ -30,6 +30,10 @@ const NARROW_GAP_LAYOUT := preload("res://resources/room_layouts/narrow_gap.tres
 const OPEN_CROSS_LAYOUT := preload("res://resources/room_layouts/open_cross.tres")
 const TWIN_ISLANDS_LAYOUT := preload("res://resources/room_layouts/twin_islands.tres")
 const WIDE_ARENA_LAYOUT := preload("res://resources/room_layouts/wide_arena.tres")
+const MAIN_PATH_MIN_ROOMS := 7
+const MAIN_PATH_MAX_ROOMS := 9
+const BRANCH_MIN_ROOMS := 3
+const BRANCH_MAX_ROOMS := 5
 
 @export var rooms_parent_path: NodePath = ^"../Rooms"
 @export var room_spacing := Vector2(1320, 820)
@@ -126,13 +130,16 @@ func get_debug_map_text() -> String:
 		var connections := record["connections"] as PackedStringArray
 		var sorted_connections := Array(connections)
 		sorted_connections.sort()
-		lines.append("%s %s %s at (%d,%d) doors=%s layout=%s state=%s" % [
+		lines.append("%s %s %s at (%d,%d) doors=%s role=%s main=%d branch_of=%d layout=%s state=%s" % [
 			str(record.get("id", "")),
 			_get_debug_room_marker(str(record.get("room_type", ""))),
 			str(record.get("room_type", "")),
 			grid_position.x,
 			grid_position.y,
 			",".join(sorted_connections),
+			str(record.get("path_role", "")),
+			int(record.get("main_path_index", -1)),
+			int(record.get("branch_of", -1)),
 			str(record.get("layout_profile", "")),
 			str(record.get("state", "")),
 		])
@@ -167,6 +174,9 @@ func _build_room_record(index: int, _room_count: int, room_data: Resource, defin
 		"room_type": _get_room_data_string(room_data, "room_type", "combat"),
 		"grid_position": grid_position,
 		"connections": connections,
+		"path_role": str(definition.get("path_role", "main")),
+		"main_path_index": int(definition.get("main_path_index", -1)),
+		"branch_of": int(definition.get("branch_of", -1)),
 		"template_id": _get_room_data_string(room_data, "template_id", "prototype_combat_room"),
 		"layout_profile": _get_layout_id(room_data, layout_data),
 		"enemy_pool": _get_room_data_packed_strings(room_data, "enemy_names"),
@@ -211,38 +221,69 @@ func _get_room_definitions() -> Array[Dictionary]:
 				connections.append("west")
 			if index < room_data_sequence.size() - 1:
 				connections.append("east")
-			legacy_definitions.append(_make_room_definition(room_data_sequence[index], Vector2i(index, 0), connections, null))
+			legacy_definitions.append(_make_room_definition(
+				room_data_sequence[index],
+				Vector2i(index, 0),
+				connections,
+				null,
+				{
+					"path_role": "legacy",
+					"main_path_index": index,
+				}
+			))
 		return legacy_definitions
 
 	var used_layout_ids := {}
-	var reward_one_direction := _pick_branch_direction("north")
-	var shop_direction := _pick_branch_direction("south")
-	var reward_two_direction := _pick_branch_direction("north")
-	var reward_one_position := Vector2i(1, 0) + _direction_to_offset(reward_one_direction)
-	var shop_position := Vector2i(3, 0) + _direction_to_offset(shop_direction)
-	var reward_two_position := Vector2i(4, 0) + _direction_to_offset(reward_two_direction)
+	var main_path_room_count := _rng.randi_range(MAIN_PATH_MIN_ROOMS, MAIN_PATH_MAX_ROOMS)
+	var boss_x := main_path_room_count - 1
+	var elite_x := _pick_main_elite_x(main_path_room_count)
+	var branch_specs := _build_branch_specs(main_path_room_count, elite_x)
+	var branches_by_anchor := _group_branches_by_anchor(branch_specs)
+	var definitions: Array[Dictionary] = []
 
-	return [
-		_make_room_definition(START_ROOM_DATA, Vector2i(0, 0), PackedStringArray(["east"]), _pick_layout(_start_layout_pool(), used_layout_ids)),
-		_make_room_definition(COMBAT_ROOM_DATA, Vector2i(1, 0), _packed_connections(["west", "east", reward_one_direction]), _pick_layout(_combat_layout_pool(), used_layout_ids)),
-		_make_room_definition(REWARD_ROOM_DATA, reward_one_position, PackedStringArray([_opposite_direction(reward_one_direction)]), _pick_layout(_reward_layout_pool(), used_layout_ids)),
-		_make_room_definition(COMBAT_ROOM_DATA, Vector2i(2, 0), PackedStringArray(["west", "east"]), _pick_layout(_combat_layout_pool(), used_layout_ids)),
-		_make_room_definition(ELITE_ROOM_DATA, Vector2i(3, 0), _packed_connections(["west", "east", shop_direction]), _pick_layout(_elite_layout_pool(), used_layout_ids)),
-		_make_room_definition(SHOP_ROOM_DATA, shop_position, PackedStringArray([_opposite_direction(shop_direction)]), _pick_layout(_shop_layout_pool(), used_layout_ids)),
-		_make_room_definition(COMBAT_ROOM_DATA, Vector2i(4, 0), _packed_connections(["west", "east", reward_two_direction]), _pick_layout(_combat_layout_pool(), used_layout_ids)),
-		_make_room_definition(REWARD_ROOM_DATA, reward_two_position, PackedStringArray([_opposite_direction(reward_two_direction)]), _pick_layout(_reward_layout_pool(), used_layout_ids)),
-		_make_room_definition(COMBAT_ROOM_DATA, Vector2i(5, 0), PackedStringArray(["west", "east"]), _pick_layout(_combat_layout_pool(), used_layout_ids)),
-		_make_room_definition(BOSS_PLACEHOLDER_ROOM_DATA, Vector2i(6, 0), PackedStringArray(["west"]), _pick_layout(_boss_layout_pool(), used_layout_ids)),
-	]
+	for x in range(main_path_room_count):
+		var room_data := _get_main_path_room_data(x, boss_x, elite_x)
+		var connections := _get_main_path_connections(x, boss_x, branches_by_anchor)
+		definitions.append(_make_room_definition(
+			room_data,
+			Vector2i(x, 0),
+			connections,
+			_pick_layout(_layout_pool_for_room_data(room_data), used_layout_ids),
+			{
+				"path_role": "main",
+				"main_path_index": x,
+			}
+		))
+
+		var branch_list: Array = branches_by_anchor.get(x, [])
+		for branch in branch_list:
+			var branch_direction := str(branch.get("direction", "north"))
+			var branch_data := branch.get("room_data") as Resource
+			definitions.append(_make_room_definition(
+				branch_data,
+				Vector2i(x, 0) + _direction_to_offset(branch_direction),
+				PackedStringArray([_opposite_direction(branch_direction)]),
+				_pick_layout(_layout_pool_for_room_data(branch_data), used_layout_ids),
+				{
+					"path_role": "branch",
+					"main_path_index": -1,
+					"branch_of": x,
+				}
+			))
+
+	return definitions
 
 
-func _make_room_definition(room_data: Resource, grid_position: Vector2i, connections: PackedStringArray, layout_data: Resource) -> Dictionary:
-	return {
+func _make_room_definition(room_data: Resource, grid_position: Vector2i, connections: PackedStringArray, layout_data: Resource, metadata: Dictionary = {}) -> Dictionary:
+	var definition := {
 		"room_data": room_data,
 		"grid_position": grid_position,
 		"connections": connections,
 		"layout_data": layout_data,
 	}
+	for key in metadata.keys():
+		definition[key] = metadata[key]
+	return definition
 
 
 func _get_room_data_sequence() -> Array[Resource]:
@@ -257,6 +298,144 @@ func _get_room_data_sequence() -> Array[Resource]:
 		SHOP_ROOM_DATA,
 		BOSS_PLACEHOLDER_ROOM_DATA,
 	]
+
+
+func _pick_main_elite_x(main_path_room_count: int) -> int:
+	var boss_x := main_path_room_count - 1
+	var low := mini(2, boss_x - 2)
+	var high := mini(maxi(low, boss_x - 2), 3)
+	return _rng.randi_range(low, high)
+
+
+func _get_main_path_room_data(x: int, boss_x: int, elite_x: int) -> Resource:
+	if x == 0:
+		return START_ROOM_DATA
+	if x == boss_x:
+		return BOSS_PLACEHOLDER_ROOM_DATA
+	if x == elite_x:
+		return ELITE_ROOM_DATA
+	return COMBAT_ROOM_DATA
+
+
+func _get_main_path_connections(x: int, boss_x: int, branches_by_anchor: Dictionary) -> PackedStringArray:
+	var connections := PackedStringArray()
+	if x > 0:
+		connections.append("west")
+	if x < boss_x:
+		connections.append("east")
+
+	var branch_list: Array = branches_by_anchor.get(x, [])
+	for branch in branch_list:
+		var direction := str(branch.get("direction", ""))
+		if not direction.is_empty() and not connections.has(direction):
+			connections.append(direction)
+	return connections
+
+
+func _build_branch_specs(main_path_room_count: int, elite_x: int) -> Array[Dictionary]:
+	var boss_x := main_path_room_count - 1
+	var candidates := _get_branch_candidates(boss_x)
+	var branch_count := _rng.randi_range(BRANCH_MIN_ROOMS, mini(BRANCH_MAX_ROOMS, candidates.size()))
+	var specs: Array[Dictionary] = []
+
+	_add_branch_spec(specs, candidates, REWARD_ROOM_DATA, -1, true)
+	_add_branch_spec(specs, candidates, SHOP_ROOM_DATA, elite_x, true)
+	_add_branch_spec(specs, candidates, REWARD_ROOM_DATA, -1, false)
+
+	var optional_rooms := [
+		ELITE_ROOM_DATA,
+		REWARD_ROOM_DATA,
+		COMBAT_ROOM_DATA,
+	]
+	while specs.size() < branch_count and not candidates.is_empty():
+		var room_data := optional_rooms[_rng.randi_range(0, optional_rooms.size() - 1)] as Resource
+		_add_branch_spec(specs, candidates, room_data, -1, true)
+
+	specs.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var ax := int(a.get("anchor_x", 0))
+		var bx := int(b.get("anchor_x", 0))
+		if ax == bx:
+			return str(a.get("direction", "")) < str(b.get("direction", ""))
+		return ax < bx
+	)
+	return specs
+
+
+func _get_branch_candidates(boss_x: int) -> Array[Dictionary]:
+	var candidates: Array[Dictionary] = []
+	for x in range(1, boss_x):
+		candidates.append({
+			"anchor_x": x,
+			"direction": "north",
+		})
+		candidates.append({
+			"anchor_x": x,
+			"direction": "south",
+		})
+	return candidates
+
+
+func _add_branch_spec(specs: Array[Dictionary], candidates: Array[Dictionary], room_data: Resource, preferred_anchor_x: int = -1, prefer_late: bool = false) -> void:
+	if candidates.is_empty():
+		return
+
+	var candidate_index := _pick_branch_candidate_index(candidates, preferred_anchor_x, prefer_late)
+	var candidate := candidates[candidate_index]
+	candidates.remove_at(candidate_index)
+	specs.append({
+		"room_data": room_data,
+		"anchor_x": int(candidate.get("anchor_x", 1)),
+		"direction": str(candidate.get("direction", "north")),
+	})
+
+
+func _pick_branch_candidate_index(candidates: Array[Dictionary], preferred_anchor_x: int, prefer_late: bool) -> int:
+	var filtered_indexes: Array[int] = []
+	if preferred_anchor_x > 0:
+		for index in range(candidates.size()):
+			if int(candidates[index].get("anchor_x", -1)) == preferred_anchor_x:
+				filtered_indexes.append(index)
+
+	if filtered_indexes.is_empty() and prefer_late:
+		var max_anchor := 0
+		for candidate in candidates:
+			max_anchor = maxi(max_anchor, int(candidate.get("anchor_x", 0)))
+		var min_anchor := maxi(1, max_anchor - 2)
+		for index in range(candidates.size()):
+			if int(candidates[index].get("anchor_x", 0)) >= min_anchor:
+				filtered_indexes.append(index)
+
+	if filtered_indexes.is_empty():
+		for index in range(candidates.size()):
+			filtered_indexes.append(index)
+
+	return filtered_indexes[_rng.randi_range(0, filtered_indexes.size() - 1)]
+
+
+func _group_branches_by_anchor(branch_specs: Array[Dictionary]) -> Dictionary:
+	var branches_by_anchor := {}
+	for branch in branch_specs:
+		var anchor_x := int(branch.get("anchor_x", 1))
+		var branch_list: Array = branches_by_anchor.get(anchor_x, [])
+		branch_list.append(branch)
+		branches_by_anchor[anchor_x] = branch_list
+	return branches_by_anchor
+
+
+func _layout_pool_for_room_data(room_data: Resource) -> Array:
+	var room_type := _get_room_data_string(room_data, "room_type", "combat")
+	match room_type:
+		"start":
+			return _start_layout_pool()
+		"reward":
+			return _reward_layout_pool()
+		"elite":
+			return _elite_layout_pool()
+		"shop":
+			return _shop_layout_pool()
+		"boss", "boss_placeholder":
+			return _boss_layout_pool()
+	return _combat_layout_pool()
 
 
 func _get_room_scene(room_data: Resource) -> PackedScene:

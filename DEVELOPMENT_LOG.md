@@ -8,8 +8,8 @@
 
 - 日志文件：`E:\Dungeon Unleashed\DEVELOPMENT_LOG.md`
 - Godot 项目：`E:\Dungeon Unleashed\dungeon-unleashed`
-- 当前记录日期：2026-06-30
-- 当前开发进度：已从阶段 1 核心操作原型推进到包含 10 个遗物、经济、商店、宝箱、Boss 二阶段场地压力、第一轮自动化数值平衡、22 个数据驱动房间布局资源、可种子复现的 10 房间分支路线、设置保存、核心键位重绑定、结算统计、历史记录、基础音频反馈、核心 UI 布局烟测、Windows 打包验证和试玩反馈材料的最小完整局流程；主菜单、暂停、设置、死亡结算、通关结算、商店消费、宝箱奖励、占位音频、Windows 原型包、反馈模板和已知问题列表已有原型，正式美术音频素材、代码签名和外部分发仍未完成。
+- 当前记录日期：2026-07-01
+- 当前开发进度：已从阶段 1 核心操作原型推进到包含 10 个遗物、经济、商店、宝箱、Boss 二阶段场地压力、第一轮自动化数值平衡、22 个数据驱动房间布局资源、可种子复现的 10-14 房间变量分支路线、设置保存、核心键位重绑定、结算统计、历史记录、基础音频反馈、核心 UI 布局烟测、Windows 打包验证和试玩反馈材料的最小完整局流程；主菜单、暂停、设置、死亡结算、通关结算、商店消费、宝箱奖励、占位音频、Windows 原型包、反馈模板和已知问题列表已有原型，正式美术音频素材、代码签名和外部分发仍未完成。
 - 最新 Windows 原型包：`E:\Dungeon Unleashed\dungeon-unleashed\builds\Dungeon_Unleashed_Windows_Prototype.zip`
 
 ### 当前已实现功能总览
@@ -19,7 +19,7 @@
 - 已实现 4 把武器：Basic Pistol、Shotgun、Energy Staff、Ricochet Blaster。
 - 武器系统支持射速、散射、多弹丸、弹匣、换弹、暴击、穿透、反弹和爆炸字段。
 - 子弹支持直线飞行、射程销毁、命中敌人、命中墙体、击退和命中特效。
-- 已实现可种子复现的 10 房间分支路线：开始房、战斗房、奖励支路、战斗房、精英房、商店支路、战斗房、奖励支路、战斗房、Boss 房；支路方向和布局资源会按生成种子从布局池中选择。
+- 已实现可种子复现的 10-14 房间变量分支路线：主路径 7-9 个节点，支路 3-5 个节点，Boss 固定在主路径末端；奖励房、商店房、可选精英/战斗支路和布局资源会按生成种子选择。
 - HUD 小地图会显示当前地牢 seed；主菜单支持输入固定 seed 或回到随机 seed，结算页支持 Replay Seed；`DungeonController.get_debug_map_text()` 可输出 seed、网格、房间坐标、连接方向和布局，便于复现地图问题。
 - 战斗房支持进入触发、锁门、敌人波次、清房开门和奖励生成。
 - 已实现地牢房间数据资源、房间布局资源、房间生成控制器、`layout_data`/`layout_profile` 元数据和 HUD 小地图。
@@ -32,7 +32,7 @@
 - 已实现设置菜单和设置保存：主音量、音效音量、音乐音量、分辨率、全屏开关、核心键位重绑定、`user://settings.cfg` 持久化读取和保存。
 - 已实现局内输入提示：HUD 右下角显示移动、瞄准、射击、换弹、切武器、交互和暂停按键。
 - 已实现基础音频反馈：运行时 SFX/Music 总线、程序化占位音效、普通/战斗/Boss/胜利/失败背景音乐模式。
-- 已实现 Windows 导出配置和打包验证：`export_presets.cfg`、Godot 4.7 Windows 模板、release `.exe` 导出、headless 启动验证和试玩 zip 包。
+- 已实现 Windows 导出配置和打包流程：`export_presets.cfg`、Godot 4.7 Windows 模板、release `.exe` 导出和试玩 zip 包；本轮导出 `.exe` 自动 headless 启动验证受导出 runner 参数限制，仍需要人工双击运行复核。
 - 已补齐外部试玩材料：`PLAYTEST_FEEDBACK.md`、`KNOWN_ISSUES.md` 和打包目录内的试玩说明。
 - 已实现本局结算统计和历史统计：死亡/通关面板展示武器、遗物、生命、护盾、HP 伤害、暴击次数、治疗量、护盾吸收量、金币收支、奖励、宝箱、商店购买、Boss 击败状态和历史最好记录。
 - 结算统计会区分唯一遗物数量和遗物总层数，避免可堆叠遗物被误判为没有成长。
@@ -69,7 +69,7 @@
 - `WeaponSmokeTest.tscn`：通过。
 - `Main.tscn` Godot CLI 无头启动验证：通过。
 - Windows release `.exe` 导出：通过。
-- Windows release `.exe` headless 启动 60 帧：通过。
+- Windows release `.exe` 自动 headless 启动：本轮未计入通过，`--headless --quit` 返回 `-1073741819`，`--quit-after` 未可靠退出；导出包需人工运行复核。
 - Windows 试玩 zip 包生成：通过。
 - `res://` 静态引用检查：通过。
 - `.tscn` / `.tres` `load_steps` 格式检查：通过。
@@ -77,7 +77,7 @@
 ### 当前主要未完成项
 
 - Boss 战仍是原型级，已有阶段转换、基础预警、地面危险区和结算统计，但尚未完成最终 Boss 战演出、场地设计和数值调优。
-- 房间布局资源数量已达到开发计划第 11 阶段建议的 20+ 门槛，当前单局已扩展为可种子复现的 10 房间分支路线；但仍是 1 个原型房间场景和固定房间数量/类型序列，尚未完成 20 到 30 个独立房间实例或完整随机地牢图结构。
+- 房间布局资源数量已达到开发计划第 11 阶段建议的 20+ 门槛，当前单局已扩展为可种子复现的 10-14 房间变量分支路线；但仍是 1 个原型房间场景配合数据布局，尚未完成 20 到 30 个独立房间实例或正式 TileMap 房间模板。
 - 主流程 UI 仍是原型级，设置菜单已包含 Master/SFX/Music/Resolution/Fullscreen 和核心键位重绑定，并已有 1280x720 / 1600x900 / 1920x1080 基础布局烟测，但尚未支持手柄提示、更完整的显示/音频选项、鼠标/武器槽重绑定和正式视觉层级。
 - 商店和宝箱系统仍是原型级，已有第一轮自动化经济约束，但尚未完成实机手感平衡和掉落权重可视化配置。
 - 遗物候选已按稀有度权重随机，并在选择面板展示稀有度颜色和效果标签；奖励房、商店和宝箱已有资源化来源级掉落池与权重，但尚未实现保底规则和正式图标/特效。
@@ -89,9 +89,9 @@
 ### 推荐手动验证重点
 
 - 从 `Main.tscn` 启动后，确认玩家移动、瞄准、射击、换武器和换弹手感。
-- 依次推进 10 个房间，确认东西向主路线、南北支路、门锁、波次、奖励、遗物选择、商店消费和小地图状态。
-- 在 `Room05` 精英房确认精英敌人更耐打、伤害更高，并且死亡爆炸能正确伤害玩家或消耗护盾。
-- 在 `Room10` Boss 房确认 Boss 血条、二阶段、阶段转换、地面危险区、弹幕、召唤、死亡和 `RUN COMPLETE` 提示。
+- 依次推进当前 seed 生成的 10-14 个房间，确认主路线、分支、门锁、波次、奖励、遗物选择、商店消费和小地图状态。
+- 在首个精英房确认精英敌人更耐打、伤害更高，并且死亡爆炸能正确伤害玩家或消耗护盾。
+- 在最终 Boss 房确认 Boss 血条、二阶段、阶段转换、地面危险区、弹幕、召唤、死亡和 `RUN COMPLETE` 提示。
 - 确认启动后先进入主菜单，开始新局后可用 Esc 暂停，死亡和通关都会进入结算面板。
 - 确认死亡和通关结算面板会展示本局武器、遗物、金币收支、伤害、奖励、宝箱、商店购买和历史记录。
 - 确认主菜单和暂停菜单都能打开 Settings，音量/全屏修改后重启仍保留。
@@ -7531,3 +7531,142 @@ README_PLAYTEST.md
 1. 扩展地牢图生成器，让主路径长度、支路数量和特殊房间位置也进入 seed 控制。
 2. 增加正式 debug map 面板或开发者快捷键，支持复制当前 seed 和调试地图。
 3. 继续补真实房间模板/TileMap，并进行一次人工完整通关记录。
+
+## 2026-07-01 变量地牢图生成推进
+
+### 本次目标
+
+- 将上一轮“固定 10 房间序列 + 随机支路方向/布局”升级为 seed 驱动的变量地牢图。
+- 让主路径长度、支路数量、奖励/商店/精英支路位置和布局选择都能随 seed 变化，同时保持完整通关路径稳定。
+- 更新自动化烟测，避免继续绑定 `Room10` 或固定房间类型序列。
+
+### 已实现
+
+- `DungeonController.gd` 默认生成规则改为变量图：
+  - 主路径随机 7-9 个节点。
+  - 支路随机 3-5 个节点。
+  - Boss 固定在主路径末端。
+  - 至少生成奖励支路、商店支路和额外奖励支路。
+  - 商店锚定在早期精英房之后，避免过晚进店导致经济节奏偏移。
+  - 可选支路优先落在中后段，减少商店前金币过多的问题。
+- 房间记录新增调试元数据：
+  - `path_role`
+  - `main_path_index`
+  - `branch_of`
+- `get_debug_map_text()` 现在会输出房间路径角色、主路径索引、支路锚点和布局，便于复现 seed 问题。
+- `DungeonGenerationSmokeTest.gd` 更新为验证变量图不变量：
+  - 总房间数 10-14。
+  - 主路径数 7-9。
+  - 支路数 3-5。
+  - Boss 是最后一个房间。
+  - 至少包含奖励房、精英房和商店房。
+  - 奖励房和商店房必须位于支路。
+- `BalanceSmokeTest.gd` 改为按房间类型查找首个精英房和首个商店房，不再依赖固定索引；固定 seed `424242` 会重新生成后再验证自然进店金币区间。
+- `FullRunSmokeTest.gd` 改为验证变量路线的完整通关条件，不再断言固定签名。
+- `EnemyVarietySmokeTest.gd` 改为按 `room_type` 查找战斗房/奖励房，并清理残留敌人时立即移除和释放，降低跨验证步骤的残留干扰。
+- `KNOWN_ISSUES.md`、打包目录 `KNOWN_ISSUES.md` 和 `README_PLAYTEST.md` 已同步更新为 10-14 房间变量路线说明。
+
+### 发现并修复的问题
+
+- 变量图初版下，`BalanceSmokeTest` 曾暴露商店前金币过高的问题：
+
+```text
+gold=304 route=start>combat>combat>combat>elite>shop>combat>reward>combat>reward>reward>boss
+```
+
+- 修复方式：将早期精英/商店窗口前移，并让可选支路更偏向商店后的中后段，减少商店前累计战斗/奖励过多。
+- 完整烟测第一次运行中，`RunSummarySmokeTest` 出现一次不稳定失败；单测复跑通过，完整套件复跑通过，未改运行时代码。
+- 直接用 `--script res://scripts/debug/*.gd` 跑烟测会缺失 Autoload `Events` 编译符号；正确 CLI 验证入口是 `--scene res://scenes/debug/*SmokeTest.tscn`。
+
+### 自动验证结果
+
+#### 受影响专项
+
+```text
+DungeonGenerationSmokeTest passed.
+BalanceSmokeTest passed.
+FullRunSmokeTest passed.
+EnemyVarietySmokeTest passed.
+```
+
+#### 完整烟测套件
+
+```text
+AudioFeedbackSmokeTest passed.
+BalanceSmokeTest passed.
+BossSmokeTest passed.
+ChestSmokeTest passed.
+CombatFeedbackSmokeTest passed.
+DungeonGenerationSmokeTest passed.
+EnemyVarietySmokeTest passed.
+FullRunSmokeTest passed.
+MenuFlowSmokeTest passed.
+RelicSmokeTest passed.
+RoomFlowSmokeTest passed.
+RunSummarySmokeTest passed.
+SettingsSmokeTest passed.
+ShopSmokeTest passed.
+UILayoutSmokeTest passed.
+WeaponSmokeTest passed.
+```
+
+#### 主场景和静态校验
+
+```text
+Main scene startup passed.
+Resource reference check passed.
+Scene/resource load_steps check passed.
+```
+
+#### Windows 导出包复核
+
+当前文件：
+
+```text
+E:\Dungeon Unleashed\dungeon-unleashed\builds\windows\Dungeon Unleashed.exe
+大小：109356392 bytes
+时间：2026-07-01 09:42:59
+
+E:\Dungeon Unleashed\dungeon-unleashed\builds\Dungeon_Unleashed_Windows_Prototype.zip
+大小：38206476 bytes
+时间：2026-07-01 09:48:37
+```
+
+zip 内容：
+
+```text
+Dungeon Unleashed.exe
+KNOWN_ISSUES.md
+PLAYTEST_FEEDBACK.md
+README_PLAYTEST.md
+```
+
+导出状态：
+
+```text
+Windows release export passed.
+Shared-read zip contents check passed.
+```
+
+导出 `.exe` 自动启动验证限制：
+
+```text
+--headless --quit returned -1073741819.
+--headless --quit-after 1 did not reliably exit before timeout.
+```
+
+结论：本轮不把导出 `.exe` 自动启动记为通过，仍需人工双击运行并完成试玩复核；Godot 项目主场景 headless 启动和 Windows 导出/zip 打包已通过。
+
+### 当前已知限制
+
+- 当前已经不再是固定房间数量和固定房间类型序列，但仍使用一个 `PrototypeCombatRoom.tscn` 配合 `.tres` 布局资源，并非正式 TileMap/独立房间模板库。
+- Debug map 仍主要作为开发辅助文本存在，尚未做成正式游戏内调试面板。
+- 变量图规则还比较保守，尚未实现多层地牢、事件房、Boss 前休整房或正式地图选择界面。
+- 导出 Windows `.exe` 的自动 CLI 启动验证本轮不稳定，需要人工运行确认真实窗口、音频和输入。
+- 仍缺少人工完整通关试玩对支路可读性、商店时机、Boss 节奏和视觉噪音的确认。
+
+### 下一步建议
+
+1. 用导出的 Windows 包人工跑 3 个不同 seed，记录路线长度、商店前金币、支路理解成本和 Boss 前资源状态。
+2. 增加正式 debug map 面板或开发者快捷键，支持复制当前 seed 和地图文本。
+3. 继续补真实房间模板/TileMap，减少对单一原型场景和矩形障碍物的依赖。
