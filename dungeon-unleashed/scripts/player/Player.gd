@@ -1,6 +1,8 @@
 extends CharacterBody2D
 class_name Player
 
+const ENEMY_BODY_COLLISION_BIT := 2
+
 signal health_changed(current_hp: int, max_hp: int)
 signal shield_changed(current_shield: int)
 signal gold_changed(current_gold: int)
@@ -42,6 +44,7 @@ var _touching_enemies: Array[Node] = []
 
 func _ready() -> void:
 	add_to_group("player")
+	collision_mask = collision_mask & ~ENEMY_BODY_COLLISION_BIT
 	current_health = max_health
 	weapon.ammo_changed.connect(_on_weapon_ammo_changed)
 	_equip_weapon(0)

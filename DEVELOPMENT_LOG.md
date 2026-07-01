@@ -7959,3 +7959,44 @@ Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds
 
 - 在最新导出包中复测：开局站桩清掉第一波，手动打空弹匣并等待换弹，确认玩家不会被挤到固定位置。
 - 在包含 Shield Enemy 的后续房间中，使用基础手枪从正面持续射击，确认敌人可以被击杀，同时仍能感觉到护盾正面减伤。
+
+## 2026-07-01 开局原地击杀首波后的强制位移修复补强
+
+### 问题现象
+
+- 开局后玩家完全不移动，原地击杀首波两个 Chaser 后，会稳定触发角色位置被强制改变。
+- 如果玩家先移动一段距离，再击杀首波敌人，则不容易触发该问题。
+
+### 根因确认
+
+- 上一次修复已让敌人移动时不再主动检测 Player body 层，但玩家自身的 `collision_mask` 仍包含 Enemy 层。
+- 玩家原地站桩时，敌人贴近、死亡和下一波刷新交界会让玩家身体与 Enemy body 层进入重叠/恢复状态；`CharacterBody2D.move_and_slide()` 即使在零输入速度下也会做物理恢复，从而把玩家推出到看似固定的位置。
+- 玩家和敌人的接触伤害本来已经由 `Hurtbox` 负责，不需要玩家身体与敌人身体发生物理碰撞。
+
+### 修复内容
+
+- `Player.tscn` 的 Player `collision_mask` 从 `10` 改为 `8`，玩家身体现在只检测 Wall 层，不再检测 Enemy 层。
+- `Player.gd` 在 `_ready()` 中兜底移除 Enemy body 位，避免后续场景或资源误配重新引入该问题。
+- `RoomFlowSmokeTest.gd` 增加玩家身体忽略 Enemy body 层的回归断言，防止后续改动把该 mask 加回来。
+
+### 自动验证结果
+
+```text
+Godot headless project startup passed.
+RoomFlowSmokeTest passed.
+EnemyVarietySmokeTest passed.
+CombatFeedbackSmokeTest passed.
+WeaponSmokeTest passed.
+BossSmokeTest passed.
+FullRunSmokeTest passed.
+RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=311.7
+Windows release export passed.
+Exported exe RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=432.3
+Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds\Dungeon_Unleashed_Windows_Prototype.zip
+```
+
+### 仍需人工复核
+
+- 使用最新导出包开局后完全不按 WASD，原地击杀首波两个 Chaser，确认玩家不会再被推到固定位置。
+- 故意让 Chaser 贴近玩家，确认仍会通过 Hurtbox 正常扣血。
+- 导出 exe 自检退出时仍出现一次 `1 ObjectDB instance was leaked at exit` 警告，未导致自检失败；该警告与本次玩家位移修复无直接关联。

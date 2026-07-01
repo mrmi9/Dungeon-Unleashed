@@ -5,6 +5,7 @@ const ROOM_STATE_COMBAT := 2
 const ROOM_STATE_CLEARED := 3
 const ROOM_STATE_REWARD_CLAIMED := 4
 const MIN_SAFE_ENEMY_SPAWN_DISTANCE := 140.0
+const ENEMY_BODY_COLLISION_BIT := 2
 
 var _failures: Array[String] = []
 
@@ -28,6 +29,7 @@ func _run() -> void:
 	if player == null:
 		_finish()
 		return
+	_verify_player_ignores_enemy_body_collision(player)
 
 	var rooms := _get_rooms()
 	_expect(rooms.size() >= 4, "Main scene should contain a generated dungeon route with at least 4 combat rooms")
@@ -108,6 +110,10 @@ func _enter_room(room, player: Player) -> void:
 	for index in range(4):
 		await get_tree().physics_frame
 		await get_tree().process_frame
+
+
+func _verify_player_ignores_enemy_body_collision(player: Player) -> void:
+	_expect((int(player.collision_mask) & ENEMY_BODY_COLLISION_BIT) == 0, "Player body should ignore Enemy body collisions; Hurtbox handles contact damage")
 
 
 func _get_rooms() -> Array:
