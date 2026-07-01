@@ -10,6 +10,7 @@ class_name WeaponData
 @export var projectile_range: float = 720.0
 @export var projectile_count: int = 1
 @export var spread_angle: float = 0.0
+@export var energy_cost: int = 0
 @export var magazine_size: int = 12
 @export var reload_duration: float = 1.0
 @export var knockback: float = 120.0

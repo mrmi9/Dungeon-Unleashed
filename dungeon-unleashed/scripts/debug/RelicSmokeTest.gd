@@ -156,6 +156,8 @@ func _verify_triggered_relics(player: Player) -> void:
 		await get_tree().process_frame
 	_expect(player.current_health > damaged_health, "Vampire Fang should heal after 3 kills")
 
+	player.current_shield = maxi(player.max_shield - 1, 0)
+	player.shield_changed.emit(player.current_shield)
 	var shield_before := player.get_shield()
 	Events.room_cleared.emit(null)
 	await get_tree().process_frame
@@ -168,6 +170,11 @@ func _verify_triggered_relics(player: Player) -> void:
 	await get_tree().process_frame
 	_expect(player.current_health == health_before_shield_hit, "Shield should absorb damage before health")
 	_expect(player.get_shield() < shield_before_hit, "Shield should decrease after absorbing damage")
+	var shield_after_hit := player.get_shield()
+	player.call("_tick_timers", player.shield_recharge_delay + 0.1)
+	player.call("_tick_timers", 1.0)
+	await get_tree().process_frame
+	_expect(player.get_shield() > shield_after_hit, "Armor should recharge after avoiding damage")
 
 	player.current_shield = 0
 	player.shield_changed.emit(player.current_shield)

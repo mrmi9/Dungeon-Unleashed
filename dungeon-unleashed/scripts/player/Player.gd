@@ -8,12 +8,18 @@ signal shield_changed(current_shield: int)
 signal gold_changed(current_gold: int)
 signal weapon_changed(display_name: String)
 signal ammo_changed(current_ammo: int, magazine_size: int, is_reloading: bool)
+signal energy_changed(current_energy: int, max_energy: int)
 
 @export var max_health: int = 6
 @export var move_speed: float = 260.0
 @export var invulnerability_duration: float = 0.7
 @export var contact_damage_interval: float = 0.65
 @export var max_shield: int = 6
+@export var shield_recharge_delay: float = 2.4
+@export var shield_recharge_rate: float = 1.6
+@export var max_energy: int = 120
+@export var energy_regen_delay: float = 0.6
+@export var energy_regen_rate: float = 10.0
 @export var weapon_loadout: Array[WeaponData] = [
 	preload("res://resources/weapons/basic_pistol.tres"),
 	preload("res://resources/weapons/shotgun.tres"),
@@ -26,6 +32,7 @@ signal ammo_changed(current_ammo: int, magazine_size: int, is_reloading: bool)
 
 var current_health: int
 var current_shield: int = 0
+var current_energy: int = 0
 var current_gold: int = 0
 var current_weapon_index: int = 0
 var relic_damage_multiplier_bonus := 0.0
@@ -39,6 +46,10 @@ var _speed_boost_timer := 0.0
 var _is_dead := false
 var _invulnerability_timer := 0.0
 var _contact_damage_timer := 0.0
+var _shield_recharge_delay_timer := 0.0
+var _shield_recharge_accumulator := 0.0
+var _energy_regen_delay_timer := 0.0
+var _energy_regen_accumulator := 0.0
 var _touching_enemies: Array[Node] = []
 
 
@@ -46,10 +57,13 @@ func _ready() -> void:
 	add_to_group("player")
 	collision_mask = collision_mask & ~ENEMY_BODY_COLLISION_BIT
 	current_health = max_health
+	current_shield = max_shield
+	current_energy = max_energy
 	weapon.ammo_changed.connect(_on_weapon_ammo_changed)
 	_equip_weapon(0)
 	health_changed.emit(current_health, max_health)
 	shield_changed.emit(current_shield)
+	energy_changed.emit(current_energy, max_energy)
 	gold_changed.emit(current_gold)
 	hurtbox.body_entered.connect(_on_hurtbox_body_entered)
 	hurtbox.body_exited.connect(_on_hurtbox_body_exited)
@@ -181,6 +195,40 @@ func get_shield() -> int:
 	return current_shield
 
 
+func get_energy() -> int:
+	return current_energy
+
+
+func can_spend_energy_for_weapon(weapon_data: Resource) -> bool:
+	return current_energy >= _get_weapon_energy_cost(weapon_data)
+
+
+func spend_energy_for_weapon(weapon_data: Resource) -> bool:
+	var cost := _get_weapon_energy_cost(weapon_data)
+	if cost <= 0:
+		return true
+	if current_energy < cost:
+		return false
+
+	current_energy -= cost
+	_energy_regen_delay_timer = energy_regen_delay
+	_energy_regen_accumulator = 0.0
+	energy_changed.emit(current_energy, max_energy)
+	Events.player_energy_changed.emit(current_energy, max_energy)
+	return true
+
+
+func recover_energy(amount: int) -> void:
+	if amount <= 0:
+		return
+
+	var previous_energy := current_energy
+	current_energy = mini(current_energy + amount, max_energy)
+	if current_energy != previous_energy:
+		energy_changed.emit(current_energy, max_energy)
+		Events.player_energy_changed.emit(current_energy, max_energy)
+
+
 func apply_temporary_speed_boost(multiplier_bonus: float, duration: float) -> void:
 	if _is_dead:
 		return
@@ -244,6 +292,9 @@ func take_damage(amount: int, source: Node = null) -> void:
 		return
 
 	var remaining_damage := maxi(amount, 0)
+	if remaining_damage > 0:
+		_shield_recharge_delay_timer = shield_recharge_delay
+		_shield_recharge_accumulator = 0.0
 	if current_shield > 0 and remaining_damage > 0:
 		var absorbed := mini(current_shield, remaining_damage)
 		current_shield -= absorbed
@@ -272,6 +323,9 @@ func _tick_timers(delta: float) -> void:
 		_speed_boost_timer = maxf(_speed_boost_timer - delta, 0.0)
 		if _speed_boost_timer <= 0.0:
 			_temporary_speed_multiplier = 1.0
+
+	_tick_shield_recharge(delta)
+	_tick_energy_regen(delta)
 
 
 func _aim_at_mouse() -> void:
@@ -316,6 +370,46 @@ func _die() -> void:
 	velocity = Vector2.ZERO
 	visual.modulate = Color(0.35, 0.35, 0.35, 1.0)
 	Events.player_died.emit()
+
+
+func _tick_shield_recharge(delta: float) -> void:
+	if current_shield >= max_shield:
+		_shield_recharge_accumulator = 0.0
+		return
+	if _shield_recharge_delay_timer > 0.0:
+		_shield_recharge_delay_timer = maxf(_shield_recharge_delay_timer - delta, 0.0)
+		return
+
+	_shield_recharge_accumulator += maxf(shield_recharge_rate, 0.0) * delta
+	var gained := floori(_shield_recharge_accumulator)
+	if gained <= 0:
+		return
+
+	_shield_recharge_accumulator -= gained
+	add_shield(gained)
+
+
+func _tick_energy_regen(delta: float) -> void:
+	if current_energy >= max_energy:
+		_energy_regen_accumulator = 0.0
+		return
+	if _energy_regen_delay_timer > 0.0:
+		_energy_regen_delay_timer = maxf(_energy_regen_delay_timer - delta, 0.0)
+		return
+
+	_energy_regen_accumulator += maxf(energy_regen_rate, 0.0) * delta
+	var gained := floori(_energy_regen_accumulator)
+	if gained <= 0:
+		return
+
+	_energy_regen_accumulator -= gained
+	recover_energy(gained)
+
+
+func _get_weapon_energy_cost(weapon_data: Resource) -> int:
+	if weapon_data == null:
+		return 0
+	return maxi(int(weapon_data.get("energy_cost")), 0)
 
 
 func _on_hurtbox_body_entered(body: Node) -> void:

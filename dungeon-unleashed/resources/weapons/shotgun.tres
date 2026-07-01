@@ -13,6 +13,7 @@ projectile_speed = 620.0
 projectile_range = 430.0
 projectile_count = 6
 spread_angle = 34.0
+energy_cost = 2
 magazine_size = 6
 reload_duration = 1.35
 knockback = 190.0

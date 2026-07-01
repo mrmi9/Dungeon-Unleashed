@@ -18,7 +18,7 @@ layout_mode = 1
 offset_left = 16.0
 offset_top = 14.0
 offset_right = 260.0
-offset_bottom = 184.0
+offset_bottom = 206.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
@@ -32,7 +32,12 @@ text = "HP: 6 / 6"
 [node name="ShieldLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.86, 1, 1)
-text = "Shield: 0"
+text = "Armor: 6 / 6"
+
+[node name="EnergyLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.72, 1, 1)
+text = "Energy: 120 / 120"
 
 [node name="WeaponLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2

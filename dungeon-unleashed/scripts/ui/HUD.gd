@@ -22,6 +22,7 @@ const DEBUG_MAP_PANEL_SIZE := Vector2(760.0, 560.0)
 
 @onready var health_label: Label = $MarginContainer/VBoxContainer/HealthLabel
 @onready var shield_label: Label = $MarginContainer/VBoxContainer/ShieldLabel
+@onready var energy_label: Label = $MarginContainer/VBoxContainer/EnergyLabel
 @onready var weapon_label: Label = $MarginContainer/VBoxContainer/WeaponLabel
 @onready var ammo_label: Label = $MarginContainer/VBoxContainer/AmmoLabel
 @onready var gold_label: Label = $MarginContainer/VBoxContainer/GoldLabel
@@ -161,8 +162,15 @@ func update_health(current_hp: int, max_hp: int) -> void:
 	health_label.text = "HP: %d / %d" % [current_hp, max_hp]
 
 
-func update_shield(current_shield: int) -> void:
-	shield_label.text = "Shield: %d" % current_shield
+func update_shield(current_shield: int, max_shield: int = -1) -> void:
+	if max_shield > 0:
+		shield_label.text = "Armor: %d / %d" % [current_shield, max_shield]
+	else:
+		shield_label.text = "Armor: %d" % current_shield
+
+
+func update_energy(current_energy: int, max_energy: int) -> void:
+	energy_label.text = "Energy: %d / %d" % [current_energy, max_energy]
 
 
 func set_weapon_name(display_name: String) -> void:

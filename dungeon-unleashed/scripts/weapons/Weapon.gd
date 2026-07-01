@@ -32,6 +32,8 @@ func try_fire(target_position: Vector2, owner_body: Node2D) -> bool:
 	if _current_ammo <= 0:
 		start_reload()
 		return false
+	if not _can_owner_spend_energy(owner_body):
+		return false
 
 	var origin := muzzle.global_position
 	var base_direction := target_position - origin
@@ -40,6 +42,8 @@ func try_fire(target_position: Vector2, owner_body: Node2D) -> bool:
 	base_direction = base_direction.normalized()
 
 	global_rotation = base_direction.angle()
+	if not _spend_owner_energy(owner_body):
+		return false
 	_spawn_projectiles(origin, base_direction, owner_body)
 	_spawn_muzzle_flash(base_direction)
 
@@ -155,6 +159,18 @@ func _get_owner_projectile_count_bonus(owner_body: Node) -> int:
 	if owner_body != null and owner_body.has_method("get_projectile_count_bonus"):
 		return maxi(int(owner_body.call("get_projectile_count_bonus")), 0)
 	return 0
+
+
+func _can_owner_spend_energy(owner_body: Node) -> bool:
+	if owner_body != null and owner_body.has_method("can_spend_energy_for_weapon"):
+		return bool(owner_body.call("can_spend_energy_for_weapon", weapon_data))
+	return true
+
+
+func _spend_owner_energy(owner_body: Node) -> bool:
+	if owner_body != null and owner_body.has_method("spend_energy_for_weapon"):
+		return bool(owner_body.call("spend_energy_for_weapon", weapon_data))
+	return true
 
 
 func _get_owner_reload_speed_multiplier() -> float:

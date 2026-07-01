@@ -114,12 +114,14 @@ func _ready() -> void:
 	Events.chest_opened.connect(_on_chest_opened)
 	player.health_changed.connect(_on_player_health_changed)
 	player.shield_changed.connect(_on_player_shield_changed)
+	player.energy_changed.connect(_on_player_energy_changed)
 	player.gold_changed.connect(_on_player_gold_changed)
 	player.weapon_changed.connect(_on_player_weapon_changed)
 	player.ammo_changed.connect(_on_player_ammo_changed)
 
 	hud.update_health(player.current_health, player.max_health)
-	hud.update_shield(player.current_shield)
+	hud.update_shield(player.current_shield, player.max_shield)
+	hud.update_energy(player.current_energy, player.max_energy)
 	hud.update_gold(player.current_gold)
 	hud.set_weapon_name(player.get_weapon_display_name())
 	hud.update_relics(relic_system.get_relic_summaries())
@@ -436,7 +438,11 @@ func _on_player_health_changed(current_hp: int, max_hp: int) -> void:
 
 
 func _on_player_shield_changed(current_shield: int) -> void:
-	hud.update_shield(current_shield)
+	hud.update_shield(current_shield, player.max_shield)
+
+
+func _on_player_energy_changed(current_energy: int, max_energy: int) -> void:
+	hud.update_energy(current_energy, max_energy)
 
 
 func _on_player_gold_changed(current_gold: int) -> void:

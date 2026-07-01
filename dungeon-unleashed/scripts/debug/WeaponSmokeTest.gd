@@ -35,17 +35,21 @@ func _run() -> void:
 
 		_clear_projectiles()
 		var weapon := player.weapon
+		var energy_before := player.get_energy()
+		var expected_energy_cost := int(data.get("energy_cost"))
 		var fired := weapon.try_fire(player.global_position + Vector2(320, 0), player)
 		await get_tree().process_frame
 
 		_expect(fired, "%s should fire" % data.display_name)
 		_expect(_projectile_count() == maxi(data.projectile_count, 1), "%s projectile count should match WeaponData" % data.display_name)
 		_expect(weapon.get_current_ammo() == weapon.get_magazine_size() - 1, "%s should consume one ammo per trigger pull" % data.display_name)
+		_expect(player.get_energy() == energy_before - expected_energy_cost, "%s should spend configured energy cost" % data.display_name)
 
 		if data.id == &"energy_staff":
 			var projectile := get_tree().get_first_node_in_group("projectiles")
 			_expect(projectile != null and projectile.get("_remaining_pierce") == data.pierce_count, "Energy Staff projectile should carry pierce count")
 
+	await _verify_energy_weapon_gate(player)
 	player.call("_equip_weapon", 0)
 	await get_tree().process_frame
 	var pistol := player.weapon
@@ -63,6 +67,31 @@ func _run() -> void:
 
 	_clear_projectiles()
 	_finish()
+
+
+func _verify_energy_weapon_gate(player: Player) -> void:
+	player.call("_equip_weapon", 1)
+	await get_tree().process_frame
+	var weapon := player.weapon
+	var weapon_data := weapon.weapon_data
+	_expect(int(weapon_data.get("energy_cost")) > 0, "Energy gate check should use a weapon with energy cost")
+
+	player.current_energy = 0
+	player.energy_changed.emit(player.current_energy, player.max_energy)
+	weapon.set("_cooldown", 0.0)
+	var ammo_before := weapon.get_current_ammo()
+	_clear_projectiles()
+	var fired_without_energy := weapon.try_fire(player.global_position + Vector2(320, 0), player)
+	await get_tree().process_frame
+	_expect(not fired_without_energy, "Weapon should not fire when player has insufficient energy")
+	_expect(weapon.get_current_ammo() == ammo_before, "Failed energy-gated fire should not consume ammo")
+	_expect(_projectile_count() == 0, "Failed energy-gated fire should not spawn projectiles")
+
+	player.set("_energy_regen_delay_timer", 0.0)
+	player.call("_tick_timers", 0.25)
+	await get_tree().process_frame
+	_expect(player.get_energy() > 0, "Player energy should regenerate after delay")
+	player.recover_energy(player.max_energy)
 
 
 func _verify_critical_damage_roll() -> void:

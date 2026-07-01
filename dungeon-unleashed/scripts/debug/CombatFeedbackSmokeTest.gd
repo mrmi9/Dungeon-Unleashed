@@ -36,6 +36,8 @@ func _run() -> void:
 	player.current_health = maxi(player.max_health - 2, 1)
 	player.health_changed.emit(player.current_health, player.max_health)
 	player.heal(1)
+	player.current_shield = 0
+	player.shield_changed.emit(player.current_shield)
 	player.add_shield(2)
 	player.set("_invulnerability_timer", 0.0)
 	player.take_damage(3, null)

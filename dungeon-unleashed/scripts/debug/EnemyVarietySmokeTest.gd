@@ -158,6 +158,8 @@ func _discard_all_enemies() -> void:
 func _verify_enemy_projectile_damage(player: Player) -> void:
 	player.global_position = Vector2(-1200, -900)
 	player.current_health = player.max_health
+	player.current_shield = 0
+	player.shield_changed.emit(player.current_shield)
 	player.set("_invulnerability_timer", 0.0)
 	await get_tree().physics_frame
 	await get_tree().process_frame
@@ -227,6 +229,8 @@ func _verify_summoner_behavior(player: Player) -> void:
 func _verify_bomber_behavior(player: Player) -> void:
 	await _discard_all_enemies()
 	player.current_health = player.max_health
+	player.current_shield = 0
+	player.shield_changed.emit(player.current_shield)
 	player.set("_invulnerability_timer", 0.0)
 	var start_health := player.current_health
 

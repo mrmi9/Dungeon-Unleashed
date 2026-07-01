@@ -5974,6 +5974,10 @@ KNOWN_ISSUES.md
 
 ```text
 FullRunSmokeTest passed.
+RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=360.7
+Windows release export passed.
+Exported exe RuntimeRoomSpawnCheck passed: first_room_state=2 enemies=2 expected_wave=2 nearest_enemy_distance=432.3
+Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds\Dungeon_Unleashed_Windows_Prototype.zip
 ```
 
 #### 完整烟测套件
@@ -8000,3 +8004,46 @@ Windows prototype zip regenerated: E:\Dungeon Unleashed\dungeon-unleashed\builds
 - 使用最新导出包开局后完全不按 WASD，原地击杀首波两个 Chaser，确认玩家不会再被推到固定位置。
 - 故意让 Chaser 贴近玩家，确认仍会通过 Hurtbox 正常扣血。
 - 导出 exe 自检退出时仍出现一次 `1 ObjectDB instance was leaked at exit` 警告，未导致自检失败；该警告与本次玩家位移修复无直接关联。
+
+## 2026-07-01 类元气骑士资源循环第一批靠拢
+
+### 目标
+
+- 根据公开资料中《元气骑士》的俯视角 Roguelike 弹幕射击、随机房间、武器/角色/资源循环等特征，开始把项目从普通地牢射击原型推进到更接近同类体验的结构。
+- 本轮不复制《元气骑士》的名称、美术、角色或数值，只吸收通用玩法结构。
+
+### 新增文档
+
+- 新增 `SOUL_KNIGHT_ALIGNMENT.md`，记录在线检索到的核心参考点、当前项目已具备内容、主要差距和后续靠拢顺序。
+
+### 修复和新增内容
+
+- `Player.gd` 新增 `Energy` 能量资源，开局满值，并在短暂延迟后自动恢复。
+- `WeaponData.gd` 新增 `energy_cost` 字段。
+- `Weapon.gd` 开火前会检查并消耗玩家能量；能量不足时不会开火、不会消耗弹药、不会生成弹丸。
+- `basic_pistol` 保持 0 能量消耗，避免玩家能量耗尽后完全失去攻击能力。
+- `shotgun`、`energy_staff`、`ricochet_blaster` 配置不同能量消耗，形成武器强度和资源消耗取舍。
+- 玩家 `Shield` 在 UI 中表现为 `Armor`：开局满值，优先吸收伤害，受击后延迟恢复。
+- HUD 新增 `Energy: current / max` 显示，并将 `Shield` 显示改为 `Armor: current / max`。
+
+### 自动验证结果
+
+```text
+Godot headless project startup passed.
+WeaponSmokeTest passed.
+RelicSmokeTest passed.
+RunSummarySmokeTest passed.
+RoomFlowSmokeTest passed.
+CombatFeedbackSmokeTest passed.
+EnemyVarietySmokeTest passed.
+UILayoutSmokeTest passed.
+BossSmokeTest passed.
+FullRunSmokeTest passed.
+```
+
+### 仍需人工复核
+
+- 使用最新导出包确认 HUD 左上角能同时看到 HP、Armor、Energy、Weapon、Ammo。
+- 切换到 Shotgun / Energy Staff / Ricochet Blaster 后连续开火，确认 Energy 会下降且不足时无法继续开火。
+- 故意受伤后躲避一段时间，确认 Armor 会逐点恢复。
+- 导出 exe 自检退出时仍出现一次 `1 ObjectDB instance was leaked at exit` 警告，未导致自检失败；后续可单独追踪该清理警告。
