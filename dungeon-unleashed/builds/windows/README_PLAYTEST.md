@@ -3,8 +3,8 @@
 Build date: 2026-07-12
 Engine: Godot 4.7 stable
 Renderer: GL Compatibility / OpenGL
-Source checkpoint: `5d091b05`
-SHA-256: `27FE0F50510CD769127989D46AD67CF557C7F1C12F81DC44026BC8105370D936`
+Source checkpoint: `6363cbf7`
+SHA-256: `0F67D6DA53CA25027E9BA4D688D350308F6AC9E42A3B83C040B44E4F6B15113F`
 
 ## How To Run
 
@@ -28,6 +28,7 @@ Run `Dungeon Unleashed.exe`.
 - Six playable characters, 40 weapons, 45 relics, Boss talents, event blessings, and statues.
 - Original authored combat SFX and seven music tracks.
 - Shooting hot path uses local ammo HUD updates, cached weapon icons, pooled SFX voices, and one aim-assist query per physics frame.
+- Room-state minimap updates reuse existing markers, passive HUD work is cached/throttled, and combat text uses a bounded 48-entry pool.
 - Reward-room and normal-chest Rare+ exposure pity; premium and Boss chests have Rare+ floors.
 - Fixed seed and Replay Seed reproduce route/layout, event rules, chest rolls, central choices, and shop stock when the same interaction order is followed.
 - Keyboard/mouse and controller input are supported; controller deadzone and hint-switch thresholds are configurable.
@@ -42,6 +43,8 @@ Run `Dungeon Unleashed.exe`.
 - Replay the same seed with the same route and interaction order; compare event, chest, choice, and shop results.
 - Check Music/SFX balance with headphones or speakers.
 - Hold fire with the pistol, shotgun, and a high-rate weapon; note any hitch on first shot, sustained fire, reload completion, or weapon switching.
+- Watch for stalls when entering combat, starting a wave, clearing a room, spawning a reward, or claiming it; verify the minimap current-room marker remains correct.
+- Create dense simultaneous hits with shotgun, chain, explosion, or rapid-fire weapons; check that combat text remains readable while capped at 48 entries.
 - Test death, victory, restart, pause, settings persistence, keyboard/mouse, and controller input where available.
 
 Use `PLAYTEST_FEEDBACK.md` for notes and check `KNOWN_ISSUES.md` before reporting a bug.

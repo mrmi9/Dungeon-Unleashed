@@ -32,6 +32,9 @@ Rate from 1 to 5.
 - Same-seed reward/shop replay works:
 - First shot and sustained fire are hitch-free:
 - Reload completion and weapon switching are hitch-free:
+- Room entry, clear, reward spawn, and reward claim are hitch-free:
+- Dense combat text remains readable:
+- Minimap current/visited/cleared markers remain correct:
 - First combat room can be cleared:
 - Shop can be reached:
 - Boss can be fought:
