@@ -29,6 +29,7 @@ Rate from 1 to 5.
 - Main menu works:
 - New run starts:
 - Fixed seed / Replay Seed works:
+- Same-seed reward/shop replay works:
 - First combat room can be cleared:
 - Shop can be reached:
 - Boss can be fought:
@@ -42,7 +43,9 @@ Rate from 1 to 5.
 - Why did you take damage?
 - Which weapon felt best?
 - Which reward choice mattered?
+- Did the active skill feel useful and readable?
 - If you used a fixed seed, did the repeated run match the same route?
+- With the same interaction order, did event/chest/shop rewards also match?
 - Did you want another run?
 - Biggest requested change:
 

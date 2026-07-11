@@ -1,8 +1,9 @@
-# Dungeon Unleashed Windows Prototype
+# Dungeon Unleashed Windows Playtest
 
-Build date: 2026-07-01
+Build date: 2026-07-12
 Engine: Godot 4.7 stable
 Renderer: GL Compatibility / OpenGL
+Source checkpoint: `edc2a8e7`
 
 ## How To Run
 
@@ -11,39 +12,33 @@ Run `Dungeon Unleashed.exe`.
 ## Controls
 
 - Move: `WASD`
-- Aim: mouse
-- Shoot: left mouse button
+- Aim: mouse or right stick
+- Shoot: left mouse button or gamepad trigger
+- Active skill: `Space` or gamepad face button
 - Reload: `R`
 - Switch weapons: `1`, `2`, `3`
-- Interact with chests/shop items: `E`
+- Interact: `E`
 - Pause: `Esc`
 - Developer debug map: `F3`
-- Settings can rebind movement, reload, interact, and pause keyboard controls.
 
-## What To Test
+## Current Build
 
-- Start from the main menu and complete the seeded 12-15 room branching route.
-- Try the main menu seed field: leave it blank for a random route, enter a number for a fixed route, and use Replay Seed on the result screen to reproduce the same route.
-- Check whether the start, combat, reward, armory, healing, elite, shop, branch reward, late combat, and boss rooms feel visually and spatially distinct despite using placeholder art. Main-path length, branch count, branch placement, and selected room layouts now vary by generation seed, but this build still uses one prototype room scene with data-driven layouts.
-- Check the top-right minimap seed label. If you report a map/layout issue, include this seed so the layout can be reproduced in development.
-- Press `F3` to open the developer debug map panel. Use `Copy Map` when reporting route, seed, or room-connection issues.
-- Verify combat rooms lock and unlock correctly.
-- Collect rewards, open chests, replace weapons in armory rooms, recover in healing rooms, buy shop items, and choose relics.
-- Check whether shop prices force a meaningful choice instead of letting you buy everything.
-- Fight the boss, watch the phase-two arena floor hazards, and open the boss reward chest to finish the run.
-- Try death and victory flows, then restart or return to main menu.
-- Check Settings for Master, SFX, Music, Resolution, and Fullscreen persistence.
-- Check that Settings, Pause, Relic Choice, and Result panels do not overlap the bottom-right input hint at 1280x720 or higher.
+- Three connected biomes with independent layouts, enemies, terrain, music, and Boss encounters.
+- Six playable characters, 40 weapons, 45 relics, Boss talents, event blessings, and statues.
+- Original authored combat SFX and seven music tracks.
+- Reward-room and normal-chest Rare+ exposure pity; premium and Boss chests have Rare+ floors.
+- Fixed seed and Replay Seed reproduce route/layout, event rules, chest rolls, central choices, and shop stock when the same interaction order is followed.
+- Keyboard/mouse and controller input are supported; controller deadzone and hint-switch thresholds are configurable.
 
-## Feedback
+## Playtest Focus
 
-Use the included `PLAYTEST_FEEDBACK.md` template to record notes.
-Check `KNOWN_ISSUES.md` before filing a bug.
+- Complete at least one full three-biome run or record where the run ended.
+- Note the top-right seed for every route, reward, or room-layout issue.
+- Check whether each biome, elite modifier, and Boss mechanic is readable during dense combat.
+- Compare weapon and relic choices: identify which choices changed the way you played.
+- Check shop/chest reward value and whether Rare+ pity feels too early or too late.
+- Replay the same seed with the same route and interaction order; compare event, chest, choice, and shop results.
+- Check Music/SFX balance with headphones or speakers.
+- Test death, victory, restart, pause, settings persistence, keyboard/mouse, and controller input where available.
 
-## Known Prototype Limits
-
-- Visuals are placeholder geometry.
-- Audio is procedural placeholder audio, not final authored sound.
-- Balance is first-pass and not final.
-- Key rebinding covers movement, reload, interact, and pause; mouse shoot and weapon number slots are still fixed.
-- The build is unsigned, so Windows may show a security warning.
+Use `PLAYTEST_FEEDBACK.md` for notes and check `KNOWN_ISSUES.md` before reporting a bug.

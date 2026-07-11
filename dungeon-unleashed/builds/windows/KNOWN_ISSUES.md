@@ -1,17 +1,17 @@
 # Dungeon Unleashed Known Issues
 
-Last updated: 2026-07-01
+Last updated: 2026-07-12
 
-- Visuals are placeholder geometry.
-- Audio is procedural placeholder audio.
-- A first automated balance pass is in place, but manual playtest tuning is still required.
-- Room layout data includes 22 `.tres` layouts, and the playable route is now a seeded 12-15 room graph with a 7-9 room main path and 5-6 branch rooms, including reward, armory, healing, shop, and optional combat/elite branches. It still uses one prototype room scene, not a full instantiated 20+ room-template layer or TileMap room set.
-- The active dungeon seed is visible on the minimap, the main menu supports fixed seed entry/random seed mode, the result screen can replay the current seed, and `F3` opens a developer debug map panel with copy support. The panel is functional but still developer-facing rather than polished production UI.
-- Relic drop tables are configurable `.tres` resources, and armory/healing rooms have dedicated chests, but pity rules and deeper rarity tuning are not implemented.
-- Boss fight is prototype-grade. It has a clearer phase transition pause, warning, and basic floor hazard arena pressure, but still needs final tuning.
-- Resolution settings only include 1280x720, 1600x900, and 1920x1080.
-- Basic UI layout has automated checks at 1280x720, 1600x900, and 1920x1080, but still needs final visual polish.
-- Key rebinding supports movement, reload, interact, and pause; mouse shoot and weapon number slots are still fixed.
-- Result screen uses grouped text sections, but still needs visual polish.
-- Build is unsigned and may trigger a Windows security warning.
-- Godot project headless startup, export generation, zip packaging, and exported `.exe` runtime room-spawn validation are verified. A human launch and full manual playthrough are still required for controls, audio, pacing, and final feel.
+- Full manual three-biome playthrough validation is still required for pacing, difficulty, controls, audio balance, and final feel.
+- Visuals mix original PNG/SVG atlases with remaining procedural fallback geometry; pixel density and final-art consistency are not locked.
+- Rooms use independent data-driven layouts but still share one `CombatRoom` scene rather than a full authored room-template/TileMap layer.
+- Boss mechanics and warnings are implemented but still need final difficulty and accessibility tuning.
+- Reward pity and deterministic reward streams are automated, but full-run rarity distribution and selection rates still need manual tuning.
+- The `F3` map panel is developer-facing rather than final player UI.
+- Resolution presets are limited to 1280x720, 1600x900, and 1920x1080.
+- Key rebinding covers movement, reload, interact, and pause; mouse shoot and number-key weapon slots remain fixed.
+- The result screen, chests, shops, and lobby still need final visual hierarchy and presentation polish.
+- The build is unsigned and may trigger a Windows security warning.
+- Fixed seed replay assumes the same interaction order; it is deterministic replay, not recorded input playback.
+
+Export generation and the packaged executable's fixed-seed first-room runtime check passed. The current running window still requires human playtest validation.
