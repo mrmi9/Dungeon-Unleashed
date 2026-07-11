@@ -16843,3 +16843,75 @@ FullRunSmokeTest passed. (375.2s)
 ```
 
 Godot 仍会输出项目既有的 `user://..` 目录创建警告；内容管线退出时仍有既有 RID/ObjectDB 释放告警，但通过运行的退出码为 0。
+
+## 2026-07-11 原创 authored SFX 资产管线第一版
+
+### 目标
+- 将战斗、角色状态、奖励、事件与 Boss 反馈从运行时程序化占位音调迁移到仓库内可版本化的原创 WAV。
+- 保留未知键和资源缺失时的诊断回退，但正式内容事件不得静默依赖回退。
+
+### 资产与管线
+- 新增 54 个原创单声道 PCM WAV，覆盖七类武器、命中/暴击/击杀、生命与护甲、危险预警、敌人前摇、祝福/雕像、Boss 和结算反馈。
+- `tools/generate_sfx_pack.py` 使用固定种子、振荡器、滤波噪声、包络和逐项参数可重复生成全部文件，不包含第三方录音或其他游戏音频。
+- 全部样本为 `16-bit / 44.1 kHz`，时长 `0.10–0.78s`，54 个 SHA-256 均唯一；RMS 检查无静音，峰值 `28835`，无削波。
+- 新增 `SfxLibrary`，统一维护正式事件键和 40 把武器自定义 `fire_sfx_key` 到七类武器样本的别名映射。
+
+### 运行时与验收
+- `AudioFeedback` 启动时加载全部 authored stream，并复用现有 16 声部上限、SFX bus 与清理队列；headless 模式同样验证资源解析而不访问音频设备。
+- 程序化 `_play_tone` 降级为未知键/缺失资源的诊断回退，并暴露来源、解析 sample id、缺失列表和回退次数供测试检查。
+- `AudioFeedbackSmokeTest` 锁定 54/54 样本加载、全部当前武器键映射、sidearm 路径解析和正式事件回退次数为 0。
+- `ContentPipelineSmokeTest` 对每个武器自动要求非空 `fire_sfx_key`、有效 SFX 映射和可导入 WAV，后续新增武器遗漏音频会直接失败。
+
+### 验证状态
+```text
+SFX generator deterministic hash check passed.
+WAV format/silence/clipping/uniqueness QA passed. (54 files)
+Godot WAV/script import passed.
+AudioFeedbackSmokeTest passed. (14.8s final run)
+AudioFeedbackSmokeTest passed with Windows display + Dummy audio driver. (13.3s)
+ContentPipelineSmokeTest passed.
+WeaponSmokeTest passed. (54.0s)
+CombatFeedbackSmokeTest passed. (11.2s)
+```
+
+Godot 内容管线退出时仍会输出项目既有 RID/ObjectDB 释放告警，但通过运行的退出码为 0。正式音乐仍由运行时生成，保留为后续音频锁定任务。
+
+### 仍需人工复核
+- 使用实际扬声器/耳机比较七类武器、危险预警与低血量心跳在密集战斗中的响度层级，必要时在注册表增加每类 gain，而不是修改原始事件调用。
+- 检查短时间 16 声部饱和时，Boss 前摇和低血量警告是否会被低优先级命中音挤出；后续可在 authored 播放层增加优先级与抢占规则。
+
+## 2026-07-11 原创 authored 音乐与三层 Biome 接线第一版
+
+### 目标
+- 替换 `AudioStreamGenerator` 实时音乐，让菜单、三层战斗、Boss 与结算全部使用仓库内原创轨道。
+- 激活已存在但未接线的 `BiomeData.music_key`，让三层主题不仅在地形、敌人与奖励上不同，也拥有独立听觉身份。
+
+### 资产与播放层
+- 新增 7 条原创立体声 PCM WAV：Menu、Outer Warrens、Iron Catacombs、Void Foundry、Boss、Victory、Defeat。
+- `tools/generate_music_pack.py` 以不同 BPM、和声进行、旋律、节奏密度和固定种子生成全部轨道；音符包络在小节边界归零，循环轨道避免明显接缝。
+- 全部文件为 `16-bit / 44.1 kHz stereo`，时长 `4.00–10.43s`，7 个 SHA-256 均唯一；峰值 `26869`，无静音或削波，循环边界最大跳变 `153/32767`。
+- 新增 `MusicLibrary`，集中维护 7 条轨道、`combat` 兼容别名和菜单/三层/Boss 的循环策略。
+- `AudioFeedback` 移除运行时音乐采样生成，改为两台 Music bus 播放器和 `0.45s` 交叉淡化；Victory/Defeat 保持单次播放。
+
+### Biome 数据链
+- `biome_music_key` 从 `BiomeData` 进入生成 metadata、Biome summary、房间 record、`CombatRoom` 实例与视觉摘要。
+- 普通房间开始时按当前层的 music key 切换；Boss 房覆盖为 Boss 轨道，通关和失败继续使用独立结算轨道。
+- 内容管线要求三层 music key 唯一、可映射且对应 WAV 可导入，避免后续主题层静默回退到通用音乐。
+
+### 验证状态
+```text
+Music generator deterministic hash check passed.
+Music WAV format/silence/clipping/uniqueness/loop-edge QA passed. (7 files)
+Godot music/script import passed.
+AudioFeedbackSmokeTest passed headless. (11.7s)
+AudioFeedbackSmokeTest passed with Windows display + Dummy audio driver. (12.3s)
+ContentPipelineSmokeTest passed.
+DungeonGenerationSmokeTest passed. (52.6s)
+SettingsSmokeTest passed. (9.9s)
+```
+
+内容管线退出时仍会输出项目既有 RID/ObjectDB 释放告警，但通过运行的退出码为 0。
+
+### 仍需人工复核
+- 使用耳机和扬声器完整听取 7 条轨道，确认三层主题辨识度、Boss 压力感、Victory/Defeat 收束感和长时间循环疲劳度。
+- 在实际跑图中确认 `0.45s` 交叉淡化不会掩盖房间开战前摇，并对 Music/SFX bus 做最终响度平衡。

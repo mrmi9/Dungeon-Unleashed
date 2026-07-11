@@ -142,6 +142,8 @@ const RELIC_SCRIPT := preload("res://scripts/relics/RelicData.gd")
 const CHARACTER_SCRIPT := preload("res://scripts/player/PlayerCharacterData.gd")
 const CONTENT_ICON_REGISTRY := preload("res://scripts/content/ContentIconRegistry.gd")
 const CONTENT_ICON_REGISTRY_RESOURCE := preload("res://resources/ui/content_icon_registry.tres")
+const SFX_LIBRARY := preload("res://scripts/audio/SfxLibrary.gd")
+const MUSIC_LIBRARY := preload("res://scripts/audio/MusicLibrary.gd")
 const TALENT_SCRIPT := preload("res://scripts/content/TalentData.gd")
 const BLESSING_SCRIPT := preload("res://scripts/content/BlessingData.gd")
 const STATUE_SCRIPT := preload("res://scripts/content/StatueData.gd")
@@ -486,6 +488,11 @@ func _verify_weapons() -> void:
 		_expect(float(weapon.get("aim_assist_priority")) > 0.0, "Weapon %s should define aim-assist priority" % id)
 		_expect(not str(weapon.get("content_role")).is_empty(), "Weapon %s should define content role" % id)
 		_expect(weapon_tags.size() >= 2, "Weapon %s should keep at least two tags" % id)
+		var fire_sfx_key := str(weapon.get("fire_sfx_key")).strip_edges()
+		var fire_sfx_path := SFX_LIBRARY.get_asset_path(fire_sfx_key)
+		_expect(not fire_sfx_key.is_empty(), "Weapon %s should define fire SFX key" % id)
+		_expect(SFX_LIBRARY.has_mapping(fire_sfx_key), "Weapon %s fire SFX key should map to authored audio: %s" % [id, fire_sfx_key])
+		_expect(not fire_sfx_path.is_empty() and ResourceLoader.exists(fire_sfx_path), "Weapon %s should resolve an imported authored WAV: %s" % [id, fire_sfx_path])
 		var fire_mode := str(weapon.get("fire_mode"))
 		var status_effect := str(weapon.get("status_effect"))
 		var status_chance := float(weapon.get("status_chance"))
@@ -845,6 +852,7 @@ func _verify_biomes() -> void:
 	var color_keys := {}
 	var floor_texture_paths := {}
 	var surface_atlas_paths := {}
+	var music_keys := {}
 	var reward_multiplier_by_index := {}
 	_expect(biomes.size() >= 3, "Biome library should include three Alpha-facing biome resources")
 	for biome in biomes:
@@ -856,6 +864,13 @@ func _verify_biomes() -> void:
 		_expect(not color_key.is_empty(), "Biome %s should define a visual color key" % id)
 		_expect(not color_keys.has(color_key), "Biome visual color key should be unique: %s" % color_key)
 		color_keys[color_key] = true
+		var music_key := str(biome.get("music_key")).strip_edges()
+		var music_path := MUSIC_LIBRARY.get_asset_path(music_key)
+		_expect(not music_key.is_empty(), "Biome %s should define a music key" % id)
+		_expect(not music_keys.has(music_key), "Biome music key should be unique: %s" % music_key)
+		music_keys[music_key] = true
+		_expect(MUSIC_LIBRARY.has_mapping(music_key), "Biome %s music key should map to authored music: %s" % [id, music_key])
+		_expect(not music_path.is_empty() and ResourceLoader.exists(music_path), "Biome %s should resolve an imported authored music track: %s" % [id, music_path])
 		_expect(biome.get("visual_floor_tint") is Color, "Biome %s should define a floor visual tint" % id)
 		var floor_texture_path := str(biome.get("visual_floor_texture_path"))
 		_expect(floor_texture_path.begins_with("res://art/terrain/") and floor_texture_path.ends_with(".png"), "Biome %s should define a project terrain PNG" % id)
@@ -966,6 +981,7 @@ func _verify_biomes() -> void:
 				boss.free()
 	for expected_id in expected_boss_names.keys():
 		_expect(_resource_id_exists(biomes, expected_id), "Biome library should include %s" % expected_id)
+	_expect(music_keys.size() == 3, "Each standard biome should own a distinct authored music key")
 	for biome_index in range(2, 4):
 		_expect(float(reward_multiplier_by_index.get(biome_index, 0.0)) >= float(reward_multiplier_by_index.get(biome_index - 1, 0.0)), "Biome reward weight multipliers should not decrease across the three-biome route")
 

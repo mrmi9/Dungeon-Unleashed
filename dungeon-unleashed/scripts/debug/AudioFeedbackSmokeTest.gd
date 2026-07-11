@@ -3,6 +3,58 @@ extends Node
 const MAIN_SCENE := preload("res://scenes/main/Main.tscn")
 const BASIC_PISTOL := preload("res://resources/weapons/basic_pistol.tres")
 const BLAST_LAUNCHER := preload("res://resources/weapons/blast_launcher.tres")
+const COMBAT_ROOM_SCRIPT := preload("res://scripts/rooms/CombatRoom.gd")
+const MUSIC_TRACK_KEYS := [
+	"menu",
+	"biome_outer_warrens",
+	"biome_iron_catacombs",
+	"biome_void_foundry",
+	"boss",
+	"victory",
+	"defeat",
+]
+const WEAPON_SFX_KEYS := [
+	"bastion_saw_swing",
+	"bulwark_fan",
+	"carbine_fire",
+	"charge_bolt_fire",
+	"compass_needle_fire",
+	"deploy_beacon",
+	"ember_spray",
+	"fan_burst",
+	"frost_swing",
+	"furnace_scatter_fire",
+	"guard_cleave",
+	"halo_fire",
+	"lantern_swarm_fire",
+	"laser_fire",
+	"launcher_fire",
+	"melee_swing",
+	"mine_arm",
+	"mortar_fire",
+	"needler_fire",
+	"nova_fire",
+	"orbit_fire",
+	"pistol_fire",
+	"prism_fire",
+	"quench_repeater_fire",
+	"relay_arc_fire",
+	"ricochet_fire",
+	"rift_bloom_fire",
+	"riposte_swing",
+	"sentry_seed",
+	"shotgun_fire",
+	"sickle_swing",
+	"slag_launch",
+	"spear_thrust",
+	"staff_fire",
+	"storm_charge_fire",
+	"storm_fan_fire",
+	"stormglass_rail_fire",
+	"thunder_nest_deploy",
+	"undertow_volley_fire",
+	"vault_lance_fire",
+]
 
 var _failures: Array[String] = []
 
@@ -27,10 +79,56 @@ func _run() -> void:
 	_expect(audio_feedback.call("has_audio_bus", "SFX") == true, "SFX bus should exist")
 	_expect(audio_feedback.call("has_audio_bus", "Music") == true, "Music bus should exist")
 	_expect(str(audio_feedback.call("get_music_mode")) == "menu", "AudioFeedback should start menu music")
+	_expect(audio_feedback.has_method("has_authored_music_for_test"), "AudioFeedback should expose authored music coverage")
+	if audio_feedback.has_method("get_missing_authored_music_ids_for_test"):
+		_expect((audio_feedback.call("get_missing_authored_music_ids_for_test") as Array).is_empty(), "Every required authored music track should load")
+	if audio_feedback.has_method("get_authored_music_track_count_for_test") and audio_feedback.has_method("get_required_authored_music_track_count_for_test"):
+		_expect(int(audio_feedback.call("get_authored_music_track_count_for_test")) == int(audio_feedback.call("get_required_authored_music_track_count_for_test")), "Loaded authored music count should match the music library contract")
+	if audio_feedback.has_method("has_authored_music_for_test"):
+		for music_track_key in MUSIC_TRACK_KEYS:
+			_expect(bool(audio_feedback.call("has_authored_music_for_test", music_track_key)), "%s should resolve to authored music" % music_track_key)
+	if audio_feedback.has_method("get_music_source_for_test"):
+		_expect(str(audio_feedback.call("get_music_source_for_test")) == "authored", "Menu music should use an authored track")
+	if audio_feedback.has_method("get_last_music_track_id_for_test"):
+		_expect(str(audio_feedback.call("get_last_music_track_id_for_test")) == "menu", "Menu mode should resolve to the menu track")
+	if audio_feedback.has_method("get_authored_music_path_for_test"):
+		_expect(str(audio_feedback.call("get_authored_music_path_for_test", "biome_void_foundry")).ends_with("/biome_void_foundry.wav"), "Void Foundry should expose its authored music path")
+	if audio_feedback.has_method("get_music_loop_mode_for_test"):
+		_expect(int(audio_feedback.call("get_music_loop_mode_for_test", "menu")) == AudioStreamWAV.LOOP_FORWARD, "Menu music should loop")
+		_expect(int(audio_feedback.call("get_music_loop_mode_for_test", "biome_iron_catacombs")) == AudioStreamWAV.LOOP_FORWARD, "Biome music should loop")
+		_expect(int(audio_feedback.call("get_music_loop_mode_for_test", "victory")) == AudioStreamWAV.LOOP_DISABLED, "Victory music should remain a one-shot")
+	if audio_feedback.has_method("get_music_player_count_for_test"):
+		var expected_music_player_count := 0 if DisplayServer.get_name() == "headless" else 2
+		_expect(int(audio_feedback.call("get_music_player_count_for_test")) == expected_music_player_count, "AudioFeedback should create two music players only when playback is active")
+
+	var biome_room := COMBAT_ROOM_SCRIPT.new() as CombatRoom
+	biome_room.room_type = "combat"
+	biome_room.biome_music_key = "biome_iron_catacombs"
+	Events.room_started.emit(biome_room)
+	await get_tree().process_frame
+	_expect(str(audio_feedback.call("get_music_mode")) == "biome_iron_catacombs", "Room start should select its BiomeData music key")
+	if audio_feedback.has_method("get_last_music_track_id_for_test"):
+		_expect(str(audio_feedback.call("get_last_music_track_id_for_test")) == "biome_iron_catacombs", "Iron Catacombs room should resolve its dedicated track")
+	biome_room.free()
+	_expect(audio_feedback.has_method("has_authored_sfx_for_test"), "AudioFeedback should expose authored SFX coverage")
+	_expect(audio_feedback.has_method("get_procedural_fallback_count_for_test"), "AudioFeedback should expose procedural fallback diagnostics")
+	if audio_feedback.has_method("get_missing_authored_sfx_ids_for_test"):
+		_expect((audio_feedback.call("get_missing_authored_sfx_ids_for_test") as Array).is_empty(), "Every required authored SFX sample should load")
+	if audio_feedback.has_method("get_authored_sfx_sample_count_for_test") and audio_feedback.has_method("get_required_authored_sfx_sample_count_for_test"):
+		_expect(int(audio_feedback.call("get_authored_sfx_sample_count_for_test")) == int(audio_feedback.call("get_required_authored_sfx_sample_count_for_test")), "Loaded authored SFX count should match the library contract")
+	if audio_feedback.has_method("has_authored_sfx_for_test"):
+		for weapon_sfx_key in WEAPON_SFX_KEYS:
+			_expect(bool(audio_feedback.call("has_authored_sfx_for_test", weapon_sfx_key)), "%s should resolve to an authored weapon SFX" % weapon_sfx_key)
 
 	var weapon_sfx_count_before := int(audio_feedback.call("get_sfx_play_count"))
 	Events.player_fired.emit(BASIC_PISTOL, Vector2.ZERO, Vector2.RIGHT)
 	await get_tree().process_frame
+	if audio_feedback.has_method("get_last_sfx_source_for_test"):
+		_expect(str(audio_feedback.call("get_last_sfx_source_for_test")) == "authored", "Configured weapon fire should use authored audio")
+	if audio_feedback.has_method("get_last_resolved_sample_id_for_test"):
+		_expect(str(audio_feedback.call("get_last_resolved_sample_id_for_test")) == "weapon_sidearm", "Pistol fire should resolve to the authored sidearm sample")
+	if audio_feedback.has_method("get_authored_sfx_path_for_test"):
+		_expect(str(audio_feedback.call("get_authored_sfx_path_for_test", BASIC_PISTOL.fire_sfx_key)).ends_with("/weapon_sidearm.wav"), "Pistol fire should expose its authored WAV path")
 	if audio_feedback.has_method("get_last_sfx_id_for_test"):
 		_expect(str(audio_feedback.call("get_last_sfx_id_for_test")) == BASIC_PISTOL.fire_sfx_key, "Player fired event should use the weapon fire_sfx_key")
 	Events.player_fired.emit(BLAST_LAUNCHER, Vector2.ZERO, Vector2.RIGHT)
@@ -333,6 +431,22 @@ func _run() -> void:
 	await get_tree().process_frame
 	_expect(str(audio_feedback.call("get_music_mode")) == "victory", "Run completion should switch to victory music")
 	_expect(int(audio_feedback.call("get_sfx_play_count")) > count_after_rule_sfx, "Run completion should trigger victory SFX")
+	if audio_feedback.has_method("get_last_music_track_id_for_test"):
+		_expect(str(audio_feedback.call("get_last_music_track_id_for_test")) == "victory", "Run completion should resolve the authored victory track")
+	if audio_feedback.has_method("get_missing_music_count_for_test"):
+		_expect(int(audio_feedback.call("get_missing_music_count_for_test")) == 0, "Supported production music events should not miss authored tracks")
+	if audio_feedback.has_method("get_procedural_fallback_count_for_test"):
+		_expect(int(audio_feedback.call("get_procedural_fallback_count_for_test")) == 0, "Supported production audio events should not use procedural fallback")
+		audio_feedback.call("play_sfx", "diagnostic_unknown_sfx")
+		await get_tree().process_frame
+		_expect(int(audio_feedback.call("get_procedural_fallback_count_for_test")) == 1, "Unknown SFX should increment the procedural fallback diagnostic exactly once")
+		if audio_feedback.has_method("get_last_sfx_source_for_test"):
+			_expect(str(audio_feedback.call("get_last_sfx_source_for_test")) == "procedural_fallback", "Unknown SFX should identify the procedural fallback source")
+	if audio_feedback.has_method("get_missing_music_count_for_test"):
+		audio_feedback.call("start_music", "diagnostic_unknown_music")
+		_expect(int(audio_feedback.call("get_missing_music_count_for_test")) == 1, "Unknown music should increment the missing-track diagnostic exactly once")
+		if audio_feedback.has_method("get_music_source_for_test"):
+			_expect(str(audio_feedback.call("get_music_source_for_test")) == "missing", "Unknown music should identify the missing source")
 	await get_tree().create_timer(0.5, true).timeout
 
 	get_tree().paused = false

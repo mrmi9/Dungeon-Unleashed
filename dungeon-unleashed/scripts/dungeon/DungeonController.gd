@@ -234,6 +234,7 @@ func _build_room_record(index: int, _room_count: int, room_data: Resource, defin
 		"biome_id": str(definition.get("biome_id", "prototype_depths")),
 		"biome_name": str(definition.get("biome_name", "Prototype Depths")),
 		"biome_color_key": str(definition.get("biome_color_key", "")),
+		"biome_music_key": str(definition.get("biome_music_key", "")),
 		"biome_visual_floor_tint": definition.get("biome_visual_floor_tint", Color(0.095, 0.105, 0.12, 1.0)),
 		"biome_visual_floor_texture_path": str(definition.get("biome_visual_floor_texture_path", "")),
 		"biome_visual_floor_texture_modulate": definition.get("biome_visual_floor_texture_modulate", Color.WHITE),
@@ -291,6 +292,7 @@ func _apply_room_config(combat_room: Node, room_data: Resource, connections: Pac
 	typed_room.biome_id = str(definition.get("biome_id", "prototype_depths"))
 	typed_room.biome_name = str(definition.get("biome_name", "Prototype Depths"))
 	typed_room.biome_color_key = str(definition.get("biome_color_key", ""))
+	typed_room.biome_music_key = str(definition.get("biome_music_key", ""))
 	typed_room.biome_visual_floor_tint = _get_definition_color(definition, "biome_visual_floor_tint", typed_room.biome_visual_floor_tint)
 	typed_room.biome_visual_floor_texture_path = str(definition.get("biome_visual_floor_texture_path", typed_room.biome_visual_floor_texture_path))
 	typed_room.biome_visual_floor_texture_modulate = _get_definition_color(definition, "biome_visual_floor_texture_modulate", typed_room.biome_visual_floor_texture_modulate)
@@ -432,6 +434,7 @@ func _get_room_definitions() -> Array[Dictionary]:
 			"biome_id": _get_biome_string(biome, "id", "prototype_depths"),
 			"biome_name": _get_biome_string(biome, "display_name", "Prototype Depths"),
 			"biome_color_key": _get_biome_string(biome, "color_key", ""),
+			"biome_music_key": _get_biome_string(biome, "music_key", ""),
 			"biome_visual_floor_tint": _get_biome_color(biome, "visual_floor_tint", Color(0.095, 0.105, 0.12, 1.0)),
 			"biome_visual_floor_texture_path": _get_biome_string(biome, "visual_floor_texture_path", ""),
 			"biome_visual_floor_texture_modulate": _get_biome_color(biome, "visual_floor_texture_modulate", Color.WHITE),
@@ -581,6 +584,7 @@ func _get_biome_metadata(biome: Resource, biome_index: int) -> Dictionary:
 		"biome_id": _get_biome_string(biome, "id", "prototype_depths"),
 		"biome_name": _get_biome_string(biome, "display_name", "Prototype Depths"),
 		"biome_color_key": _get_biome_string(biome, "color_key", ""),
+		"biome_music_key": _get_biome_string(biome, "music_key", ""),
 		"biome_visual_floor_tint": _get_biome_color(biome, "visual_floor_tint", Color(0.095, 0.105, 0.12, 1.0)),
 		"biome_visual_floor_texture_path": _get_biome_string(biome, "visual_floor_texture_path", ""),
 		"biome_visual_floor_texture_modulate": _get_biome_color(biome, "visual_floor_texture_modulate", Color.WHITE),

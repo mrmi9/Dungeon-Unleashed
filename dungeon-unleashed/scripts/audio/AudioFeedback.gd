@@ -4,8 +4,11 @@ class_name AudioFeedback
 const SFX_BUS := "SFX"
 const MUSIC_BUS := "Music"
 const LOW_HEALTH_FEEDBACK := preload("res://scripts/core/LowHealthFeedback.gd")
+const SFX_LIBRARY := preload("res://scripts/audio/SfxLibrary.gd")
+const MUSIC_LIBRARY := preload("res://scripts/audio/MusicLibrary.gd")
 const SAMPLE_RATE := 22050.0
 const MAX_ACTIVE_SFX := 16
+const MUSIC_CROSSFADE_DURATION := 0.45
 const DANGER_WARNING_SFX_COOLDOWN := 0.18
 const ENEMY_ACTION_WINDUP_SFX_COOLDOWN := 0.12
 const DANGER_WARNING_HEAVY_DAMAGE_THRESHOLD := 3
@@ -15,14 +18,23 @@ const LOW_HEALTH_HEARTBEAT_CRITICAL_INTERVAL := 0.42
 
 var _rng := RandomNumberGenerator.new()
 var _active_sfx: Array[Dictionary] = []
+var _authored_sfx_streams := {}
 var _sfx_play_count := 0
 var _sfx_play_counts_by_id := {}
-var _music_player: AudioStreamPlayer
-var _music_playback: AudioStreamGeneratorPlayback
-var _music_time := 0.0
+var _procedural_fallback_count := 0
+var _music_streams := {}
+var _music_players: Array[AudioStreamPlayer] = []
+var _active_music_player_index := -1
+var _music_fade_from_index := -1
+var _music_crossfade_elapsed := 0.0
 var _music_mode := "menu"
+var _music_source := ""
+var _last_music_track_id := ""
+var _missing_music_count := 0
 var _suppress_playback := false
 var _last_sfx_id := ""
+var _last_sfx_source := ""
+var _last_resolved_sample_id := ""
 var _danger_warning_sfx_cooldown := 0.0
 var _enemy_action_windup_sfx_cooldown := 0.0
 var _low_health_heartbeat_active := false
@@ -38,6 +50,8 @@ func _ready() -> void:
 	_suppress_playback = DisplayServer.get_name() == "headless"
 	_ensure_audio_bus(SFX_BUS)
 	_ensure_audio_bus(MUSIC_BUS)
+	_load_authored_sfx()
+	_load_authored_music()
 	_connect_events()
 	start_music("menu")
 
@@ -53,15 +67,17 @@ func _process(delta: float) -> void:
 			play_sfx("low_health_heartbeat")
 			_low_health_heartbeat_timer = _low_health_heartbeat_interval
 	_tick_sfx(delta)
-	_fill_music_buffer()
+	_tick_music_crossfade(delta)
 
 
 func _exit_tree() -> void:
-	_music_playback = null
-	if is_instance_valid(_music_player):
-		_music_player.stop()
-		_music_player.free()
-	_music_player = null
+	for music_player in _music_players:
+		if is_instance_valid(music_player):
+			music_player.stop()
+			music_player.free()
+	_music_players.clear()
+	_active_music_player_index = -1
+	_music_fade_from_index = -1
 	for index in range(_active_sfx.size() - 1, -1, -1):
 		_finish_sfx_at(index)
 	_active_sfx.clear()
@@ -73,6 +89,12 @@ func play_sfx(sound_id: String) -> void:
 
 	_last_sfx_id = sound_id
 	_sfx_play_counts_by_id[sound_id] = int(_sfx_play_counts_by_id.get(sound_id, 0)) + 1
+	if _try_play_authored_sfx(sound_id):
+		return
+
+	_last_sfx_source = "procedural_fallback"
+	_last_resolved_sample_id = ""
+	_procedural_fallback_count += 1
 	if _try_play_weapon_fire_sfx(sound_id):
 		return
 
@@ -179,23 +201,39 @@ func play_sfx(sound_id: String) -> void:
 
 func start_music(mode: String) -> void:
 	_music_mode = mode
+	var track_id := MUSIC_LIBRARY.resolve_track_id(mode)
+	_last_music_track_id = track_id
+	if track_id.is_empty() or not _music_streams.has(track_id):
+		_music_source = "missing"
+		_missing_music_count += 1
+		return
+
+	_music_source = "authored"
 	if _suppress_playback:
 		return
 
-	if _music_player == null:
-		_music_player = AudioStreamPlayer.new()
-		_music_player.name = "ProceduralMusicPlayer"
-		_music_player.bus = MUSIC_BUS
-		var stream := AudioStreamGenerator.new()
-		stream.mix_rate = SAMPLE_RATE
-		stream.buffer_length = 0.6
-		_music_player.stream = stream
-		add_child(_music_player)
+	_ensure_music_players()
+	var stream := _music_streams[track_id] as AudioStream
+	if _active_music_player_index >= 0:
+		var active_player := _music_players[_active_music_player_index]
+		if active_player.stream == stream and active_player.playing:
+			return
 
-	if not _music_player.playing:
-		_music_player.play()
+	var next_index := 0 if _active_music_player_index < 0 else 1 - _active_music_player_index
+	var next_player := _music_players[next_index]
+	next_player.stop()
+	next_player.stream = stream
+	next_player.volume_db = 0.0 if _active_music_player_index < 0 else -60.0
+	next_player.play()
 
-	_music_playback = _music_player.get_stream_playback() as AudioStreamGeneratorPlayback
+	if _active_music_player_index < 0:
+		_active_music_player_index = next_index
+		_music_fade_from_index = -1
+		return
+
+	_music_fade_from_index = _active_music_player_index
+	_active_music_player_index = next_index
+	_music_crossfade_elapsed = 0.0
 
 
 func get_sfx_play_count() -> int:
@@ -210,8 +248,105 @@ func get_music_mode() -> String:
 	return _music_mode
 
 
+func get_music_source_for_test() -> String:
+	return _music_source
+
+
+func get_last_music_track_id_for_test() -> String:
+	return _last_music_track_id
+
+
+func get_authored_music_path_for_test(music_key: String) -> String:
+	return MUSIC_LIBRARY.get_asset_path(music_key)
+
+
+func has_authored_music_for_test(music_key: String) -> bool:
+	var track_id := MUSIC_LIBRARY.resolve_track_id(music_key)
+	return not track_id.is_empty() and _music_streams.has(track_id)
+
+
+func get_authored_music_track_count_for_test() -> int:
+	return _music_streams.size()
+
+
+func get_required_authored_music_track_count_for_test() -> int:
+	return MUSIC_LIBRARY.get_required_track_ids().size()
+
+
+func get_missing_authored_music_ids_for_test() -> Array[String]:
+	var missing_ids: Array[String] = []
+	for track_id_value in MUSIC_LIBRARY.get_required_track_ids():
+		var track_id := str(track_id_value)
+		if not _music_streams.has(track_id):
+			missing_ids.append(track_id)
+	return missing_ids
+
+
+func get_missing_music_count_for_test() -> int:
+	return _missing_music_count
+
+
+func get_music_player_count_for_test() -> int:
+	return _music_players.size()
+
+
+func get_active_music_loop_mode_for_test() -> int:
+	if _active_music_player_index < 0 or _active_music_player_index >= _music_players.size():
+		return -1
+	var stream := _music_players[_active_music_player_index].stream as AudioStreamWAV
+	if stream == null:
+		return -1
+	return int(stream.loop_mode)
+
+
+func get_music_loop_mode_for_test(music_key: String) -> int:
+	var track_id := MUSIC_LIBRARY.resolve_track_id(music_key)
+	var stream := _music_streams.get(track_id) as AudioStreamWAV
+	if stream == null:
+		return -1
+	return int(stream.loop_mode)
+
+
 func get_last_sfx_id_for_test() -> String:
 	return _last_sfx_id
+
+
+func get_last_sfx_source_for_test() -> String:
+	return _last_sfx_source
+
+
+func get_last_resolved_sample_id_for_test() -> String:
+	return _last_resolved_sample_id
+
+
+func get_authored_sfx_path_for_test(sound_id: String) -> String:
+	return SFX_LIBRARY.get_asset_path(sound_id)
+
+
+func has_authored_sfx_for_test(sound_id: String) -> bool:
+	var sample_id := SFX_LIBRARY.resolve_sample_id(sound_id)
+	return not sample_id.is_empty() and _authored_sfx_streams.has(sample_id)
+
+
+func get_authored_sfx_sample_count_for_test() -> int:
+	return _authored_sfx_streams.size()
+
+
+func get_required_authored_sfx_sample_count_for_test() -> int:
+	return SFX_LIBRARY.get_required_sample_ids().size()
+
+
+func get_missing_authored_sfx_ids_for_test() -> Array[String]:
+	var missing_ids: Array[String] = []
+	for sample_id_value in SFX_LIBRARY.get_required_sample_ids():
+		var sample_id := str(sample_id_value)
+		if not _authored_sfx_streams.has(sample_id):
+			missing_ids.append(sample_id)
+	return missing_ids
+
+
+func get_procedural_fallback_count_for_test() -> int:
+	return _procedural_fallback_count
 
 
 func get_danger_warning_sfx_id_for_test(shape_name: String, duration: float, damage: int) -> String:
@@ -311,6 +446,106 @@ func _connect_events() -> void:
 	Events.run_completed.connect(_on_run_completed)
 
 
+func _load_authored_sfx() -> void:
+	_authored_sfx_streams.clear()
+	for sample_id_value in SFX_LIBRARY.get_required_sample_ids():
+		var sample_id := str(sample_id_value)
+		var asset_path := SFX_LIBRARY.get_asset_path(sample_id)
+		if asset_path.is_empty() or not ResourceLoader.exists(asset_path):
+			continue
+		var stream := ResourceLoader.load(asset_path) as AudioStream
+		if stream != null:
+			_authored_sfx_streams[sample_id] = stream
+
+
+func _load_authored_music() -> void:
+	_music_streams.clear()
+	for track_id_value in MUSIC_LIBRARY.get_required_track_ids():
+		var track_id := str(track_id_value)
+		var asset_path := MUSIC_LIBRARY.get_asset_path(track_id)
+		if asset_path.is_empty() or not ResourceLoader.exists(asset_path):
+			continue
+		var imported_stream := ResourceLoader.load(asset_path) as AudioStreamWAV
+		if imported_stream == null:
+			continue
+		var stream := imported_stream.duplicate(true) as AudioStreamWAV
+		stream.loop_mode = AudioStreamWAV.LOOP_FORWARD if MUSIC_LIBRARY.should_loop(track_id) else AudioStreamWAV.LOOP_DISABLED
+		stream.loop_begin = 0
+		stream.loop_end = roundi(stream.get_length() * float(stream.mix_rate))
+		_music_streams[track_id] = stream
+
+
+func _ensure_music_players() -> void:
+	if _music_players.size() == 2:
+		return
+	for index in range(2):
+		var player := AudioStreamPlayer.new()
+		player.name = "AuthoredMusicPlayer%d" % (index + 1)
+		player.bus = MUSIC_BUS
+		add_child(player)
+		_music_players.append(player)
+
+
+func _tick_music_crossfade(delta: float) -> void:
+	if _music_fade_from_index < 0 or _active_music_player_index < 0:
+		return
+	if _music_fade_from_index >= _music_players.size() or _active_music_player_index >= _music_players.size():
+		_music_fade_from_index = -1
+		return
+
+	_music_crossfade_elapsed += delta
+	var progress := clampf(_music_crossfade_elapsed / MUSIC_CROSSFADE_DURATION, 0.0, 1.0)
+	var from_player := _music_players[_music_fade_from_index]
+	var to_player := _music_players[_active_music_player_index]
+	from_player.volume_db = linear_to_db(maxf(1.0 - progress, 0.001))
+	to_player.volume_db = linear_to_db(maxf(progress, 0.001))
+	if progress < 1.0:
+		return
+
+	from_player.stop()
+	from_player.volume_db = 0.0
+	to_player.volume_db = 0.0
+	_music_fade_from_index = -1
+	_music_crossfade_elapsed = 0.0
+
+
+func _try_play_authored_sfx(sound_id: String) -> bool:
+	var sample_id := SFX_LIBRARY.resolve_sample_id(sound_id)
+	if sample_id.is_empty():
+		return false
+
+	var stream := _authored_sfx_streams.get(sample_id) as AudioStream
+	if stream == null:
+		return false
+
+	_last_sfx_source = "authored"
+	_last_resolved_sample_id = sample_id
+	_play_authored_stream(stream)
+	return true
+
+
+func _play_authored_stream(stream: AudioStream) -> void:
+	if _suppress_playback:
+		_sfx_play_count += 1
+		return
+
+	while _active_sfx.size() >= MAX_ACTIVE_SFX:
+		_finish_sfx_at(0)
+
+	var player := AudioStreamPlayer.new()
+	player.name = "AuthoredSfxPlayer"
+	player.stream = stream
+	player.bus = SFX_BUS
+	add_child(player)
+	player.play()
+
+	_sfx_play_count += 1
+	_active_sfx.append({
+		"player": player,
+		"remaining": maxf(stream.get_length() + 0.12, 0.16),
+	})
+
+
 func _play_tone(frequency: float, duration: float, volume: float, wave: String, slide: float) -> void:
 	if _suppress_playback:
 		_sfx_play_count += 1
@@ -402,42 +637,6 @@ func _try_play_weapon_fire_sfx(sound_id: String) -> bool:
 		_:
 			return false
 	return true
-
-
-func _fill_music_buffer() -> void:
-	if _music_playback == null:
-		return
-
-	var frames := _music_playback.get_frames_available()
-	for _index in range(frames):
-		var sample := _music_sample(_music_time)
-		_music_playback.push_frame(Vector2(sample, sample))
-		_music_time += 1.0 / SAMPLE_RATE
-
-
-func _music_sample(time: float) -> float:
-	var notes := _get_music_notes()
-	var beat := 0.42 if _music_mode == "boss" else 0.58
-	var note_index := int(floor(time / beat)) % notes.size()
-	var frequency := float(notes[note_index])
-	var pulse := 0.5 + 0.5 * sin(TAU * (time / beat))
-	var base := sin(TAU * frequency * time) * 0.045
-	var harmonic := sin(TAU * frequency * 2.0 * time) * 0.018
-	var bass := sin(TAU * (frequency * 0.5) * time) * 0.026
-	return (base + harmonic + bass) * (0.65 + 0.35 * pulse)
-
-
-func _get_music_notes() -> Array:
-	match _music_mode:
-		"boss":
-			return [110.0, 130.81, 146.83, 164.81, 146.83, 130.81]
-		"victory":
-			return [261.63, 329.63, 392.0, 523.25]
-		"defeat":
-			return [196.0, 174.61, 146.83, 130.81]
-		"combat":
-			return [146.83, 174.61, 196.0, 220.0, 196.0, 174.61]
-	return [130.81, 146.83, 174.61, 196.0]
 
 
 func _ensure_audio_bus(bus_name: String) -> int:
@@ -680,8 +879,9 @@ func _on_statue_attuned(_statue_data: Resource, _attunement_count: int) -> void:
 func _on_room_started(room: Node) -> void:
 	if room != null and str(room.get("room_type")) == "boss":
 		start_music("boss")
-	else:
-		start_music("combat")
+		return
+	var biome_music_key := str(room.get("biome_music_key")).strip_edges() if room != null else ""
+	start_music(biome_music_key if not biome_music_key.is_empty() else "combat")
 
 
 func _on_room_cleared(_room: Node) -> void:

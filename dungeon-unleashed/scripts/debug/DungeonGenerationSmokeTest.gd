@@ -204,6 +204,7 @@ func _validate_room_record(record: Dictionary, index: int, combat_rooms: Array) 
 	_expect(not str(record.get("biome_name", "")).is_empty(), "%s should record biome name" % expected_id)
 	_expect(not str(record.get("biome_color_key", "")).is_empty(), "%s should record biome visual color key" % expected_id)
 	_expect(typeof(record.get("biome_visual_floor_tint")) == TYPE_COLOR, "%s should record biome floor visual tint" % expected_id)
+	_expect(str(record.get("biome_music_key", "")).begins_with("biome_"), "%s should record biome music key" % expected_id)
 	_expect(str(record.get("biome_visual_floor_texture_path", "")).begins_with("res://art/terrain/"), "%s should record biome floor texture path" % expected_id)
 	_expect(typeof(record.get("biome_visual_floor_texture_modulate")) == TYPE_COLOR, "%s should record biome floor texture modulation" % expected_id)
 	_expect(float(record.get("biome_visual_floor_texture_opacity", 0.0)) > 0.0, "%s should record active biome floor texture opacity" % expected_id)
@@ -233,11 +234,13 @@ func _validate_room_record(record: Dictionary, index: int, combat_rooms: Array) 
 		_expect(room.get("auto_clear_on_enter") == record["auto_clear"], "%s auto-clear config should match metadata" % expected_id)
 		_expect(room.get("lock_doors_during_combat") == record["locks_doors"], "%s door-lock config should match metadata" % expected_id)
 		_expect(is_equal_approx(float(room.get("biome_reward_weight_multiplier")), biome_reward_weight_multiplier), "%s runtime reward weight multiplier should match metadata" % expected_id)
+		_expect(str(room.get("biome_music_key")) == str(record.get("biome_music_key", "")), "%s runtime music key should match metadata" % expected_id)
 		_expect(room.has_method("get_biome_visual_summary"), "%s should expose runtime biome visual summary" % expected_id)
 		if room.has_method("get_biome_visual_summary"):
 			var visual_summary: Dictionary = room.call("get_biome_visual_summary")
 			_expect(str(visual_summary.get("biome_id", "")) == str(record.get("biome_id", "")), "%s runtime biome visual id should match metadata" % expected_id)
 			_expect(str(visual_summary.get("color_key", "")) == str(record.get("biome_color_key", "")), "%s runtime biome color key should match metadata" % expected_id)
+			_expect(str(visual_summary.get("music_key", "")) == str(record.get("biome_music_key", "")), "%s runtime biome music key should match metadata" % expected_id)
 			_expect(_as_color(visual_summary.get("floor_tint")) == _as_color(record.get("biome_visual_floor_tint")), "%s runtime floor tint should match metadata" % expected_id)
 			_expect(str(visual_summary.get("floor_texture_path", "")) == str(record.get("biome_visual_floor_texture_path", "")), "%s runtime floor texture should match metadata" % expected_id)
 			_expect(_as_color(visual_summary.get("floor_texture_modulate")) == _as_color(record.get("biome_visual_floor_texture_modulate")), "%s runtime floor texture modulation should match metadata" % expected_id)
@@ -528,6 +531,7 @@ func _get_branch_anchor_count(records: Array) -> int:
 
 func _validate_biome_summaries(records: Array, biome_summaries: Array) -> void:
 	var expected_ids := ["outer_warrens", "iron_catacombs", "void_foundry"]
+	var expected_music_keys := ["biome_outer_warrens", "biome_iron_catacombs", "biome_void_foundry"]
 	var total_summary_rooms := 0
 	for index in range(biome_summaries.size()):
 		if not biome_summaries[index] is Dictionary:
@@ -547,6 +551,7 @@ func _validate_biome_summaries(records: Array, biome_summaries: Array) -> void:
 		_expect(str(summary.get("biome_id", "")) == expected_ids[index], "Biome summary should preserve biome id")
 		_expect(str(summary.get("biome_name", "")) == EXPECTED_BIOME_NAMES[index], "Biome summary should preserve biome display name")
 		_expect(not str(summary.get("biome_color_key", "")).is_empty(), "Biome summary should preserve visual color key")
+		_expect(str(summary.get("biome_music_key", "")) == expected_music_keys[index], "Biome summary should preserve its authored music key")
 		_expect(typeof(summary.get("biome_visual_floor_tint")) == TYPE_COLOR, "Biome summary should preserve floor visual tint")
 		_expect(str(summary.get("biome_visual_floor_texture_path", "")).begins_with("res://art/terrain/"), "Biome summary should preserve floor texture path")
 		_expect(typeof(summary.get("biome_visual_floor_texture_modulate")) == TYPE_COLOR, "Biome summary should preserve floor texture modulation")

@@ -35,6 +35,7 @@ const BOSS_ARENA_HAZARD_POSITIONS := [
 @export var biome_id: String = "prototype_depths"
 @export var biome_name: String = "Prototype Depths"
 @export var biome_color_key: String = ""
+@export var biome_music_key: String = ""
 @export var biome_visual_floor_tint: Color = Color(0.095, 0.105, 0.12, 1.0)
 @export var biome_visual_floor_texture_path: String = ""
 @export var biome_visual_floor_texture_modulate: Color = Color.WHITE
@@ -178,6 +179,7 @@ func get_biome_visual_summary() -> Dictionary:
 		"biome_id": biome_id,
 		"biome_name": biome_name,
 		"color_key": biome_color_key,
+		"music_key": biome_music_key,
 		"floor_tint": biome_visual_floor_tint,
 		"floor_texture_path": biome_visual_floor_texture_path,
 		"floor_texture_modulate": biome_visual_floor_texture_modulate,
