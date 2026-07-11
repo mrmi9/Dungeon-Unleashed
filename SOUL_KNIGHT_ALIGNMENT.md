@@ -2564,6 +2564,14 @@
 - RelicSystem 按 reward/shop/normal/premium/boss 来源再拆子流，消费普通宝箱随机数不会改变 Shop 遗物结果；原共享 Rare+ 保底仍按报价顺序保留。
 - 新增系统/房间流诊断和 `SeededRewardSmokeTest`；同 seed 重生成、异 seed 差异、系统 reset 回卷、实际 Event/Chest/Shop 输出、菜单 seed、三层生成和完整 Run 回归全部通过。
 
+## 第二百六十七批已落地靠拢改动
+
+### 射击热路径与 HUD 更新性能修复
+- 分段性能测试定位到每发子弹触发的弹药 HUD 全量重建，而不是弹丸或枪口特效：修复前 `ammo_changed` 平均同步阻塞约 246 ms。
+- 弹药变化现在只刷新当前武器槽，图标纹理与静态提示按身份缓存；完整开火平均耗时降至约 0.37 ms，武器槽信息、装填状态和提示内容保持同步。
+- authored SFX 改为启动时预建 16 声部固定池，连续开火不再动态创建/释放音频节点；辅助瞄准结果在单个物理帧内复用，避免按住射击时重复扫描敌人。
+- 新增 `FirePerformanceSmokeTest` 并通过音效、瞄准、战斗反馈、武器和内容管线回归；Windows 试玩版需继续人工检查高射速、霰弹和密集敌群下的实际手感。
+
 ## 后续建议顺序
 
 1. 战斗外大厅：在 Outpost Hall、Data Shards、角色解锁、训练入口、训练靶场布局、训练 drill、训练目标类型、drill 完成目标、drill 评级、训练徽章记录、训练徽章 token、训练奖励 toast、熟练度加成、图鉴分页、全内容 SVG 图标、Featured Card、CodexDetailCard、Build 路线筛选和搜索/排序/稀有度筛选基础上继续补正式像素 Atlas、视觉进度条、多卡片详情布局、更完整训练奖励演出和更清晰的视觉层级。

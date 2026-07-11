@@ -17027,3 +17027,30 @@ FullRunSmokeTest passed. (combined content/full-run command: 265.6s)
 ### 仍需人工复核
 - 使用 Windows 构建对同一 seed 执行两次相同路线/交互顺序，记录三层商店、事件、宝箱和选择面板，确认玩家可观察结果一致。
 - 当前契约是“同 seed + 同操作顺序”复现，不是录像系统；若未来要求跨操作顺序保持房间奖励完全独立，需要把中央选择流继续细分到 room/offer id。
+
+## 2026-07-12 射击主线程卡顿修复
+
+### 根因与修复
+- 专项分段计时确认，弹丸实例化平均约 `0.115 ms`、枪口特效约 `0.013 ms`，均不是明显卡顿来源；真正热点是每次 `ammo_changed` 都让 HUD 重建整行武器槽，并重复解析图标注册表与加载三把武器图标，修复前平均阻塞约 `246 ms`。
+- `HUD.update_ammo()` 改为只更新当前武器槽的弹药文字、提示与状态，不再为一次弹药变化重建全部槽位；纹理和静态提示内容按路径/武器身份缓存，保留换枪、装填和状态脉冲时的完整刷新能力。
+- `AudioFeedback` 在实际音频模式启动时预建并循环复用 16 个 SFX 播放器，连续射击不再反复创建、挂接和释放 `AudioStreamPlayer` 节点。
+- `Player` 每个物理帧只计算一次辅助瞄准结果，角色朝向、普通射击和蓄力释放复用同一目标，避免按住射击时重复遍历候选敌人。
+
+### 性能与回归
+- 新增 `FirePerformanceSmokeTest`，覆盖 96 次 authored 枪声、96 次完整射击、固定音效池容量和同步耗时上限。
+- 同一 headless 基准中，完整开火从修复前平均约 `247 ms`、最大约 `271 ms`，降至平均 `0.368 ms`、最大 `0.608 ms`；弹药 HUD 同步从约 `246 ms` 降至约 `0.091 ms`。
+
+```text
+FirePerformanceSmokeTest passed. (audio max 0.171 ms, fire avg 0.368 ms, fire max 0.608 ms)
+AudioFeedbackSmokeTest passed.
+AimAssistSmokeTest passed.
+CombatFeedbackSmokeTest passed.
+WeaponSmokeTest passed.
+ContentPipelineSmokeTest passed.
+```
+
+相关回归退出时仍可能输出项目既有 RID/ObjectDB 释放告警，但六项测试退出码均为 0。
+
+### 仍需人工复核
+- 在 Windows 构建中分别用手枪、霰弹枪和高射速武器持续射击，确认首发、连射、换弹完成和切枪后均无可感知停顿。
+- 在敌人密集房间开启高强度辅助瞄准，确认同帧目标复用没有改变锁定方向与蓄力释放落点。

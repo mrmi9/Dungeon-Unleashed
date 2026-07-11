@@ -334,9 +334,12 @@ var _weapon_slot_loadout_slots: Array[Control] = []
 var _weapon_slot_loadout_icons: Array = []
 var _weapon_slot_loadout_labels: Array[Label] = []
 var _weapon_slot_loadout_styles: Array = []
+var _weapon_slot_tooltip_cache_keys: Array[String] = []
+var _weapon_slot_tooltip_cache_values: Array[Dictionary] = []
 var _weapon_slot_panel_style: StyleBoxFlat
 var _weapon_slot_icon_key := "weapon_basic_pistol"
 var _weapon_slot_icon_texture_path := ""
+var _texture_cache: Dictionary = {}
 var _training_reward_toast_timer := 0.0
 var _last_training_reward_notice := ""
 var _input_hint_device := INPUT_HINT_KEYBOARD_MOUSE
@@ -1037,7 +1040,7 @@ func update_ammo(current_ammo: int, magazine_size: int, is_reloading: bool) -> v
 	_ammo_state_known = true
 	_was_reloading = is_reloading
 	_refresh_ammo_label_color()
-	_refresh_weapon_slot_loadout_row()
+	_refresh_active_weapon_slot_loadout_ammo()
 	_refresh_weapon_slot_status()
 
 
@@ -1252,6 +1255,25 @@ func _refresh_weapon_slot_loadout_row() -> void:
 			label.add_theme_color_override("font_color", _get_weapon_loadout_color(index, false))
 
 
+func _refresh_active_weapon_slot_loadout_ammo() -> void:
+	var active_index := _weapon_slot_index - 1
+	if active_index < 0 or active_index >= _weapon_slot_loadout_labels.size():
+		return
+	if active_index >= _weapon_slot_loadout_names.size():
+		return
+
+	var label := _weapon_slot_loadout_labels[active_index]
+	var slot_control := _weapon_slot_loadout_slots[active_index] if active_index < _weapon_slot_loadout_slots.size() else null
+	var icon_texture := _weapon_slot_loadout_icons[active_index] as TextureRect if active_index < _weapon_slot_loadout_icons.size() else null
+	var tooltip := _format_weapon_loadout_tooltip(active_index, true)
+	label.text = _format_weapon_loadout_label(active_index, true)
+	label.tooltip_text = tooltip
+	if slot_control != null:
+		slot_control.tooltip_text = tooltip
+	if icon_texture != null:
+		icon_texture.tooltip_text = tooltip
+
+
 func _sync_active_weapon_loadout_ammo_entry(current_ammo: int, magazine_size: int, is_reloading: bool) -> void:
 	var active_index := _weapon_slot_index - 1
 	if active_index < 0 or active_index >= _weapon_slot_loadout_entries.size():
@@ -1353,8 +1375,11 @@ func _load_texture_2d(texture_path: String) -> Texture2D:
 	var normalized_path := texture_path.strip_edges()
 	if normalized_path.is_empty():
 		return null
+	if _texture_cache.has(normalized_path):
+		return _texture_cache[normalized_path] as Texture2D
 	var loaded_resource := load(normalized_path)
 	if loaded_resource is Texture2D:
+		_texture_cache[normalized_path] = loaded_resource
 		return loaded_resource
 	return null
 
@@ -1650,20 +1675,44 @@ func _format_weapon_loadout_tooltip(index: int, has_weapon: bool) -> String:
 		return "Slot %d: Empty" % [index + 1]
 
 	var entry := _weapon_slot_loadout_entries[index] if index < _weapon_slot_loadout_entries.size() else {}
+	var static_tooltip := _get_cached_weapon_loadout_tooltip_static(index, entry)
+	return "%s | %s\n%s" % [
+		str(static_tooltip.get("base", "Slot %d" % [index + 1])),
+		_format_weapon_loadout_ammo_tooltip(index, has_weapon),
+		str(static_tooltip.get("icon", "")),
+	]
+
+
+func _get_cached_weapon_loadout_tooltip_static(index: int, entry: Dictionary) -> Dictionary:
+	while _weapon_slot_tooltip_cache_keys.size() <= index:
+		_weapon_slot_tooltip_cache_keys.append("")
+		_weapon_slot_tooltip_cache_values.append({})
+
 	var display_name := str(entry.get("display_name", _weapon_slot_loadout_names[index]))
 	var icon_key := _resolve_weapon_slot_icon_key(entry)
-	var base_tooltip := "Slot %d: %s | %s %s | %s range | %s" % [
-		index + 1,
+	var cache_key := "%s|%s|%s|%s|%s" % [
 		display_name,
-		_format_label_token(entry.get("rarity", "")),
-		_format_label_token(entry.get("weapon_class", "")),
-		_format_label_token(entry.get("recommended_range", "")),
-		_format_weapon_loadout_ammo_tooltip(index, has_weapon),
+		icon_key,
+		str(entry.get("rarity", "")),
+		str(entry.get("weapon_class", "")),
+		str(entry.get("recommended_range", "")),
 	]
-	return "%s\n%s" % [
-		base_tooltip,
-		CONTENT_ICON_REGISTRY.get_placeholder_tooltip(icon_key, display_name, "weapons"),
-	]
+	if _weapon_slot_tooltip_cache_keys[index] == cache_key:
+		return _weapon_slot_tooltip_cache_values[index]
+
+	var value := {
+		"base": "Slot %d: %s | %s %s | %s range" % [
+			index + 1,
+			display_name,
+			_format_label_token(entry.get("rarity", "")),
+			_format_label_token(entry.get("weapon_class", "")),
+			_format_label_token(entry.get("recommended_range", "")),
+		],
+		"icon": CONTENT_ICON_REGISTRY.get_placeholder_tooltip(icon_key, display_name, "weapons"),
+	}
+	_weapon_slot_tooltip_cache_keys[index] = cache_key
+	_weapon_slot_tooltip_cache_values[index] = value
+	return value
 
 
 func _format_weapon_loadout_ammo_summary(index: int, has_weapon: bool) -> String:

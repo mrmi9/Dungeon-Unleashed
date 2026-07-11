@@ -169,7 +169,8 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
-	_aim_at_current_target()
+	var assisted_aim_target := _get_assisted_aim_target()
+	_aim_at_target(assisted_aim_target)
 	_handle_weapon_switch_input()
 	if Input.is_action_just_pressed("reload"):
 		weapon.start_reload()
@@ -181,9 +182,9 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	if Input.is_action_pressed("shoot"):
-		weapon.try_fire(_get_assisted_aim_target(), self)
+		weapon.try_fire(assisted_aim_target, self)
 	if Input.is_action_just_released("shoot"):
-		weapon.release_charge(_get_assisted_aim_target(), self)
+		weapon.release_charge(assisted_aim_target, self)
 
 	_try_contact_damage()
 
@@ -1116,7 +1117,11 @@ func _tick_timers(delta: float) -> void:
 
 
 func _aim_at_current_target() -> void:
-	var direction := _get_assisted_aim_target() - global_position
+	_aim_at_target(_get_assisted_aim_target())
+
+
+func _aim_at_target(target_position: Vector2) -> void:
+	var direction := target_position - global_position
 	if direction.length_squared() > 0.001:
 		global_rotation = direction.angle()
 

@@ -18,6 +18,9 @@ const LOW_HEALTH_HEARTBEAT_CRITICAL_INTERVAL := 0.42
 
 var _rng := RandomNumberGenerator.new()
 var _active_sfx: Array[Dictionary] = []
+var _sfx_player_pool: Array[AudioStreamPlayer] = []
+var _available_sfx_players: Array[AudioStreamPlayer] = []
+var _sfx_player_creation_count := 0
 var _authored_sfx_streams := {}
 var _sfx_play_count := 0
 var _sfx_play_counts_by_id := {}
@@ -52,6 +55,7 @@ func _ready() -> void:
 	_ensure_audio_bus(MUSIC_BUS)
 	_load_authored_sfx()
 	_load_authored_music()
+	_ensure_sfx_player_pool()
 	_connect_events()
 	start_music("menu")
 
@@ -81,6 +85,11 @@ func _exit_tree() -> void:
 	for index in range(_active_sfx.size() - 1, -1, -1):
 		_finish_sfx_at(index)
 	_active_sfx.clear()
+	for player in _sfx_player_pool:
+		if is_instance_valid(player):
+			player.stop()
+	_sfx_player_pool.clear()
+	_available_sfx_players.clear()
 
 
 func play_sfx(sound_id: String) -> void:
@@ -242,6 +251,18 @@ func get_sfx_play_count() -> int:
 
 func get_sfx_play_count_for_id_for_test(sound_id: String) -> int:
 	return int(_sfx_play_counts_by_id.get(sound_id, 0))
+
+
+func get_sfx_player_pool_size_for_test() -> int:
+	return _sfx_player_pool.size()
+
+
+func get_sfx_player_creation_count_for_test() -> int:
+	return _sfx_player_creation_count
+
+
+func get_active_sfx_count_for_test() -> int:
+	return _active_sfx.size()
 
 
 func get_music_mode() -> String:
@@ -532,11 +553,10 @@ func _play_authored_stream(stream: AudioStream) -> void:
 	while _active_sfx.size() >= MAX_ACTIVE_SFX:
 		_finish_sfx_at(0)
 
-	var player := AudioStreamPlayer.new()
-	player.name = "AuthoredSfxPlayer"
+	var player := _acquire_sfx_player()
+	if player == null:
+		return
 	player.stream = stream
-	player.bus = SFX_BUS
-	add_child(player)
 	player.play()
 
 	_sfx_play_count += 1
@@ -558,10 +578,10 @@ func _play_tone(frequency: float, duration: float, volume: float, wave: String, 
 	stream.mix_rate = SAMPLE_RATE
 	stream.buffer_length = maxf(duration + 0.04, 0.08)
 
-	var player := AudioStreamPlayer.new()
+	var player := _acquire_sfx_player()
+	if player == null:
+		return
 	player.stream = stream
-	player.bus = SFX_BUS
-	add_child(player)
 	player.play()
 
 	var playback := player.get_stream_playback() as AudioStreamGeneratorPlayback
@@ -600,7 +620,31 @@ func _finish_sfx_at(index: int) -> void:
 	_active_sfx.remove_at(index)
 	if is_instance_valid(player):
 		player.stop()
-		player.free()
+		player.stream = null
+		if _sfx_player_pool.has(player) and not _available_sfx_players.has(player):
+			_available_sfx_players.append(player)
+
+
+func _ensure_sfx_player_pool() -> void:
+	if _suppress_playback or _sfx_player_pool.size() >= MAX_ACTIVE_SFX:
+		return
+	while _sfx_player_pool.size() < MAX_ACTIVE_SFX:
+		var player := AudioStreamPlayer.new()
+		player.name = "SfxPlayer%d" % (_sfx_player_pool.size() + 1)
+		player.bus = SFX_BUS
+		add_child(player)
+		_sfx_player_pool.append(player)
+		_available_sfx_players.append(player)
+		_sfx_player_creation_count += 1
+
+
+func _acquire_sfx_player() -> AudioStreamPlayer:
+	_ensure_sfx_player_pool()
+	if _available_sfx_players.is_empty() and not _active_sfx.is_empty():
+		_finish_sfx_at(0)
+	if _available_sfx_players.is_empty():
+		return null
+	return _available_sfx_players.pop_back()
 
 
 func _sample_wave(wave: String, time: float, frequency: float) -> float:
