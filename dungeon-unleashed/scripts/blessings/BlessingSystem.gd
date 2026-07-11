@@ -24,11 +24,12 @@ var _owned_blessings: Array[Resource] = []
 var _stacks_by_id: Dictionary = {}
 var _trigger_counts_by_id: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
+var _configured_random_seed := 0
 
 
 func _ready() -> void:
 	add_to_group("blessing_system")
-	_rng.randomize()
+	_prepare_random_seed()
 	Events.enemy_died.connect(_on_enemy_died)
 	Events.room_cleared.connect(_on_room_cleared)
 	Events.player_damaged.connect(_on_player_damaged)
@@ -40,11 +41,26 @@ func reset_run() -> void:
 	_owned_blessings.clear()
 	_stacks_by_id.clear()
 	_trigger_counts_by_id.clear()
+	if _configured_random_seed != 0:
+		_rng.seed = _configured_random_seed
 	Events.blessings_changed.emit(get_blessing_summaries())
 
 
 func set_random_seed(seed: int) -> void:
+	_configured_random_seed = seed
 	_rng.seed = seed
+
+
+func get_random_seed() -> int:
+	return _configured_random_seed
+
+
+func _prepare_random_seed() -> void:
+	if _configured_random_seed != 0:
+		_rng.seed = _configured_random_seed
+		return
+	_rng.randomize()
+	_configured_random_seed = int(_rng.seed)
 
 
 func get_reward_choices(choice_count: int = 3, _source: String = "event", weight_multiplier: float = 1.0) -> Array:

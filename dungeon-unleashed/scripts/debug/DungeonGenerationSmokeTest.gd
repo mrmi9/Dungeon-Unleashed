@@ -38,6 +38,7 @@ func _run() -> void:
 	_expect(controller.has_method("regenerate_with_seed"), "DungeonController should expose seeded regeneration")
 	_expect(controller.has_method("get_generation_seed"), "DungeonController should expose active generation seed")
 	_expect(controller.has_method("get_debug_map_text"), "DungeonController should expose debug map text")
+	_expect(controller.has_method("get_run_random_stream_summary"), "DungeonController should expose named run random streams")
 	if controller.has_method("regenerate_with_seed"):
 		await _verify_seeded_generation(controller)
 
@@ -58,6 +59,11 @@ func _run() -> void:
 	_expect(controller.has_method("get_total_biomes") and int(controller.call("get_total_biomes")) == TOTAL_BIOMES, "Dungeon should expose three total biomes")
 	_expect(biome_summaries.size() == TOTAL_BIOMES, "Dungeon should create three biome summaries")
 	_expect(int(controller.call("get_generation_seed")) == 424242, "Seeded generation should report the active seed")
+	if controller.has_method("get_run_random_stream_summary"):
+		var stream_summary: Dictionary = controller.call("get_run_random_stream_summary")
+		_expect(int(stream_summary.get("run_seed", 0)) == 424242, "Reward stream summary should use active seed")
+		_expect((stream_summary.get("system_seeds", {}) as Dictionary).size() == 4, "Reward stream summary should expose four central systems")
+		_expect((stream_summary.get("room_seeds", {}) as Dictionary).size() == records.size(), "Reward stream summary should expose one seed per room")
 	_expect(debug_map_text.contains("Seed: 424242"), "Debug map should include active seed")
 	_expect(debug_map_text.contains("Biomes:"), "Debug map should include biome summary block")
 	_expect(debug_map_text.contains("Outer Warrens"), "Debug map should list first biome")
@@ -193,9 +199,11 @@ func _validate_room_record(record: Dictionary, index: int, combat_rooms: Array) 
 	var layout_profile := str(record.get("layout_profile", ""))
 	var biome_layout_pool_ids := record.get("biome_layout_pool_ids", PackedStringArray()) as PackedStringArray
 	var biome_reward_weight_multiplier := float(record.get("biome_reward_weight_multiplier", 0.0))
+	var reward_random_seed := int(record.get("reward_random_seed", 0))
 
 	_expect(record["id"] == expected_id, "Generated room id should be sequential")
 	_expect(int(record.get("generation_seed", 0)) == 424242, "%s should record active generation seed" % expected_id)
+	_expect(reward_random_seed > 0, "%s should record a positive reward random seed" % expected_id)
 	_expect(record["template_id"] == "prototype_combat_room", "%s should use the prototype room template" % expected_id)
 	_expect(str(record.get("path_role", "")).length() > 0, "%s should record its dungeon graph role" % expected_id)
 	_expect(str(record.get("run_graph_id", "")) == "standard_three_biome_run", "%s should record active run graph id" % expected_id)
@@ -238,6 +246,7 @@ func _validate_room_record(record: Dictionary, index: int, combat_rooms: Array) 
 		_expect(room.get("auto_clear_on_enter") == record["auto_clear"], "%s auto-clear config should match metadata" % expected_id)
 		_expect(room.get("lock_doors_during_combat") == record["locks_doors"], "%s door-lock config should match metadata" % expected_id)
 		_expect(is_equal_approx(float(room.get("biome_reward_weight_multiplier")), biome_reward_weight_multiplier), "%s runtime reward weight multiplier should match metadata" % expected_id)
+		_expect(int(room.get("reward_random_seed")) == reward_random_seed, "%s runtime reward seed should match metadata" % expected_id)
 		_expect(str(room.get("biome_music_key")) == str(record.get("biome_music_key", "")), "%s runtime music key should match metadata" % expected_id)
 		_expect(room.has_method("get_biome_visual_summary"), "%s should expose runtime biome visual summary" % expected_id)
 		if room.has_method("get_biome_visual_summary"):
@@ -306,6 +315,7 @@ func _validate_room_record(record: Dictionary, index: int, combat_rooms: Array) 
 			var reward_summary: Dictionary = room.call("get_biome_reward_summary")
 			_expect(str(reward_summary.get("biome_id", "")) == str(record.get("biome_id", "")), "%s runtime reward biome id should match metadata" % expected_id)
 			_expect(is_equal_approx(float(reward_summary.get("reward_weight_multiplier", 0.0)), biome_reward_weight_multiplier), "%s runtime reward weight multiplier should match metadata" % expected_id)
+			_expect(int(reward_summary.get("random_seed", 0)) == reward_random_seed, "%s runtime reward summary should expose metadata seed" % expected_id)
 		if room_type == "boss":
 			_expect(room.get("complete_run_on_reward") == record["boss_reward_completes_run"], "%s boss reward completion flag should match metadata" % expected_id)
 

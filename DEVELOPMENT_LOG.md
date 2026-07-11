@@ -16984,3 +16984,46 @@ FullRunSmokeTest passed. (combined broad-regression command: 316.6s)
 ### 仍需人工复核
 - 通过多组完整 seed 跑图统计 Rare+ 首次暴露房间、每局 Rare/Epic/Legendary 报价数量和实际选择率，必要时调整阈值而不是提高所有高稀有权重。
 - 观察普通奖励保底与 Boss/Premium 固定下限叠加后的 Build 强度，避免后期奖励过密导致选择失去区分度。
+
+## 2026-07-12 可复玩 seed 奖励随机流第一版
+
+### 目标
+- 修复固定 dungeon seed 只能复现路线、布局和挑战变体，却无法复现商店、宝箱、事件与选择奖励的问题。
+- 避免单一全局 RNG 的调用顺序耦合，让不同奖励来源使用稳定命名流；相同操作顺序下 Replay Seed 应复现同一组奖励结果。
+
+### 命名随机流
+- 新增纯函数 `RunSeedStreams.derive_seed(run_seed, stream_key)`，使用固定整数混合过程生成正数、非零、可重复的派生 seed。
+- `DungeonController` 在每次生成前重置并播种 `relic_rewards`、`talent_rewards`、`blessing_rewards`、`statue_rewards` 四条中央流。
+- 四个系统均支持在 `_ready()` 前预配置 seed，避免子节点生命周期中的 `randomize()` 覆盖；`reset_run()` 会清状态并回卷 RNG。
+- `RelicSystem` 进一步按 reward/shop/normal_chest/premium_chest/boss_chest 拆分来源子流，普通宝箱抽取不会推进 Shop 遗物流；共享保底计数仍跨 reward 与 normal chest 生效。
+
+### 房间级随机流
+- 每个房间 record 新增 `reward_random_seed`，按 run seed 与稳定 `RoomXX` id 派生；运行时 `CombatRoom` 与奖励摘要保留同一字段。
+- `CombatRoom` 在奖励实例入树前传递 seed；`EventShrine`、`RewardChest` 和 `ShopInventory` 只在未配置 seed 时随机化。
+- Event 的随机变体/金币/诅咒武器、Chest 的掉落类型/金币/武器，以及 Shop 的武器库存均由房间流驱动；Shop 遗物由独立中央 shop 子流驱动。
+- `DungeonController.get_run_random_stream_summary()` 暴露 run、系统和房间 seed，便于 Debug Map、自动测试与后续试玩问题复现。
+
+### 测试与验收
+- 新增 `SeededRewardSmokeTest`，覆盖纯派生稳定性、四系统 seed 唯一性、每房间 seed 唯一性、系统 reset 回卷、遗物来源隔离、Event/Chest/Shop 实际输出复现、同 seed 再生成一致和异 seed 差异。
+- `DungeonGenerationSmokeTest` 扩展为校验系统流数量、房间流数量、record/runtime/summary 的 seed 一致性。
+
+```text
+Godot script/scene import passed.
+SeededRewardSmokeTest passed twice.
+RewardPacingSmokeTest passed.
+RelicSmokeTest passed.
+TalentSmokeTest passed.
+EventRoomSmokeTest passed.
+ChestSmokeTest passed.
+ShopSmokeTest passed.
+MenuFlowSmokeTest passed.
+DungeonGenerationSmokeTest passed.
+ContentPipelineSmokeTest passed.
+FullRunSmokeTest passed. (combined content/full-run command: 265.6s)
+```
+
+内容管线和完整 Run 退出时仍有项目既有 RID/ObjectDB 释放告警，但通过运行的退出码为 0。
+
+### 仍需人工复核
+- 使用 Windows 构建对同一 seed 执行两次相同路线/交互顺序，记录三层商店、事件、宝箱和选择面板，确认玩家可观察结果一致。
+- 当前契约是“同 seed + 同操作顺序”复现，不是录像系统；若未来要求跨操作顺序保持房间奖励完全独立，需要把中央选择流继续细分到 room/offer id。

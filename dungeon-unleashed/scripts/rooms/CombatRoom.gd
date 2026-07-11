@@ -57,6 +57,7 @@ const BOSS_ARENA_HAZARD_POSITIONS := [
 @export var biome_visual_accent_color: Color = Color(0.74, 0.82, 0.94, 1.0)
 @export_range(0.0, 1.0, 0.01) var biome_visual_tint_strength: float = 0.0
 @export var biome_reward_weight_multiplier: float = 1.0
+@export var reward_random_seed: int = 0
 @export_enum("training", "crossfire", "reward_cache", "shrine", "open_cross", "pillars", "market", "boss_arena", "gauntlet", "split_cover", "center_ring", "ambush_corners", "boss_cross", "box_maze", "bunker", "corner_nests", "crescent", "diagonal_blocks", "long_lane", "narrow_gap", "twin_islands", "wide_arena") var layout_profile: String = "crossfire"
 @export var layout_data: Resource
 @export var connected_directions: PackedStringArray = PackedStringArray(["west", "east"])
@@ -218,6 +219,7 @@ func get_biome_reward_summary() -> Dictionary:
 		"biome_id": biome_id,
 		"biome_name": biome_name,
 		"reward_weight_multiplier": biome_reward_weight_multiplier,
+		"random_seed": reward_random_seed,
 	}
 
 
@@ -475,6 +477,7 @@ func _apply_reward_biome_config(reward: Node) -> void:
 	_set_property_if_present(reward, "biome_id", biome_id)
 	_set_property_if_present(reward, "biome_name", biome_name)
 	_set_property_if_present(reward, "biome_reward_weight_multiplier", biome_reward_weight_multiplier)
+	_set_property_if_present(reward, "random_seed", reward_random_seed)
 
 
 func _set_property_if_present(target: Object, property_name: String, value) -> void:

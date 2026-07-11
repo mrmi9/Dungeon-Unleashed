@@ -13,6 +13,7 @@ const ITEM_TYPE_WEAPON := 2
 @export var biome_id: String = "prototype_depths"
 @export var biome_name: String = "Prototype Depths"
 @export var biome_reward_weight_multiplier: float = 1.0
+@export var random_seed: int = 0
 @export var relic_pool: Array[Resource] = [
 	preload("res://resources/relics/sharp_rounds.tres"),
 	preload("res://resources/relics/quick_trigger.tres"),
@@ -103,7 +104,7 @@ var _rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	add_to_group("rewards")
 	add_to_group("shop_inventories")
-	_rng.randomize()
+	_prepare_random_seed()
 	_spawn_inventory()
 
 
@@ -120,7 +121,32 @@ func get_biome_reward_summary() -> Dictionary:
 		"biome_id": biome_id,
 		"biome_name": biome_name,
 		"reward_weight_multiplier": biome_reward_weight_multiplier,
+		"random_seed": random_seed,
 	}
+
+
+func set_random_seed(seed: int) -> void:
+	random_seed = seed
+	_rng.seed = seed
+
+
+func get_random_seed() -> int:
+	return random_seed
+
+
+func get_inventory_signature() -> String:
+	var entries: Array[String] = []
+	for item in get_shop_items():
+		entries.append("%s:%s:%d" % [str(item.call("get_item_type_name")), str(item.call("get_payload_id")), int(item.call("get_price"))])
+	return "|".join(entries)
+
+
+func _prepare_random_seed() -> void:
+	if random_seed != 0:
+		_rng.seed = random_seed
+		return
+	_rng.randomize()
+	random_seed = int(_rng.seed)
 
 
 func _spawn_inventory() -> void:

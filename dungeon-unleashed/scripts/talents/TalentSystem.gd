@@ -19,22 +19,38 @@ var _player: Node
 var _owned_talents: Array[Resource] = []
 var _stacks_by_id: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
+var _configured_random_seed := 0
 
 
 func _ready() -> void:
 	add_to_group("talent_system")
-	_rng.randomize()
+	_prepare_random_seed()
 	call_deferred("_resolve_player")
 
 
 func reset_run() -> void:
 	_owned_talents.clear()
 	_stacks_by_id.clear()
+	if _configured_random_seed != 0:
+		_rng.seed = _configured_random_seed
 	Events.talents_changed.emit(get_talent_summaries())
 
 
 func set_random_seed(seed: int) -> void:
+	_configured_random_seed = seed
 	_rng.seed = seed
+
+
+func get_random_seed() -> int:
+	return _configured_random_seed
+
+
+func _prepare_random_seed() -> void:
+	if _configured_random_seed != 0:
+		_rng.seed = _configured_random_seed
+		return
+	_rng.randomize()
+	_configured_random_seed = int(_rng.seed)
 
 
 func get_reward_choices(choice_count: int = 3, _source: String = "boss") -> Array:

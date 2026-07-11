@@ -60,6 +60,7 @@ const QUICKENED_ELITE_MODIFIER := preload("res://resources/elite_modifiers/quick
 const VOLATILE_ELITE_MODIFIER := preload("res://resources/elite_modifiers/volatile.tres")
 const SHARPSHOT_ELITE_MODIFIER := preload("res://resources/elite_modifiers/sharpshot.tres")
 const TITAN_ELITE_MODIFIER := preload("res://resources/elite_modifiers/titan.tres")
+const RUN_SEED_STREAMS := preload("res://scripts/dungeon/RunSeedStreams.gd")
 const MAIN_PATH_MIN_ROOMS := 7
 const MAIN_PATH_MAX_ROOMS := 9
 const BRANCH_MIN_ROOMS := 5
@@ -100,6 +101,7 @@ func generate_dungeon() -> void:
 	_record_index_by_room_id.clear()
 	_current_room_id = ""
 	_prepare_rng()
+	_configure_run_random_streams()
 
 	var definitions := _get_room_definitions()
 	var room_count := definitions.size()
@@ -159,6 +161,20 @@ func get_current_room_id() -> String:
 
 func get_generation_seed() -> int:
 	return _active_generation_seed
+
+
+func get_run_random_stream_summary() -> Dictionary:
+	var system_seeds := {}
+	for stream_key in _get_system_random_stream_keys():
+		system_seeds[stream_key] = RUN_SEED_STREAMS.derive_seed(_active_generation_seed, stream_key)
+	var room_seeds := {}
+	for record in _room_records:
+		room_seeds[str(record.get("id", ""))] = int(record.get("reward_random_seed", 0))
+	return {
+		"run_seed": _active_generation_seed,
+		"system_seeds": system_seeds,
+		"room_seeds": room_seeds,
+	}
 
 
 func get_debug_map_text() -> String:
@@ -225,10 +241,12 @@ func _build_room_record(index: int, _room_count: int, room_data: Resource, defin
 	var layout_data := _get_definition_layout_data(definition, room_data)
 	var room_type := _get_room_data_string(room_data, "room_type", "combat")
 	var challenge_variant := str(definition.get("challenge_variant", _get_room_data_challenge_variant(room_data)))
+	var room_id := "Room%02d" % (index + 1)
 
 	return {
-		"id": "Room%02d" % (index + 1),
+		"id": room_id,
 		"generation_seed": _active_generation_seed,
+		"reward_random_seed": RUN_SEED_STREAMS.derive_seed(_active_generation_seed, "room_reward:%s" % room_id),
 		"run_graph_id": _get_run_graph_id(),
 		"biome_index": int(definition.get("biome_index", 1)),
 		"biome_id": str(definition.get("biome_id", "prototype_depths")),
@@ -313,6 +331,7 @@ func _apply_room_config(combat_room: Node, room_data: Resource, connections: Pac
 	typed_room.biome_visual_accent_color = _get_definition_color(definition, "biome_visual_accent_color", typed_room.biome_visual_accent_color)
 	typed_room.biome_visual_tint_strength = float(definition.get("biome_visual_tint_strength", typed_room.biome_visual_tint_strength))
 	typed_room.biome_reward_weight_multiplier = float(definition.get("biome_reward_weight_multiplier", typed_room.biome_reward_weight_multiplier))
+	typed_room.reward_random_seed = RUN_SEED_STREAMS.derive_seed(_active_generation_seed, "room_reward:%s" % str(typed_room.get_parent().name))
 	typed_room.layout_profile = _get_layout_id(room_data, layout_data)
 	typed_room.layout_data = layout_data
 	typed_room.connected_directions = connections
@@ -1053,6 +1072,33 @@ func _prepare_rng() -> void:
 		_rng.randomize()
 		_active_generation_seed = int(_rng.randi())
 	_rng.seed = _active_generation_seed
+
+
+func _configure_run_random_streams() -> void:
+	for config in _get_system_random_stream_configs():
+		var system := get_node_or_null(NodePath(str(config.get("node_path", ""))))
+		if system == null:
+			continue
+		if system.has_method("reset_run"):
+			system.call("reset_run")
+		if system.has_method("set_random_seed"):
+			system.call("set_random_seed", RUN_SEED_STREAMS.derive_seed(_active_generation_seed, str(config.get("stream_key", ""))))
+
+
+func _get_system_random_stream_configs() -> Array[Dictionary]:
+	return [
+		{"stream_key": "relic_rewards", "node_path": "../RelicSystem"},
+		{"stream_key": "talent_rewards", "node_path": "../TalentSystem"},
+		{"stream_key": "blessing_rewards", "node_path": "../BlessingSystem"},
+		{"stream_key": "statue_rewards", "node_path": "../StatueSystem"},
+	]
+
+
+func _get_system_random_stream_keys() -> Array[String]:
+	var keys: Array[String] = []
+	for config in _get_system_random_stream_configs():
+		keys.append(str(config.get("stream_key", "")))
+	return keys
 
 
 func _pick_branch_direction(_preferred_direction: String) -> String:

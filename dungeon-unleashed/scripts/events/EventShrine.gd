@@ -40,6 +40,7 @@ class_name EventShrine
 @export var biome_id: String = "prototype_depths"
 @export var biome_name: String = "Prototype Depths"
 @export var biome_reward_weight_multiplier: float = 1.0
+@export var random_seed: int = 0
 
 @onready var visual: CanvasItem = $Visual
 @onready var label: Label = $Label
@@ -53,7 +54,7 @@ var _resolved_event_variant := ""
 func _ready() -> void:
 	add_to_group("rewards")
 	add_to_group("event_shrines")
-	_rng.randomize()
+	_prepare_random_seed()
 	_resolved_event_variant = _resolve_event_variant()
 	_apply_event_variant(_resolved_event_variant)
 	body_entered.connect(_on_body_entered)
@@ -157,6 +158,7 @@ func get_biome_reward_summary() -> Dictionary:
 		"biome_id": biome_id,
 		"biome_name": biome_name,
 		"reward_weight_multiplier": biome_reward_weight_multiplier,
+		"random_seed": random_seed,
 	}
 
 
@@ -182,7 +184,25 @@ func get_event_summary() -> Dictionary:
 		"temporary_rule_damage_multiplier_bonus": temporary_rule_damage_multiplier_bonus,
 		"temporary_rule_fire_rate_multiplier_bonus": temporary_rule_fire_rate_multiplier_bonus,
 		"temporary_rule_duration": temporary_rule_duration,
+		"random_seed": random_seed,
 	}
+
+
+func set_random_seed(seed: int) -> void:
+	random_seed = seed
+	_rng.seed = seed
+
+
+func get_random_seed() -> int:
+	return random_seed
+
+
+func _prepare_random_seed() -> void:
+	if random_seed != 0:
+		_rng.seed = random_seed
+		return
+	_rng.randomize()
+	random_seed = int(_rng.seed)
 
 
 func _unhandled_input(event: InputEvent) -> void:

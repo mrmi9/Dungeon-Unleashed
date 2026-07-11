@@ -1,6 +1,6 @@
 # Dungeon Unleashed Known Issues
 
-Last updated: 2026-07-11
+Last updated: 2026-07-12
 
 ## High Priority
 
@@ -14,7 +14,7 @@ Last updated: 2026-07-11
 - Visuals now mix original PNG/SVG action atlases, content icons, biome floors, surface atlases, trim atlases, telegraphs, and procedural fallback geometry. The remaining fallbacks and inconsistent pixel density still need a unified final-art pass.
 - Combat and music use 54 original authored SFX and 7 original authored music tracks. Final loudness balance, voice priority, long-loop fatigue, and speaker/headphone review are still required.
 - The playable route is a seeded three-biome graph with independent layout pools and special rooms, but rooms still share one data-driven `CombatRoom` scene instead of a true authored room-template/TileMap layer.
-- The active dungeon seed is visible on the minimap, the main menu supports fixed seed entry/random seed mode, the result screen can replay the current seed, and `F3` opens a developer debug map panel with copy support. The panel is functional but still developer-facing rather than polished production UI.
+- The active dungeon seed now reproduces route/layout generation, central relic/talent/blessing/statue choices, room event rules, chest rolls, and shop stock when the same interaction order is followed. `F3` exposes the seed/map for debugging, but the panel is still developer-facing rather than polished production UI; this is deterministic replay, not recorded input playback.
 - Resolution settings support only three presets: 1280x720, 1600x900, 1920x1080.
 - Key rebinding supports movement, reload, interact, and pause; mouse shoot and weapon number slots are still fixed.
 - Relic rewards now have per-source `.tres` drop tables, shared Rare+ exposure pity for reward rooms/normal chests, and Rare+ floors for premium/Boss chests. Full-run rarity distribution and selection-rate tuning still require simulation plus manual playtests.
@@ -34,6 +34,7 @@ Last updated: 2026-07-11
 - Three connected biomes, three Bosses, six characters, 40 weapons, 45 relics, 18 normal enemy variants, six elite modifiers, the lobby/codex/training flow, and controller input contracts are covered by automated smoke tests.
 - Original authored SFX/music resources, biome floor/surface/trim visuals, enemy/Boss action atlases, and content icon registries are imported and validated by the content pipeline.
 - Relic reward pacing covers shared miss counting, one-slot Rare+ guarantees, source hard floors, Shop isolation, and run reset.
+- Named run/room reward streams cover same-seed replay, cross-source relic RNG isolation, event/chest/shop output, menu seed application, and full-run completion.
 - Windows release `.exe` export completed.
 - Exported `.exe` startup and first-room enemy spawning are verified through the OpenGL/Compatibility runtime room-spawn check.
 - Full smoke test suite passes.

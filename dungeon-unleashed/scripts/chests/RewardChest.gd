@@ -10,6 +10,7 @@ class_name RewardChest
 @export var biome_id: String = "prototype_depths"
 @export var biome_name: String = "Prototype Depths"
 @export var biome_reward_weight_multiplier: float = 1.0
+@export var random_seed: int = 0
 @export var relic_pool: Array[Resource] = [
 	preload("res://resources/relics/sharp_rounds.tres"),
 	preload("res://resources/relics/quick_trigger.tres"),
@@ -102,7 +103,7 @@ var _nearby_player: Node
 func _ready() -> void:
 	add_to_group("rewards")
 	add_to_group("chests")
-	_rng.randomize()
+	_prepare_random_seed()
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 	set_process_unhandled_input(true)
@@ -142,7 +143,37 @@ func get_biome_reward_summary() -> Dictionary:
 		"biome_id": biome_id,
 		"biome_name": biome_name,
 		"reward_weight_multiplier": biome_reward_weight_multiplier,
+		"random_seed": random_seed,
 	}
+
+
+func set_random_seed(seed: int) -> void:
+	random_seed = seed
+	_rng.seed = seed
+
+
+func get_random_seed() -> int:
+	return random_seed
+
+
+func get_roll_signature_for_test() -> String:
+	var saved_state := _rng.state
+	var kinds: Array[String] = []
+	for index in range(maxi(reward_count, 1)):
+		kinds.append(_pick_drop_kind(index))
+	var gold := _roll_gold()
+	var weapon := _pick_resource(weapon_pool, biome_reward_weight_multiplier)
+	var weapon_id := str(weapon.get("id")) if weapon != null else ""
+	_rng.state = saved_state
+	return "%s|gold:%d|weapon:%s" % [",".join(kinds), gold, weapon_id]
+
+
+func _prepare_random_seed() -> void:
+	if random_seed != 0:
+		_rng.seed = random_seed
+		return
+	_rng.randomize()
+	random_seed = int(_rng.seed)
 
 
 func _unhandled_input(event: InputEvent) -> void:

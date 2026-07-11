@@ -7,6 +7,7 @@ const RARITY_WEIGHTS := {
 	"epic": 18.0,
 	"legendary": 6.0,
 }
+const RUN_SEED_STREAMS := preload("res://scripts/dungeon/RunSeedStreams.gd")
 
 @export var player_path: NodePath = ^"../Player"
 @export var available_relics: Array[Resource] = [
@@ -69,6 +70,8 @@ var _owned_relics: Array[Resource] = []
 var _stacks_by_id: Dictionary = {}
 var _kill_count := 0
 var _rng := RandomNumberGenerator.new()
+var _configured_random_seed := 0
+var _source_rngs: Dictionary = {}
 var _pity_misses_by_group: Dictionary = {}
 var _reward_offer_count_by_source: Dictionary = {}
 var _last_reward_offer: Dictionary = {}
@@ -76,7 +79,7 @@ var _last_reward_offer: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group("relic_system")
-	_rng.randomize()
+	_prepare_random_seed()
 	Events.enemy_died.connect(_on_enemy_died)
 	Events.room_cleared.connect(_on_room_cleared)
 	Events.player_damaged.connect(_on_player_damaged)
@@ -128,6 +131,9 @@ func reset_run() -> void:
 	_pity_misses_by_group.clear()
 	_reward_offer_count_by_source.clear()
 	_last_reward_offer.clear()
+	_source_rngs.clear()
+	if _configured_random_seed != 0:
+		_rng.seed = _configured_random_seed
 
 
 func get_source_reward_pacing_summary(source: String) -> Dictionary:
@@ -150,6 +156,7 @@ func get_reward_pacing_summary() -> Dictionary:
 	for source in get_configured_drop_source_ids():
 		sources.append(get_source_reward_pacing_summary(source))
 	return {
+		"random_seed": _configured_random_seed,
 		"pity_misses_by_group": _pity_misses_by_group.duplicate(),
 		"offer_count_by_source": _reward_offer_count_by_source.duplicate(),
 		"last_offer": _last_reward_offer.duplicate(true),
@@ -158,7 +165,26 @@ func get_reward_pacing_summary() -> Dictionary:
 
 
 func set_random_seed(seed: int) -> void:
+	_configured_random_seed = seed
 	_rng.seed = seed
+	_source_rngs.clear()
+
+
+func get_random_seed() -> int:
+	return _configured_random_seed
+
+
+func get_source_random_seed(source: String) -> int:
+	return RUN_SEED_STREAMS.derive_seed(_configured_random_seed, "relic_source:%s" % _canonical_source(source))
+
+
+func _prepare_random_seed() -> void:
+	_source_rngs.clear()
+	if _configured_random_seed != 0:
+		_rng.seed = _configured_random_seed
+		return
+	_rng.randomize()
+	_configured_random_seed = int(_rng.seed)
 
 
 func get_rarity_weight(rarity: String) -> float:
@@ -213,21 +239,32 @@ func _get_obtainable_relics(source: String = "reward") -> Array[Resource]:
 func _pick_weighted_relic(candidates: Array[Resource], source: String = "reward", weight_multiplier: float = 1.0) -> Resource:
 	if candidates.is_empty():
 		return null
+	var source_rng := _get_source_rng(source)
 
 	var total_weight := 0.0
 	for relic in candidates:
 		total_weight += maxf(_get_relic_weight(relic, source, weight_multiplier), 0.0)
 
 	if total_weight <= 0.0:
-		return candidates[_rng.randi_range(0, candidates.size() - 1)]
+		return candidates[source_rng.randi_range(0, candidates.size() - 1)]
 
-	var roll := _rng.randf_range(0.0, total_weight)
+	var roll := source_rng.randf_range(0.0, total_weight)
 	for relic in candidates:
 		roll -= maxf(_get_relic_weight(relic, source, weight_multiplier), 0.0)
 		if roll <= 0.0:
 			return relic
 
 	return candidates[candidates.size() - 1]
+
+
+func _get_source_rng(source: String) -> RandomNumberGenerator:
+	var canonical_source := _canonical_source(source)
+	if _source_rngs.has(canonical_source):
+		return _source_rngs[canonical_source] as RandomNumberGenerator
+	var source_rng := RandomNumberGenerator.new()
+	source_rng.seed = get_source_random_seed(canonical_source)
+	_source_rngs[canonical_source] = source_rng
+	return source_rng
 
 
 func _get_relic_weight(relic_data: Resource, source: String = "reward", weight_multiplier: float = 1.0) -> float:

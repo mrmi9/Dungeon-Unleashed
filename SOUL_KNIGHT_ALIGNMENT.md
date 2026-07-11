@@ -2556,12 +2556,20 @@
 - 单选和三选一都按整组报价记账；三选一只插入一个保证槽位，其余候选继续遵循来源权重、单项权重、Biome 倍率和去重规则。
 - 新增来源/最近报价诊断与 run reset 接线；专项保底、内容管线、遗物、宝箱、商店和事件房回归通过，并稳定商店 HUD 弹匣断言的单帧时序抖动。
 
+## 第二百六十六批已落地靠拢改动
+
+### 可复玩 seed 奖励随机流第一版
+- 新增 `RunSeedStreams` 稳定命名派生器；固定 dungeon seed 现在不只复现路线/布局，也播种 Relic、Talent、Blessing、Statue 四条独立中央奖励流。
+- 每个 `RoomXX` 获得独立 `reward_random_seed`，并传入 EventShrine、RewardChest 和 ShopInventory，使事件规则、宝箱 roll、商店武器库存可随 Replay Seed 复现。
+- RelicSystem 按 reward/shop/normal/premium/boss 来源再拆子流，消费普通宝箱随机数不会改变 Shop 遗物结果；原共享 Rare+ 保底仍按报价顺序保留。
+- 新增系统/房间流诊断和 `SeededRewardSmokeTest`；同 seed 重生成、异 seed 差异、系统 reset 回卷、实际 Event/Chest/Shop 输出、菜单 seed、三层生成和完整 Run 回归全部通过。
+
 ## 后续建议顺序
 
 1. 战斗外大厅：在 Outpost Hall、Data Shards、角色解锁、训练入口、训练靶场布局、训练 drill、训练目标类型、drill 完成目标、drill 评级、训练徽章记录、训练徽章 token、训练奖励 toast、熟练度加成、图鉴分页、全内容 SVG 图标、Featured Card、CodexDetailCard、Build 路线筛选和搜索/排序/稀有度筛选基础上继续补正式像素 Atlas、视觉进度条、多卡片详情布局、更完整训练奖励演出和更清晰的视觉层级。
 2. 特殊房间：在已落地武器房、治疗补给房、事件房随机结果池、商人折扣、诅咒武器、短时过载规则、雕像选择、雕像调谐、挑战房变体和陷阱房基础上，继续补更多随机强化、更细挑战奖励差异和多机关组合。
 3. 角色深度：在当前 6 角色、清房/击杀/受伤事件驱动祝福基础上继续让角色技能与遗物、Boss 后天赋、事件祝福和雕像系统产生更可读的组合变化。
-4. 内容池深度：当前已达到 40 武器 / 45 遗物，并具备全条目 SVG 图标、Field/Mine/Sentry 部署、Homing/Chain 路线、七类 authored 武器音效和跨奖励房/普通宝箱的 Rare+ 暴露保底；后续优先补完整 run 的稀有度统计调优、武器奖励节奏、更多部署行为、武器专属命中反馈和特殊交互。
+4. 内容池深度：当前已达到 40 武器 / 45 遗物，并具备全条目 SVG 图标、Field/Mine/Sentry 部署、Homing/Chain 路线、七类 authored 武器音效、跨奖励房/普通宝箱的 Rare+ 暴露保底和可随 run seed 复现的奖励随机流；后续优先补完整 run 的稀有度统计调优、武器奖励节奏、更多部署行为、武器专属命中反馈和特殊交互。
 5. Biome 差异化：在当前三层独立像素地板、三套墙体/障碍 Surface Atlas、三套门框/边角 trim atlas、三条独立 authored 音乐、3 个 Boss Signature Attack、3 个二阶段第二专属机制、18 个普通敌人四帧 Atlas、Barrage Totem/Needle Skater 独立 Atlas、3 套 Boss 阶段/招牌技 Atlas、6 套精英动态标识与独立战斗特性、独立布局池、奖励权重接线和小地图分层显示基础上，继续补多形态场景装饰、门体状态动画、更细的精英组合变化和各层奖励统计调优。
 6. 手感打磨：在已有辅助瞄准锁定权重、低血量反馈、屏幕震动、伤害闪屏、武器槽反馈、语义化敌人前摇、54 个 authored SFX 和 7 条 authored 音乐基础上，继续优化弹幕密度、受击反馈、击退、危险区纹样、统一像素密度、独立敌人轮廓、音频优先级和最终混音。
 
