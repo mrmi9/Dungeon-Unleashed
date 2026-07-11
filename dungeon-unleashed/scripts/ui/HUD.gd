@@ -530,9 +530,9 @@ func update_health(current_hp: int, max_hp: int) -> void:
 	_low_health_ratio = health_ratio
 	var was_low_health := _is_low_health
 	_is_low_health = LOW_HEALTH_FEEDBACK.is_low_health(current_hp, safe_max_hp)
-	health_label.text = "HP: %d / %d" % [current_hp, max_hp]
+	health_label.text = Localization.format("HP: %d / %d", [current_hp, max_hp])
 	if _is_low_health:
-		health_label.text += " | LOW"
+		health_label.text += " | %s" % Localization.text("LOW")
 		health_label.add_theme_color_override("font_color", HEALTH_LOW_COLOR)
 	else:
 		health_label.add_theme_color_override("font_color", HEALTH_NORMAL_COLOR)
@@ -565,9 +565,9 @@ func update_shield(current_shield: int, max_shield: int = -1, recharge_summary: 
 	var status_text := _format_shield_recharge_status(recharge_summary)
 	var previous_shield := _last_shield_value
 	if max_shield > 0:
-		shield_label.text = "Armor: %d / %d" % [current_shield, max_shield]
+		shield_label.text = Localization.format("Armor: %d / %d", [current_shield, max_shield])
 	else:
-		shield_label.text = "Armor: %d" % current_shield
+		shield_label.text = Localization.format("Armor: %d", current_shield)
 	if not status_text.is_empty():
 		shield_label.text += " | %s" % status_text
 	if previous_shield >= 0 and current_shield > previous_shield:
@@ -597,11 +597,11 @@ func _format_shield_recharge_status(recharge_summary: Dictionary) -> String:
 		"delayed":
 			var delay_remaining := maxf(float(recharge_summary.get("delay_remaining", 0.0)), 0.0)
 			if delay_remaining > 0.0:
-				return "Delay %.1fs" % delay_remaining
+				return Localization.format("Delay %.1fs", delay_remaining)
 		"recovering":
-			return "Recovering"
+			return Localization.text("Recovering")
 		"stalled":
-			return "Recovery Off"
+			return Localization.text("Recovery Off")
 
 	return ""
 
@@ -678,7 +678,7 @@ func show_rule_trigger_feedback(kind: String, display_name: String, trigger_even
 
 
 func _refresh_energy_label() -> void:
-	energy_label.text = "Energy: %d / %d" % [_energy_current, _energy_max]
+	energy_label.text = Localization.format("Energy: %d / %d", [_energy_current, _energy_max])
 	if _energy_warning_timer > 0.0 and _energy_warning_required > _energy_current:
 		energy_label.text += " | Need %d" % _energy_warning_required
 		var progress := clampf(_energy_warning_timer / _energy_warning_duration, 0.0, 1.0)
@@ -833,14 +833,15 @@ func _get_rule_feedback_fallback_icon_key(kind: String) -> String:
 func update_skill_status(skill_name: String, cooldown_remaining: float, cooldown_duration: float, active_remaining: float) -> void:
 	var is_ready := active_remaining <= 0.0 and cooldown_remaining <= 0.0 and cooldown_duration > 0.0
 	var skill_changed := skill_name != _last_skill_name
+	var localized_skill_name := Localization.text(skill_name)
 	if active_remaining > 0.0:
-		skill_label.text = "Skill: %s Active %.1fs" % [skill_name, active_remaining]
+		skill_label.text = Localization.format("Skill: %s Active %.1fs", [localized_skill_name, active_remaining])
 	elif cooldown_remaining > 0.0:
-		skill_label.text = "Skill: %s CD %.1fs" % [skill_name, cooldown_remaining]
+		skill_label.text = Localization.format("Skill: %s CD %.1fs", [localized_skill_name, cooldown_remaining])
 	elif cooldown_duration > 0.0:
-		skill_label.text = "Skill: %s Ready" % skill_name
+		skill_label.text = Localization.format("Skill: %s Ready", localized_skill_name)
 	else:
-		skill_label.text = "Skill: Ready"
+		skill_label.text = Localization.text("Skill: Ready")
 	if skill_changed:
 		_last_skill_name = skill_name
 		_skill_ready_state_known = true
@@ -862,11 +863,11 @@ func update_character_passive_status(summary: Dictionary) -> void:
 	var active_entry := _get_active_passive_status_entry(summary)
 	if not active_entry.is_empty():
 		_passive_status_is_active = true
-		passive_status_label.text = "Passive: %s %.1fs" % [
-			str(active_entry.get("label", "Active")),
+		passive_status_label.text = Localization.format("Passive: %s %.1fs", [
+			Localization.text(active_entry.get("label", "Active")),
 			maxf(float(active_entry.get("remaining", 0.0)), 0.0),
-		]
-		passive_status_label.tooltip_text = str(summary.get("passive_description", "")).strip_edges()
+		])
+		passive_status_label.tooltip_text = Localization.text(str(summary.get("passive_description", "")).strip_edges())
 		_refresh_passive_status_icon(summary, str(active_entry.get("label", "Active")))
 		_refresh_passive_status_color()
 		return
@@ -874,8 +875,8 @@ func update_character_passive_status(summary: Dictionary) -> void:
 	var passive_id := str(summary.get("passive_id", "")).strip_edges()
 	var passive_name := _format_passive_status_name(passive_id)
 	_passive_status_is_active = false
-	passive_status_label.text = "Passive: %s" % passive_name if not passive_name.is_empty() else "Passive: None"
-	passive_status_label.tooltip_text = str(summary.get("passive_description", "")).strip_edges()
+	passive_status_label.text = Localization.format("Passive: %s", Localization.text(passive_name)) if not passive_name.is_empty() else Localization.text("Passive: None")
+	passive_status_label.tooltip_text = Localization.text(str(summary.get("passive_description", "")).strip_edges())
 	_refresh_passive_status_icon(summary, passive_name)
 	_refresh_passive_status_color()
 
@@ -954,8 +955,8 @@ func _format_passive_status_name(passive_id: String) -> String:
 
 
 func update_character_selection(display_name: String, description: String, skill_name: String, skill_description: String, index: int, total: int) -> void:
-	character_name_label.text = "Character %d/%d: %s" % [index + 1, maxi(total, 1), display_name]
-	character_info_label.text = "%s\nSkill: %s - %s" % [description, skill_name, skill_description]
+	character_name_label.text = Localization.format("Character %d/%d: %s", [index + 1, maxi(total, 1), Localization.text(display_name)])
+	character_info_label.text = Localization.format("%s\nSkill: %s - %s", [Localization.text(description), Localization.text(skill_name), Localization.text(skill_description)])
 	if lobby_screen != null:
 		lobby_screen.call("update_character_selection", display_name, description, skill_name, skill_description, index, total)
 
@@ -993,7 +994,7 @@ func set_weapon_name(display_name: String, slot_index: int = -1, slot_total: int
 	if slot_total > 0:
 		_weapon_slot_total = slot_total
 	_update_weapon_slot_switch_pulse(previous_slot_index)
-	weapon_label.text = "Weapon %s: %s" % [_format_weapon_slot_index(), display_name]
+	weapon_label.text = Localization.format("Weapon %s: %s", [_format_weapon_slot_index(), Localization.text(display_name)])
 	_weapon_ready_pulse_timer = 0.0
 	_refresh_weapon_label_color()
 	_refresh_weapon_slot_loadout_row()
@@ -1038,9 +1039,9 @@ func update_ammo(current_ammo: int, magazine_size: int, is_reloading: bool) -> v
 		_weapon_slot_reload_sweep_timer = 0.0
 		_weapon_slot_reload_sweep_index = 0
 	if is_reloading:
-		ammo_label.text = "Ammo: Reloading..."
+		ammo_label.text = Localization.text("Ammo: Reloading...")
 	else:
-		ammo_label.text = "Ammo: %d / %d" % [current_ammo, magazine_size]
+		ammo_label.text = Localization.format("Ammo: %d / %d", [current_ammo, magazine_size])
 	if _ammo_state_known and _was_reloading and not is_reloading and current_ammo > 0:
 		show_ammo_ready_pulse()
 		show_weapon_ready_pulse()
@@ -1672,7 +1673,7 @@ func _format_weapon_loadout_label(index: int, has_weapon: bool) -> String:
 	return "%d %s %s %s" % [
 		index + 1,
 		_format_weapon_meta_prefix(entry),
-		_shorten_weapon_slot_name(_weapon_slot_loadout_names[index], 7),
+		_shorten_weapon_slot_name(Localization.text(_weapon_slot_loadout_names[index]), 7),
 		_format_weapon_loadout_ammo_summary(index, has_weapon),
 	]
 
@@ -1935,39 +1936,39 @@ func _format_weapon_slot_index() -> String:
 
 
 func update_gold(current_gold: int) -> void:
-	gold_label.text = "Gold: %d" % current_gold
+	gold_label.text = Localization.format("Gold: %d", current_gold)
 
 
 func update_relics(relic_summaries: Array) -> void:
 	if relic_summaries.is_empty():
-		relic_label.text = "Relics: None"
+		relic_label.text = Localization.text("Relics: None")
 		return
 
 	var parts: PackedStringArray = []
 	for summary in relic_summaries:
 		if not summary is Dictionary:
 			continue
-		var name := str(summary.get("display_name", "Relic"))
+		var name := Localization.text(summary.get("display_name", "Relic"))
 		var stacks := int(summary.get("stacks", 1))
 		if stacks > 1:
 			parts.append("%s x%d" % [name, stacks])
 		else:
 			parts.append(name)
 
-	relic_label.text = "Relics: %s" % ", ".join(parts)
+	relic_label.text = Localization.format("Relics: %s", "、".join(parts))
 
 
 func update_enemy_count(count: int) -> void:
-	enemy_label.text = "Enemies: %d" % count
+	enemy_label.text = Localization.format("Enemies: %d", count)
 
 
 func update_room_state(state_name: String) -> void:
-	room_state_label.text = "Room: %s" % state_name
+	room_state_label.text = Localization.format("Room: %s", Localization.text(state_name))
 
 
 func update_boss_health(display_name: String, current_hp: int, max_hp: int) -> void:
 	boss_panel.visible = true
-	boss_name_label.text = display_name
+	boss_name_label.text = Localization.text(display_name)
 	boss_health_bar.max_value = maxf(float(max_hp), 1.0)
 	boss_health_bar.value = clampf(float(current_hp), 0.0, boss_health_bar.max_value)
 
@@ -5596,7 +5597,7 @@ func _update_control_rebind_buttons() -> void:
 		if not button is Button:
 			continue
 
-		var label := str(action_info.get("label", action_name))
+		var label := Localization.text(action_info.get("label", action_name))
 		if _pending_rebind_action == action_name:
 			(button as Button).text = "%s: ..." % label
 		else:

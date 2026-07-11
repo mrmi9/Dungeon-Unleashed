@@ -17093,3 +17093,26 @@ FullRunSmokeTest passed. (68.8s; prior recorded run 265.6s)
 - 在 Windows 构建中连续完成多个房间，重点观察进入房间、开战、清房、奖励生成和领奖时的小地图更新是否仍有停顿。
 - 使用范围伤害、连锁、霰弹和高射速武器制造密集命中，确认最多 48 条战斗文字的循环复用不会造成不可读的残影或过早替换。
 - 进入三层不同 Biome 与 Boss 房，确认信号驱动入口不会漏触发初始波次、陷阱、挑战或 Boss 机制。
+
+## 2026-07-12 简体中文运行时第一版
+
+### 中文化范围
+- 新增 `Localization` 自动加载节点并将正式游戏默认区域锁定为 `zh_CN`；代码符号、资源路径、内容 ID 与存档键保持英文，玩家界面统一显示中文。
+- 完成 6 个角色、40 件武器、45 件遗物、3 项天赋、7 项祝福、3 座雕像、3 个 Biome、6 类精英词条、敌人、房间布局、宝箱、事件、HUD、大厅、设置、训练和结算文案翻译。
+- 玩家工具提示不再暴露内部图标键；按键名 `WASD`、`LMB`、`Esc`、`Start` 保留标准写法，操作说明改为中文。
+
+### 性能与测试
+- 中文显示采用节点文本缓存的增量扫描，仅在文本、占位符或工具提示实际变化时重新翻译；双 UI 场景稳定扫描平均耗时从初版约 `14.507 ms` 降至约 `0.597 ms`。
+- 新增 `ChineseLocalizationSmokeTest`，检查默认语言、全部内容资源字段、HUD/大厅动态文本、隐藏面板英文残留和 `<2.5 ms` 扫描性能门槛。
+- 普通调试场景继续使用英文内部测试契约，正式主场景和中文专项测试启用中文，避免显示语言改动破坏与玩法无关的断言。
+
+```text
+ChineseLocalizationSmokeTest passed. (localization scan avg 0.597 ms; live Main/lobby audit passed)
+ContentPipelineSmokeTest passed.
+WeaponSmokeTest passed.
+RelicSmokeTest passed.
+LobbyScreenSmokeTest passed.
+MenuFlowSmokeTest passed.
+UILayoutSmokeTest passed.
+RuntimePerformanceSmokeTest passed.
+```

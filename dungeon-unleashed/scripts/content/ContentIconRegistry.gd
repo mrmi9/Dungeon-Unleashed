@@ -62,20 +62,26 @@ static func get_placeholder_color(icon_key: String, page: String = "") -> Color:
 static func get_placeholder_tooltip(icon_key: String, display_name: String = "", page: String = "") -> String:
 	var key := icon_key.strip_edges()
 	var label := display_name.strip_edges()
-	var definition := get_icon_definition(key, page)
-	var icon_type := get_icon_type(key, page)
-	var accessibility_label := ""
-	if definition != null:
-		accessibility_label = str(definition.get("accessibility_label")).strip_edges()
+	if not TranslationServer.get_locale().begins_with("zh"):
+		var definition := get_icon_definition(key, page)
+		var icon_type := get_icon_type(key, page)
+		var accessibility_label := ""
+		if definition != null:
+			accessibility_label = str(definition.get("accessibility_label")).strip_edges()
+		if key.is_empty():
+			return "No icon key"
+		if label.is_empty():
+			label = key
+		if not accessibility_label.is_empty():
+			return "%s %s: %s" % [label, accessibility_label, key]
+		if icon_type.is_empty():
+			return "%s icon key: %s" % [label, key]
+		return "%s %s icon key: %s" % [label, icon_type, key]
 	if key.is_empty():
-		return "No icon key"
+		return "暂无图标"
 	if label.is_empty():
-		label = key
-	if not accessibility_label.is_empty():
-		return "%s %s: %s" % [label, accessibility_label, key]
-	if icon_type.is_empty():
-		return "%s icon key: %s" % [label, key]
-	return "%s %s icon key: %s" % [label, icon_type, key]
+		return "内容图标"
+	return "%s图标" % label
 
 
 static func has_placeholder_icon(icon_key: String, page: String = "") -> bool:
