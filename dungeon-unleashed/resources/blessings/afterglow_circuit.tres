@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BlessingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/BlessingData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "afterglow_circuit"
+display_name = "Afterglow Circuit"
+description = "Event blessing that restores energy whenever a room is cleared."
+rarity = "rare"
+icon_key = "blessing_afterglow_circuit"
+duration_scope = "run"
+trigger_event = "on_room_clear"
+effect_type = "recover_energy"
+effect_value = 12.0
+effect_duration = 0.0
+drop_weight = 0.85
+build_tags = PackedStringArray("energy", "event", "momentum")
+conflict_tags = PackedStringArray()
+rule_text = "Run rule: restore 12 Energy whenever a room is cleared."

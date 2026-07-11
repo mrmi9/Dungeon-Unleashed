@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rift_spear"
+display_name = "Rift Spear"
+description = "Narrow melee thrust with extra reach for lining up doorways."
+rarity = "rare"
+weapon_class = "melee"
+recommended_range = "close"
+drop_weight = 0.7
+content_role = "reach melee line clear"
+damage = 3
+fire_rate = 3.0
+projectile_speed = 0.0
+projectile_range = 142.0
+projectile_count = 1
+spread_angle = 42.0
+fire_mode = "melee"
+energy_cost = 1
+magazine_size = 12
+reload_duration = 0.85
+knockback = 240.0
+crit_chance = 0.12
+crit_multiplier = 2.1
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+aim_assist_priority = 0.85
+icon_key = "weapon_rift_spear"
+fire_sfx_key = "spear_thrust"
+projectile_vfx_key = "rift_thrust"
+tags = PackedStringArray("melee", "line_clear", "energy")

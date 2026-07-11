@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TalentData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/TalentData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "steady_hands"
+display_name = "Steady Hands"
+description = "Increase fire rate for the rest of this run."
+rarity = "common"
+duration_scope = "run"
+trigger_event = "passive"
+effect_type = "fire_rate_multiplier"
+effect_value = 0.12
+drop_weight = 1.0
+build_tags = PackedStringArray("fire_rate", "ranged")
+conflict_tags = PackedStringArray()

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"tripwire_amplifier"
+display_name = "Tripwire Amplifier"
+description = "Deployable weapons deal 25% more damage."
+rarity = "rare"
+trigger_event = "passive"
+effect_type = "deployable_damage_multiplier"
+effect_value = 0.25
+drop_weight = 0.58
+description_value_template = "+25% deployable damage"
+stackable = true
+max_stacks = 3
+build_tags = PackedStringArray("deployable", "trap")
+tags = PackedStringArray("deployable", "damage")

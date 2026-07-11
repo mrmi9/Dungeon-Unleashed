@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"quick_windup"
+display_name = "Quick Windup"
+description = "Charge weapons build charge 25% faster."
+rarity = "common"
+trigger_event = "passive"
+effect_type = "charge_speed_multiplier"
+effect_value = 0.25
+drop_weight = 0.9
+description_value_template = "+25% charge speed"
+stackable = true
+max_stacks = 3
+build_tags = PackedStringArray("charge", "tempo")
+tags = PackedStringArray("charge", "speed")

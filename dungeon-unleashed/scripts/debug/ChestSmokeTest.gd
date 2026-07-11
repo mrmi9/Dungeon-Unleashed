@@ -65,9 +65,17 @@ func _verify_normal_chest(player: Player) -> void:
 	chest.set("reward_count", 1)
 	chest.set("gold_min", 11)
 	chest.set("gold_max", 11)
+	chest.set("biome_id", "void_foundry")
+	chest.set("biome_name", "Void Foundry")
+	chest.set("biome_reward_weight_multiplier", 1.16)
+	_expect(chest.has_method("get_biome_reward_summary"), "Chest should expose biome reward summary")
+	if chest.has_method("get_biome_reward_summary"):
+		var reward_summary: Dictionary = chest.call("get_biome_reward_summary")
+		_expect(str(reward_summary.get("biome_id", "")) == "void_foundry", "Chest should preserve biome reward id")
+		_expect(is_equal_approx(float(reward_summary.get("reward_weight_multiplier", 0.0)), 1.16), "Chest should preserve biome reward weight multiplier")
 	var gold_before := player.current_gold
 	_expect(bool(chest.call("open_for_player", player)), "Normal chest should open for player")
-	_expect(player.current_gold == gold_before + 11, "Normal chest should grant configured gold")
+	_expect(player.current_gold == gold_before + 13, "Normal chest should apply biome reward multiplier to configured gold")
 	_expect(bool(chest.call("is_opened")), "Normal chest should stay opened")
 	_expect(not bool(chest.call("open_for_player", player)), "Opened normal chest should not open twice")
 

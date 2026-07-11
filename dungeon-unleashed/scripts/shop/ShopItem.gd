@@ -58,6 +58,12 @@ func get_price() -> int:
 	return price
 
 
+func get_purchase_price_for_player(buyer: Node) -> int:
+	if buyer != null and buyer.has_method("get_shop_purchase_price"):
+		return maxi(int(buyer.call("get_shop_purchase_price", price)), 0)
+	return price
+
+
 func get_display_name() -> String:
 	match item_type:
 		ItemType.HEAL:
@@ -86,21 +92,25 @@ func purchase_for_player(buyer: Node) -> bool:
 	if _sold_out or buyer == null or not buyer.is_in_group("player"):
 		return false
 
-	if not buyer.has_method("spend_gold") or not bool(buyer.call("spend_gold", price)):
-		Events.shop_purchase_failed.emit(self, buyer, price, "not_enough_gold")
+	var purchase_price := get_purchase_price_for_player(buyer)
+	if not buyer.has_method("spend_gold") or not bool(buyer.call("spend_gold", purchase_price)):
+		Events.shop_purchase_failed.emit(self, buyer, purchase_price, "not_enough_gold")
 		_flash(Color(1.0, 0.18, 0.12, 1.0), 0.16)
 		return false
 
 	if not _apply_purchase(buyer):
 		if buyer.has_method("add_gold"):
-			buyer.call("add_gold", price)
-		Events.shop_purchase_failed.emit(self, buyer, price, "cannot_apply_item")
+			buyer.call("add_gold", purchase_price)
+		Events.shop_purchase_failed.emit(self, buyer, purchase_price, "cannot_apply_item")
 		_flash(Color(1.0, 0.18, 0.12, 1.0), 0.16)
 		return false
 
+	if buyer.has_method("has_shop_discount") and bool(buyer.call("has_shop_discount")) and buyer.has_method("consume_shop_discount"):
+		buyer.call("consume_shop_discount")
+
 	_sold_out = true
 	_nearby_player = null
-	Events.shop_item_purchased.emit(self, buyer, price, get_item_type_name())
+	Events.shop_item_purchased.emit(self, buyer, purchase_price, get_item_type_name())
 	Events.reward_collected.emit(self, buyer)
 	_refresh_label()
 	_set_collision_enabled(false)
@@ -156,10 +166,14 @@ func _refresh_label() -> void:
 			visual.modulate = Color(0.32, 0.34, 0.38, 1.0)
 		return
 
+	var display_price := get_purchase_price_for_player(_nearby_player)
+	var price_text := "%d Gold" % display_price
+	if display_price < price:
+		price_text = "%d Gold (was %d)" % [display_price, price]
 	if _nearby_player != null:
-		label.text = "%s\n%d Gold\nPress E" % [get_display_name(), price]
+		label.text = "%s\n%s\nPress E" % [get_display_name(), price_text]
 	else:
-		label.text = "%s\n%d Gold" % [get_display_name(), price]
+		label.text = "%s\n%s" % [get_display_name(), price_text]
 	if visual != null:
 		match item_type:
 			ItemType.HEAL:

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"stored_spark"
+display_name = "Stored Spark"
+description = "Fully charged shots release one extra projectile."
+rarity = "epic"
+trigger_event = "passive"
+effect_type = "charge_projectile_count_bonus"
+effect_value = 1.0
+drop_weight = 0.34
+description_value_template = "+1 full-charge projectile"
+stackable = true
+max_stacks = 2
+build_tags = PackedStringArray("charge", "projectile")
+tags = PackedStringArray("charge", "multishot")

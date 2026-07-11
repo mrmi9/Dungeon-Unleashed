@@ -1,10 +1,56 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=53 format=3]
 
 [ext_resource type="Script" path="res://scripts/chests/RewardChest.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/relics/vampire_fang.tres" id="2"]
 [ext_resource type="Resource" path="res://resources/relics/adrenaline_charm.tres" id="3"]
 [ext_resource type="Resource" path="res://resources/weapons/ricochet_blaster.tres" id="4"]
 [ext_resource type="Resource" path="res://resources/weapons/energy_staff.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/relics/bulwark_plate.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/relics/breach_powder.tres" id="7"]
+[ext_resource type="Resource" path="res://resources/weapons/orbit_sower.tres" id="8"]
+[ext_resource type="Resource" path="res://resources/weapons/rift_spear.tres" id="9"]
+[ext_resource type="Resource" path="res://resources/weapons/cinder_mortar.tres" id="10"]
+[ext_resource type="Resource" path="res://resources/weapons/storm_fan.tres" id="11"]
+[ext_resource type="Resource" path="res://resources/weapons/prism_ray.tres" id="12"]
+[ext_resource type="Resource" path="res://resources/weapons/halo_kernel.tres" id="13"]
+[ext_resource type="Resource" path="res://resources/relics/gilded_tip.tres" id="14"]
+[ext_resource type="Resource" path="res://resources/relics/echo_chamber.tres" id="15"]
+[ext_resource type="Resource" path="res://resources/relics/siphon_clasp.tres" id="16"]
+[ext_resource type="Resource" path="res://resources/relics/breakwater_guard.tres" id="17"]
+[ext_resource type="Resource" path="res://resources/weapons/ember_sprayer.tres" id="18"]
+[ext_resource type="Resource" path="res://resources/weapons/slag_comet.tres" id="19"]
+[ext_resource type="Resource" path="res://resources/relics/volatile_oil.tres" id="20"]
+[ext_resource type="Resource" path="res://resources/relics/ember_catalyst.tres" id="21"]
+[ext_resource type="Resource" path="res://resources/weapons/riposte_saber.tres" id="22"]
+[ext_resource type="Resource" path="res://resources/weapons/bulwark_fan.tres" id="23"]
+[ext_resource type="Resource" path="res://resources/relics/warding_hinge.tres" id="24"]
+[ext_resource type="Resource" path="res://resources/relics/counterweight_core.tres" id="25"]
+[ext_resource type="Resource" path="res://resources/weapons/storm_capacitor.tres" id="26"]
+[ext_resource type="Resource" path="res://resources/weapons/vault_lance.tres" id="27"]
+[ext_resource type="Resource" path="res://resources/relics/draw_weight.tres" id="28"]
+[ext_resource type="Resource" path="res://resources/relics/stored_spark.tres" id="29"]
+[ext_resource type="Resource" path="res://resources/weapons/ember_mine.tres" id="30"]
+[ext_resource type="Resource" path="res://resources/weapons/sentry_seed.tres" id="31"]
+[ext_resource type="Resource" path="res://resources/relics/tripwire_amplifier.tres" id="32"]
+[ext_resource type="Resource" path="res://resources/relics/ricochet_gyro.tres" id="33"]
+[ext_resource type="Resource" path="res://resources/relics/blast_radius_gauge.tres" id="34"]
+[ext_resource type="Resource" path="res://resources/relics/kinetic_bridle.tres" id="35"]
+[ext_resource type="Resource" path="res://resources/relics/reserve_drum.tres" id="36"]
+[ext_resource type="Resource" path="res://resources/relics/flux_reservoir.tres" id="37"]
+[ext_resource type="Resource" path="res://resources/weapons/furnace_scattergun.tres" id="38"]
+[ext_resource type="Resource" path="res://resources/weapons/bastion_saw.tres" id="39"]
+[ext_resource type="Resource" path="res://resources/weapons/rift_bloom.tres" id="40"]
+[ext_resource type="Resource" path="res://resources/weapons/thunder_nest.tres" id="41"]
+[ext_resource type="Resource" path="res://resources/relics/tracking_vane.tres" id="42"]
+[ext_resource type="Resource" path="res://resources/relics/longview_array.tres" id="43"]
+[ext_resource type="Resource" path="res://resources/relics/forked_bus.tres" id="44"]
+[ext_resource type="Resource" path="res://resources/relics/conduction_mesh.tres" id="45"]
+[ext_resource type="Resource" path="res://resources/relics/stormglass_filament.tres" id="46"]
+[ext_resource type="Resource" path="res://resources/weapons/compass_needle.tres" id="47"]
+[ext_resource type="Resource" path="res://resources/weapons/relay_arc.tres" id="48"]
+[ext_resource type="Resource" path="res://resources/weapons/lantern_swarm.tres" id="49"]
+[ext_resource type="Resource" path="res://resources/weapons/undertow_volley.tres" id="50"]
+[ext_resource type="Resource" path="res://resources/weapons/stormglass_rail.tres" id="51"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_chest"]
 size = Vector2(78, 58)
@@ -19,8 +65,8 @@ drop_pool = PackedStringArray("weapon", "relic", "gold")
 gold_min = 50
 gold_max = 80
 heal_amount = 3
-relic_pool = Array[Resource]([ExtResource("2"), ExtResource("3")])
-weapon_pool = Array[Resource]([ExtResource("4"), ExtResource("5")])
+relic_pool = Array[Resource]([ExtResource("2"), ExtResource("3"), ExtResource("6"), ExtResource("7"), ExtResource("14"), ExtResource("15"), ExtResource("16"), ExtResource("17"), ExtResource("20"), ExtResource("21"), ExtResource("24"), ExtResource("25"), ExtResource("28"), ExtResource("29"), ExtResource("32"), ExtResource("33"), ExtResource("34"), ExtResource("35"), ExtResource("36"), ExtResource("37"), ExtResource("42"), ExtResource("43"), ExtResource("44"), ExtResource("45"), ExtResource("46")])
+weapon_pool = Array[Resource]([ExtResource("4"), ExtResource("5"), ExtResource("8"), ExtResource("9"), ExtResource("10"), ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("18"), ExtResource("19"), ExtResource("22"), ExtResource("23"), ExtResource("26"), ExtResource("27"), ExtResource("30"), ExtResource("31"), ExtResource("38"), ExtResource("39"), ExtResource("40"), ExtResource("41"), ExtResource("47"), ExtResource("48"), ExtResource("49"), ExtResource("50"), ExtResource("51")])
 complete_run_on_open = true
 
 [node name="Visual" type="Polygon2D" parent="."]

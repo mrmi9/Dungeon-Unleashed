@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"orbit_sower"
+display_name = "Orbit Sower"
+description = "Launches a slow circular spread that buys space against swarms."
+rarity = "epic"
+weapon_class = "core"
+recommended_range = "all"
+drop_weight = 0.45
+content_role = "radial area control"
+damage = 1
+fire_rate = 1.05
+projectile_speed = 470.0
+projectile_range = 560.0
+projectile_count = 12
+spread_angle = 360.0
+fire_mode = "radial"
+energy_cost = 5
+magazine_size = 4
+reload_duration = 1.65
+knockback = 105.0
+crit_chance = 0.04
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 1
+explosion_radius = 0.0
+aim_assist_priority = 0.75
+icon_key = "weapon_orbit_sower"
+fire_sfx_key = "orbit_fire"
+projectile_vfx_key = "orbit_seed"
+tags = PackedStringArray("radial", "crowd_control", "bounce")

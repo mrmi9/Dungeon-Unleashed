@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"coil_bow"
+display_name = "Coil Bow"
+description = "Hold fire to compress a precise high-damage bolt."
+rarity = "rare"
+weapon_class = "sidearm"
+recommended_range = "long"
+drop_weight = 0.72
+content_role = "charged precision sidearm"
+damage = 2
+fire_rate = 2.2
+projectile_speed = 840.0
+projectile_range = 900.0
+projectile_count = 1
+spread_angle = 1.0
+fire_mode = "charge"
+energy_cost = 2
+magazine_size = 8
+reload_duration = 1.1
+knockback = 120.0
+crit_chance = 0.12
+crit_multiplier = 2.2
+pierce_count = 1
+bounce_count = 0
+explosion_radius = 0.0
+charge_duration = 0.85
+charge_damage_multiplier = 2.6
+charge_projectile_speed_multiplier = 1.18
+charge_projectile_count_bonus = 0
+aim_assist_priority = 1.35
+icon_key = "weapon_coil_bow"
+fire_sfx_key = "charge_bolt_fire"
+projectile_vfx_key = "coil_bolt"
+tags = PackedStringArray("charge", "precision", "long_range")

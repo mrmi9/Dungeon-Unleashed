@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="BlessingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/BlessingData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "resonance_battery"
+display_name = "Resonance Battery"
+description = "Event blessing that restores energy whenever a statue resonance triggers."
+rarity = "epic"
+icon_key = "blessing_resonance_battery"
+duration_scope = "run"
+trigger_event = "on_statue_triggered"
+trigger_interval = 1
+effect_type = "recover_energy"
+effect_value = 5.0
+effect_duration = 0.0
+drop_weight = 0.42
+build_tags = PackedStringArray("energy", "statue", "skill", "synergy")
+conflict_tags = PackedStringArray()
+rule_text = "Run rule: restore 5 Energy whenever a statue effect triggers."

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"flux_reservoir"
+display_name = "Flux Reservoir"
+description = "Increase maximum energy by 3 and restore the same amount."
+rarity = "epic"
+trigger_event = "passive"
+effect_type = "max_energy"
+effect_value = 3.0
+drop_weight = 0.3
+icon_key = "relic_flux_reservoir"
+description_value_template = "+3 maximum energy"
+stackable = false
+max_stacks = 1
+build_tags = PackedStringArray("energy", "sustain")
+tags = PackedStringArray("energy", "capacity")

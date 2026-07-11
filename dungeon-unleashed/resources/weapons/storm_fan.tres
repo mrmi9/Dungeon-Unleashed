@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"storm_fan"
+display_name = "Storm Fan"
+description = "Throws a dense fan of short-lived bolts for risky close-range burst damage."
+rarity = "epic"
+weapon_class = "shotgun"
+recommended_range = "close"
+drop_weight = 0.5
+content_role = "dense close burst"
+damage = 1
+fire_rate = 2.1
+projectile_speed = 740.0
+projectile_range = 530.0
+projectile_count = 9
+spread_angle = 78.0
+fire_mode = "projectile"
+energy_cost = 3
+magazine_size = 6
+reload_duration = 1.55
+knockback = 80.0
+crit_chance = 0.06
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+aim_assist_priority = 0.85
+icon_key = "weapon_storm_fan"
+fire_sfx_key = "storm_fan_fire"
+projectile_vfx_key = "storm_bolt"
+tags = PackedStringArray("spread", "burst", "close_range")

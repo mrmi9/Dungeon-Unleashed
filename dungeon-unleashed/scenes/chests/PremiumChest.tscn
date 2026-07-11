@@ -1,9 +1,19 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/chests/RewardChest.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/relics/sharp_rounds.tres" id="2"]
 [ext_resource type="Resource" path="res://resources/relics/quick_trigger.tres" id="3"]
 [ext_resource type="Resource" path="res://resources/relics/guardian_ward.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/relics/ricochet_gyro.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/relics/blast_radius_gauge.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/relics/kinetic_bridle.tres" id="7"]
+[ext_resource type="Resource" path="res://resources/relics/reserve_drum.tres" id="8"]
+[ext_resource type="Resource" path="res://resources/relics/flux_reservoir.tres" id="9"]
+[ext_resource type="Resource" path="res://resources/relics/tracking_vane.tres" id="10"]
+[ext_resource type="Resource" path="res://resources/relics/longview_array.tres" id="11"]
+[ext_resource type="Resource" path="res://resources/relics/forked_bus.tres" id="12"]
+[ext_resource type="Resource" path="res://resources/relics/conduction_mesh.tres" id="13"]
+[ext_resource type="Resource" path="res://resources/relics/stormglass_filament.tres" id="14"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_chest"]
 size = Vector2(70, 52)
@@ -18,7 +28,7 @@ drop_pool = PackedStringArray("relic", "gold", "heal")
 gold_min = 24
 gold_max = 42
 heal_amount = 2
-relic_pool = Array[Resource]([ExtResource("2"), ExtResource("3"), ExtResource("4")])
+relic_pool = Array[Resource]([ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("10"), ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("14")])
 
 [node name="Visual" type="Polygon2D" parent="."]
 color = Color(0.78, 0.46, 1, 1)

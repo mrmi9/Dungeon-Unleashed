@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StatueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/StatueData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "echo_reservoir"
+display_name = "Echo Reservoir"
+description = "Skill-linked statue that refunds energy after every second skill use."
+rarity = "rare"
+icon_key = "statue_echo_reservoir"
+duration_scope = "run"
+trigger_event = "on_skill_used"
+trigger_interval = 2
+effect_type = "recover_energy"
+effect_value = 8.0
+effect_duration = 0.0
+drop_weight = 0.75
+build_tags = PackedStringArray("energy", "skill", "tempo")
+conflict_tags = PackedStringArray()
+rule_text = "Run rule: every second character skill use restores 8 Energy."

@@ -1,0 +1,40 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="1"]
+[ext_resource type="Texture2D" path="res://art/enemies/ram_charger_action_atlas.png" id="2"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_iron_breaker"]
+radius = 20.0
+
+[node name="IronBreaker" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1")
+display_name = "Iron Breaker"
+behavior_type = 2
+max_health = 6
+move_speed = 72.0
+contact_damage = 1
+attack_damage = 2
+attack_cooldown = 2.05
+attack_range = 320.0
+charge_speed = 500.0
+charge_windup = 0.46
+charge_duration = 0.36
+charge_recover = 0.68
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.48, 0.58, 0.72, 1)
+polygon = PackedVector2Array(25, 0, 12, -20, -12, -18, -24, -5, -20, 12, 4, 21)
+
+[node name="ActionSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+modulate = Color(0.8, 0.9, 1, 1)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2")
+hframes = 2
+vframes = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_iron_breaker")

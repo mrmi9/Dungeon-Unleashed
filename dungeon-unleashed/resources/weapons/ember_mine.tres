@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ember_mine"
+display_name = "Ember Mine"
+description = "Places a short-lived mine that burns enemies caught nearby."
+rarity = "rare"
+weapon_class = "launcher"
+recommended_range = "mid"
+drop_weight = 0.58
+content_role = "deployable burst trap"
+damage = 3
+fire_rate = 1.2
+projectile_speed = 0.0
+projectile_range = 500.0
+projectile_count = 1
+spread_angle = 0.0
+fire_mode = "deployable"
+energy_cost = 3
+magazine_size = 5
+reload_duration = 1.25
+knockback = 120.0
+crit_chance = 0.08
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+status_effect = "burn"
+status_chance = 1.0
+status_duration = 1.6
+status_damage_per_tick = 1
+status_tick_interval = 0.45
+deployable_behavior = "mine"
+deployable_duration = 0.9
+deployable_radius = 86.0
+deployable_tick_interval = 0.45
+deployable_arming_time = 0.12
+deployable_damage_multiplier = 1.0
+aim_assist_priority = 0.85
+icon_key = "weapon_ember_mine"
+fire_sfx_key = "mine_arm"
+projectile_vfx_key = "ember_mine"
+tags = PackedStringArray("deployable", "trap", "elemental")

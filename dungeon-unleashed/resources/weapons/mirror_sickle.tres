@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"mirror_sickle"
+display_name = "Mirror Sickle"
+description = "Sweeps a wide close-range crescent for sustained self-defense."
+rarity = "rare"
+weapon_class = "melee"
+recommended_range = "close"
+drop_weight = 0.75
+content_role = "wide melee crowd check"
+damage = 2
+fire_rate = 5.2
+projectile_speed = 0.0
+projectile_range = 132.0
+projectile_count = 1
+spread_angle = 150.0
+fire_mode = "melee"
+energy_cost = 1
+magazine_size = 14
+reload_duration = 0.8
+knockback = 135.0
+crit_chance = 0.08
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+aim_assist_priority = 0.8
+icon_key = "weapon_mirror_sickle"
+fire_sfx_key = "sickle_swing"
+projectile_vfx_key = "mirror_arc"
+tags = PackedStringArray("melee", "close_range", "wide_arc")

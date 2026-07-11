@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"momentum_coil"
+display_name = "Momentum Coil"
+description = "Increase fire rate by 14%."
+rarity = "common"
+trigger_event = "passive"
+effect_type = "fire_rate_multiplier"
+effect_value = 0.14
+drop_weight = 1.05
+description_value_template = "+14% fire rate"
+stackable = true
+max_stacks = 3
+build_tags = PackedStringArray("fire_rate", "energy")
+tags = PackedStringArray("fire_rate", "weapon")

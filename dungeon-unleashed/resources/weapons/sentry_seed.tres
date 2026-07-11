@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"sentry_seed"
+display_name = "Sentry Seed"
+description = "Deploys a temporary ward that repeatedly strikes nearby enemies."
+rarity = "epic"
+weapon_class = "core"
+recommended_range = "all"
+drop_weight = 0.34
+content_role = "light summon deployable"
+damage = 1
+fire_rate = 1.0
+projectile_speed = 0.0
+projectile_range = 620.0
+projectile_count = 1
+spread_angle = 0.0
+fire_mode = "deployable"
+energy_cost = 4
+magazine_size = 4
+reload_duration = 1.45
+knockback = 55.0
+crit_chance = 0.06
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+deployable_behavior = "sentry"
+deployable_duration = 4.6
+deployable_radius = 250.0
+deployable_tick_interval = 0.42
+deployable_arming_time = 0.0
+deployable_damage_multiplier = 1.0
+aim_assist_priority = 0.75
+icon_key = "weapon_sentry_seed"
+fire_sfx_key = "sentry_seed"
+projectile_vfx_key = "sentry_pulse"
+tags = PackedStringArray("deployable", "summon", "tempo")

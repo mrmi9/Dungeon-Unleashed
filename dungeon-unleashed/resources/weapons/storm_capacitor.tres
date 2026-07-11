@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"storm_capacitor"
+display_name = "Storm Capacitor"
+description = "Charges into a fan of unstable arcs for room control."
+rarity = "epic"
+weapon_class = "core"
+recommended_range = "mid"
+drop_weight = 0.44
+content_role = "charged spread core"
+damage = 1
+fire_rate = 1.7
+projectile_speed = 760.0
+projectile_range = 760.0
+projectile_count = 1
+spread_angle = 22.0
+fire_mode = "charge"
+energy_cost = 4
+magazine_size = 6
+reload_duration = 1.35
+knockback = 90.0
+crit_chance = 0.08
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 1
+explosion_radius = 0.0
+charge_duration = 1.1
+charge_damage_multiplier = 1.8
+charge_projectile_speed_multiplier = 1.05
+charge_projectile_count_bonus = 4
+aim_assist_priority = 1.0
+icon_key = "weapon_storm_capacitor"
+fire_sfx_key = "storm_charge_fire"
+projectile_vfx_key = "storm_arc"
+tags = PackedStringArray("charge", "spread", "energy")

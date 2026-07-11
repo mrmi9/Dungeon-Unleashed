@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ContentIconDefinitionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/ContentIconDefinitionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+icon_key = "room_reward"
+content_type = "room"
+token = "*"
+placeholder_color = Color(1, 0.81, 0.38, 1)
+accessibility_label = "Reward Room icon"
+texture_path = "res://art/ui/content_icons/room_reward.svg"
+atlas_region = Rect2i(0, 0, 0, 0)

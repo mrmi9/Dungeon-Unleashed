@@ -34,6 +34,10 @@ func get_text() -> String:
 	return text
 
 
+func get_text_color() -> Color:
+	return text_color
+
+
 func _process(delta: float) -> void:
 	_elapsed += delta
 	var progress := clampf(_elapsed / maxf(duration, 0.01), 0.0, 1.0)

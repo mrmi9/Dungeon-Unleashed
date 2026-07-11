@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"tracking_vane"
+display_name = "Tracking Vane"
+description = "Homing projectiles turn faster toward their targets."
+rarity = "rare"
+trigger_event = "passive"
+effect_type = "homing_turn_rate_bonus"
+effect_value = 90.0
+drop_weight = 0.62
+icon_key = "relic_tracking_vane"
+description_value_template = "+90 deg/s homing turn rate"
+stackable = true
+max_stacks = 2
+build_tags = PackedStringArray("homing", "precision")
+tags = PackedStringArray("projectile", "tracking")

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"stormglass_filament"
+display_name = "Stormglass Filament"
+description = "Chain attacks retain more damage after the first impact."
+rarity = "epic"
+trigger_event = "passive"
+effect_type = "chain_damage_multiplier"
+effect_value = 0.2
+drop_weight = 0.34
+icon_key = "relic_stormglass_filament"
+description_value_template = "+20% chain damage"
+stackable = true
+max_stacks = 2
+build_tags = PackedStringArray("chain", "damage")
+tags = PackedStringArray("projectile", "lightning")

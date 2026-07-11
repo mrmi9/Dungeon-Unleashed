@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"relay_arc"
+display_name = "Relay Arc"
+description = "A compact staff that transfers each impact through two nearby targets."
+rarity = "rare"
+weapon_class = "staff"
+recommended_range = "mid"
+drop_weight = 0.68
+content_role = "mid-range chain clear staff"
+damage = 3
+fire_rate = 2.3
+projectile_speed = 650.0
+projectile_range = 700.0
+projectile_count = 1
+spread_angle = 0.0
+fire_mode = "projectile"
+energy_cost = 3
+magazine_size = 8
+reload_duration = 1.2
+knockback = 80.0
+crit_chance = 0.05
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+chain_count = 2
+chain_radius = 150.0
+chain_damage_multiplier = 0.65
+aim_assist_priority = 1.1
+icon_key = "weapon_relay_arc"
+fire_sfx_key = "relay_arc_fire"
+projectile_vfx_key = "relay_arc"
+tags = PackedStringArray("chain", "crowd", "energy")

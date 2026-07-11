@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"riposte_saber"
+display_name = "Riposte Saber"
+description = "A narrow parry blade that turns blocked shots into a sharper counter-hit."
+rarity = "rare"
+weapon_class = "melee"
+recommended_range = "close"
+drop_weight = 0.6
+content_role = "precision parry counter"
+damage = 2
+fire_rate = 4.7
+projectile_speed = 0.0
+projectile_range = 132.0
+projectile_count = 1
+spread_angle = 96.0
+fire_mode = "melee"
+energy_cost = 2
+magazine_size = 14
+reload_duration = 0.82
+knockback = 150.0
+crit_chance = 0.12
+crit_multiplier = 2.2
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+blocks_projectiles = true
+projectile_block_radius = 136.0
+projectile_block_arc_degrees = 112.0
+projectile_block_damage = 2
+aim_assist_priority = 0.86
+icon_key = "weapon_riposte_saber"
+fire_sfx_key = "riposte_swing"
+projectile_vfx_key = "riposte_arc"
+tags = PackedStringArray("melee", "guard", "counter")

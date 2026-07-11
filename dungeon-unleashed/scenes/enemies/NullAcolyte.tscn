@@ -1,0 +1,39 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="1"]
+[ext_resource type="Texture2D" path="res://art/enemies/terrain_conduit_action_atlas.png" id="2"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_null_acolyte"]
+radius = 19.0
+
+[node name="NullAcolyte" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1")
+display_name = "Null Acolyte"
+behavior_type = 7
+max_health = 6
+move_speed = 64.0
+contact_damage = 1
+attack_damage = 2
+attack_cooldown = 2.6
+attack_range = 430.0
+preferred_range = 300.0
+zone_warning_radius = 118.0
+zone_warning_duration = 0.9
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.38, 0.28, 0.78, 1)
+polygon = PackedVector2Array(0, -27, 14, -14, 22, 4, 10, 22, -10, 22, -22, 4, -14, -14)
+
+[node name="ActionSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+modulate = Color(0.76, 0.66, 1, 1)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2")
+hframes = 2
+vframes = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_null_acolyte")

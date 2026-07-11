@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"forked_bus"
+display_name = "Forked Bus"
+description = "Chain attacks jump to one additional target."
+rarity = "epic"
+trigger_event = "passive"
+effect_type = "chain_count_bonus"
+effect_value = 1.0
+drop_weight = 0.36
+icon_key = "relic_forked_bus"
+description_value_template = "+1 chain target"
+stackable = true
+max_stacks = 2
+build_tags = PackedStringArray("chain", "crowd")
+tags = PackedStringArray("projectile", "lightning")

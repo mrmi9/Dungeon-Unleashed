@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EliteModifierData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/EliteModifierData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"titan"
+display_name = "Titan"
+name_prefix = "Titan"
+description = "Large unstoppable elite with heavy contact pressure and strong resistance to knockback."
+role_tags = PackedStringArray("tank", "damage", "death_pressure")
+health_multiplier = 2.45
+damage_multiplier = 1.45
+move_speed_multiplier = 0.72
+attack_cooldown_multiplier = 1.12
+projectile_speed_multiplier = 0.95
+death_explosion_radius = 136.0
+death_explosion_damage = 1
+visual_color = Color(0.74, 0.48, 1, 1)
+visual_pattern = "mass"
+aura_radius = 38.0
+pulse_speed = 1.2
+combat_trait = "unstoppable"
+trait_interval = 0.0
+trait_windup = 0.5
+trait_duration = 0.0
+trait_radius = 96.0
+trait_strength = 0.2
+scale_multiplier = 1.34

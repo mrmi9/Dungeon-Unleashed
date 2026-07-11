@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"volatile_oil"
+display_name = "Volatile Oil"
+description = "Increase status effect chance by 12%."
+rarity = "common"
+trigger_event = "passive"
+effect_type = "status_chance_bonus"
+effect_value = 0.12
+drop_weight = 0.95
+description_value_template = "+12% status chance"
+stackable = true
+max_stacks = 3
+build_tags = PackedStringArray("elemental", "status")
+tags = PackedStringArray("status", "elemental")

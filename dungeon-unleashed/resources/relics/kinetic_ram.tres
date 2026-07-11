@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"kinetic_ram"
+display_name = "Kinetic Ram"
+description = "Increase weapon damage by 12%."
+rarity = "common"
+trigger_event = "passive"
+effect_type = "damage_multiplier"
+effect_value = 0.12
+drop_weight = 1.05
+description_value_template = "+12% weapon damage"
+stackable = true
+max_stacks = 3
+build_tags = PackedStringArray("damage", "close_range")
+tags = PackedStringArray("damage", "melee")

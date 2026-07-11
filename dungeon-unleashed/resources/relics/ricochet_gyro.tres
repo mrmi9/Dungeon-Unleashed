@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ricochet_gyro"
+display_name = "Ricochet Gyro"
+description = "Projectiles gain one additional wall bounce."
+rarity = "rare"
+trigger_event = "passive"
+effect_type = "bounce_count_bonus"
+effect_value = 1.0
+drop_weight = 0.62
+icon_key = "relic_ricochet_gyro"
+description_value_template = "+1 projectile bounce"
+stackable = true
+max_stacks = 2
+build_tags = PackedStringArray("bounce", "control")
+tags = PackedStringArray("projectile", "bounce")

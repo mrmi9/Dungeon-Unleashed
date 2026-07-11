@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="BlessingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/BlessingData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "brace_current"
+display_name = "Brace Current"
+description = "Event blessing that converts a hit into a small armor recovery pulse."
+rarity = "common"
+icon_key = "blessing_brace_current"
+duration_scope = "run"
+trigger_event = "on_hurt"
+trigger_interval = 1
+effect_type = "gain_shield"
+effect_value = 1.0
+effect_duration = 0.0
+drop_weight = 0.95
+build_tags = PackedStringArray("survival", "armor", "event", "hurt")
+conflict_tags = PackedStringArray()
+rule_text = "Run rule: gain 1 Armor after taking HP damage."

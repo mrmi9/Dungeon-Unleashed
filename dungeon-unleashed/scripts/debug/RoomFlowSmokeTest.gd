@@ -6,6 +6,7 @@ const ROOM_STATE_CLEARED := 3
 const ROOM_STATE_REWARD_CLAIMED := 4
 const MIN_SAFE_ENEMY_SPAWN_DISTANCE := 140.0
 const ENEMY_BODY_COLLISION_BIT := 2
+const WAVE_DRAIN_MAX_STEPS := 12
 
 var _failures: Array[String] = []
 
@@ -68,9 +69,21 @@ func _complete_room(room, player: Player) -> void:
 	_expect(room.state == ROOM_STATE_COMBAT, "%s should enter COMBAT" % room.get_path())
 	_expect(not room.doors_are_unlocked(), "%s should lock doors during combat" % room.get_path())
 
+	if str(room.get("room_type")) == "trap":
+		_expect(room.has_method("is_trap_active") and bool(room.call("is_trap_active")), "%s should activate trap hazards" % room.get_path())
+		player.global_position = room.global_position + Vector2(-520, -285)
+		await get_tree().create_timer(float(room.get("trap_survival_duration")) + 0.4).timeout
+		await get_tree().physics_frame
+		_expect(room.state == ROOM_STATE_CLEARED, "%s should become CLEARED after trap survival" % room.get_path())
+		_expect(_enemy_count_near(room.global_position) == 0, "%s trap room should not spawn enemies" % room.get_path())
+		_expect(room.doors_are_unlocked(), "%s should unlock doors after trap clear" % room.get_path())
+		await _collect_reward(room, player)
+		_expect(room.state == ROOM_STATE_REWARD_CLAIMED, "%s should record REWARD_CLAIMED after trap reward" % room.get_path())
+		return
+
 	var wave_counts = room.wave_enemy_counts
 	for wave_index in range(wave_counts.size()):
-		_expect(_enemy_count() == wave_counts[wave_index], "%s wave %d enemy count should match config" % [room.get_path(), wave_index + 1])
+		_expect(_enemy_count_near(room.global_position) >= wave_counts[wave_index], "%s wave %d should spawn at least its configured enemies" % [room.get_path(), wave_index + 1])
 		_expect(_nearest_enemy_distance_to(player.global_position) >= MIN_SAFE_ENEMY_SPAWN_DISTANCE, "%s wave %d enemies should spawn away from the player" % [room.get_path(), wave_index + 1])
 		var verify_stationary_reload := str(room.get("room_type")) == "start" and wave_index == 0
 		var player_position_before_reload: Vector2 = player.global_position
@@ -80,7 +93,7 @@ func _complete_room(room, player: Player) -> void:
 			player.weapon.start_reload()
 			if player.weapon.weapon_data != null:
 				reload_wait_time = maxf(reload_wait_time, player.weapon.weapon_data.reload_duration + 0.1)
-		_kill_all_enemies()
+		await _drain_active_wave(room)
 		await get_tree().create_timer(reload_wait_time).timeout
 		await get_tree().physics_frame
 		if verify_stationary_reload:
@@ -128,10 +141,29 @@ func _get_rooms() -> Array:
 	return rooms
 
 
-func _kill_all_enemies() -> void:
+func _drain_active_wave(room: Node) -> void:
+	var position: Vector2 = (room as Node2D).global_position
+	var step := 0
+	while step < WAVE_DRAIN_MAX_STEPS:
+		if _enemy_count_near(position) <= 0:
+			return
+		_kill_enemies_near(position)
+		await get_tree().physics_frame
+		await get_tree().process_frame
+		step += 1
+	_expect(_enemy_count_near(position) == 0, "%s should drain dynamic enemy spawns before the next wave" % room.get_path())
+
+
+func _kill_enemies_near(position: Vector2, radius: float = 640.0) -> void:
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if is_instance_valid(enemy) and enemy.has_method("apply_damage"):
-			enemy.call("apply_damage", 9999)
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion() or not enemy.has_method("apply_damage"):
+			continue
+		if enemy.has_method("is_dead") and bool(enemy.call("is_dead")):
+			continue
+		var enemy_node := enemy as Node2D
+		if enemy_node == null or enemy_node.global_position.distance_to(position) > radius:
+			continue
+		enemy.call("apply_damage", 9999)
 
 
 func _enemy_count() -> int:
@@ -140,6 +172,20 @@ func _enemy_count() -> int:
 		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
 			continue
 		if enemy.has_method("is_dead") and enemy.call("is_dead"):
+			continue
+		count += 1
+	return count
+
+
+func _enemy_count_near(position: Vector2, radius: float = 640.0) -> int:
+	var count := 0
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
+			continue
+		if enemy.has_method("is_dead") and enemy.call("is_dead"):
+			continue
+		var enemy_node := enemy as Node2D
+		if enemy_node == null or enemy_node.global_position.distance_to(position) > radius:
 			continue
 		count += 1
 	return count

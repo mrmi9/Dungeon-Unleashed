@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"scatter_lens"
+display_name = "Scatter Lens"
+description = "Fire one extra projectile."
+rarity = "epic"
+trigger_event = "passive"
+effect_type = "projectile_count"
+effect_value = 1.0
+drop_weight = 0.45
+description_value_template = "+1 projectile"
+stackable = true
+max_stacks = 2
+build_tags = PackedStringArray("multi_shot", "spread")
+tags = PackedStringArray("projectile", "spread")

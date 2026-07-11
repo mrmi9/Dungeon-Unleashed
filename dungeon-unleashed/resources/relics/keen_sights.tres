@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"keen_sights"
+display_name = "Keen Sights"
+description = "Increase critical chance by 8%."
+rarity = "common"
+trigger_event = "passive"
+effect_type = "crit_chance_bonus"
+effect_value = 0.08
+drop_weight = 1.0
+description_value_template = "+8% critical chance"
+stackable = true
+max_stacks = 3
+build_tags = PackedStringArray("crit", "precision")
+tags = PackedStringArray("crit", "precision")

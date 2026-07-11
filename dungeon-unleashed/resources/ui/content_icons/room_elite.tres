@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ContentIconDefinitionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/ContentIconDefinitionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+icon_key = "room_elite"
+content_type = "room"
+token = "EL"
+placeholder_color = Color(0.85, 0.57, 1, 1)
+accessibility_label = "Elite Room icon"
+texture_path = "res://art/ui/content_icons/room_elite.svg"
+atlas_region = Rect2i(0, 0, 0, 0)

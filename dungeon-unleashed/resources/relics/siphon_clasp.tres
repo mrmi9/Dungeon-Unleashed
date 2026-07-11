@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"siphon_clasp"
+display_name = "Siphon Clasp"
+description = "Heal 1 HP after every 3 enemy kills."
+rarity = "rare"
+trigger_event = "on_kill"
+effect_type = "kill_heal"
+effect_value = 1.0
+drop_weight = 0.65
+description_value_template = "+1 HP after every 3 kills"
+stackable = false
+max_stacks = 1
+build_tags = PackedStringArray("heal", "low_health")
+tags = PackedStringArray("heal", "kill")

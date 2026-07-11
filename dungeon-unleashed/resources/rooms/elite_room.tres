@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomData" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="RoomData" load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/RoomData.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/rooms/PrototypeCombatRoom.tscn" id="2"]
@@ -10,6 +10,12 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/BomberEnemy.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/ChaserEnemy.tscn" id="9"]
 [ext_resource type="Resource" path="res://resources/room_layouts/pillars.tres" id="10"]
+[ext_resource type="Resource" path="res://resources/elite_modifiers/blazing.tres" id="11"]
+[ext_resource type="Resource" path="res://resources/elite_modifiers/bulwark.tres" id="12"]
+[ext_resource type="Resource" path="res://resources/elite_modifiers/quickened.tres" id="13"]
+[ext_resource type="Resource" path="res://resources/elite_modifiers/volatile.tres" id="14"]
+[ext_resource type="Resource" path="res://resources/elite_modifiers/sharpshot.tres" id="15"]
+[ext_resource type="Resource" path="res://resources/elite_modifiers/titan.tres" id="16"]
 
 [resource]
 script = ExtResource("1")
@@ -30,3 +36,4 @@ elite_health_multiplier = 1.65
 elite_damage_multiplier = 1.35
 elite_death_explosion_radius = 120.0
 elite_death_explosion_damage = 1
+elite_modifier_profiles = Array[Resource]([ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("14"), ExtResource("15"), ExtResource("16")])
