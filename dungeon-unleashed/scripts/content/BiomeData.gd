@@ -22,6 +22,9 @@ class_name BiomeData
 @export var visual_wall_color: Color = Color(0.22, 0.24, 0.27, 1.0)
 @export var visual_obstacle_tint: Color = Color(0.24, 0.26, 0.29, 1.0)
 @export_file var visual_surface_atlas_path: String = ""
+@export_file var visual_trim_atlas_path: String = ""
+@export var visual_trim_texture_modulate: Color = Color.WHITE
+@export_range(0.0, 1.0, 0.01) var visual_trim_texture_opacity: float = 1.0
 @export var visual_wall_texture_modulate: Color = Color.WHITE
 @export_range(0.0, 1.0, 0.01) var visual_wall_texture_opacity: float = 0.9
 @export var visual_obstacle_texture_modulate: Color = Color.WHITE

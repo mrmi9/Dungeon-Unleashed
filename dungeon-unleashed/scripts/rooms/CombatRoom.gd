@@ -11,9 +11,13 @@ enum RoomState {
 
 const DANGER_WARNING_SCENE := preload("res://scenes/effects/DangerWarning.tscn")
 const BIOME_SURFACE_VISUAL_SCRIPT := preload("res://scripts/rooms/BiomeSurfaceVisual.gd")
+const BIOME_ROOM_TRIM_VISUAL_SCRIPT := preload("res://scripts/rooms/BiomeRoomTrimVisual.gd")
 const SAFE_PLAYER_SPAWN_DISTANCE := 180.0
 const SPAWN_STAGGER_RADIUS := 28.0
 const ROOM_SAFE_SPAWN_EXTENTS := Vector2(540, 300)
+const HORIZONTAL_BOUNDARY_WIDTH := 1360.0
+const HORIZONTAL_BOUNDARY_THICKNESS := 40.0
+const DIRECTIONAL_DOOR_OPENING := 170.0
 const TRAP_HAZARD_POSITIONS := [
 	Vector2(-330, 0),
 	Vector2(0, -215),
@@ -43,6 +47,9 @@ const BOSS_ARENA_HAZARD_POSITIONS := [
 @export var biome_visual_wall_color: Color = Color(0.22, 0.24, 0.27, 1.0)
 @export var biome_visual_obstacle_tint: Color = Color(0.24, 0.26, 0.29, 1.0)
 @export var biome_visual_surface_atlas_path: String = ""
+@export var biome_visual_trim_atlas_path: String = ""
+@export var biome_visual_trim_texture_modulate: Color = Color.WHITE
+@export_range(0.0, 1.0, 0.01) var biome_visual_trim_texture_opacity: float = 1.0
 @export var biome_visual_wall_texture_modulate: Color = Color.WHITE
 @export_range(0.0, 1.0, 0.01) var biome_visual_wall_texture_opacity: float = 0.9
 @export var biome_visual_obstacle_texture_modulate: Color = Color.WHITE
@@ -120,6 +127,7 @@ func _ready() -> void:
 	_apply_biome_terrain_visual()
 	_apply_biome_wall_visuals()
 	_configure_directional_boundaries()
+	_apply_biome_room_trim()
 	_doors = _get_doors()
 	entry_area.body_entered.connect(_on_entry_area_body_entered)
 	Events.enemy_died.connect(_on_enemy_died)
@@ -188,6 +196,10 @@ func get_biome_visual_summary() -> Dictionary:
 		"wall_color": biome_visual_wall_color,
 		"obstacle_tint": biome_visual_obstacle_tint,
 		"surface_atlas_path": biome_visual_surface_atlas_path,
+		"trim_atlas_path": biome_visual_trim_atlas_path,
+		"trim_texture_modulate": biome_visual_trim_texture_modulate,
+		"trim_texture_opacity": biome_visual_trim_texture_opacity,
+		"trim_layer": _get_biome_trim_summary(),
 		"wall_texture_modulate": biome_visual_wall_texture_modulate,
 		"wall_texture_opacity": biome_visual_wall_texture_opacity,
 		"obstacle_texture_modulate": biome_visual_obstacle_texture_modulate,
@@ -620,10 +632,54 @@ func _get_doors() -> Array[StaticBody2D]:
 func _configure_directional_boundaries() -> void:
 	if _has_connection("north"):
 		_set_arena_wall_enabled("WallTop", false)
-		_ensure_directional_door("NorthDoor", "north", Vector2(0, -380), Vector2(1260, 42))
+		_ensure_horizontal_boundary_segments("North", -380.0)
+		_ensure_directional_door("NorthDoor", "north", Vector2(0, -380), Vector2(DIRECTIONAL_DOOR_OPENING, 42))
 	if _has_connection("south"):
 		_set_arena_wall_enabled("WallBottom", false)
-		_ensure_directional_door("SouthDoor", "south", Vector2(0, 380), Vector2(1260, 42))
+		_ensure_horizontal_boundary_segments("South", 380.0)
+		_ensure_directional_door("SouthDoor", "south", Vector2(0, 380), Vector2(DIRECTIONAL_DOOR_OPENING, 42))
+
+
+func _ensure_horizontal_boundary_segments(prefix: String, y_position: float) -> void:
+	if get_parent() == null:
+		return
+	var arena := get_parent().get_node_or_null("Arena") as Node2D
+	if arena == null:
+		return
+	var segment_width := (HORIZONTAL_BOUNDARY_WIDTH - DIRECTIONAL_DOOR_OPENING) * 0.5
+	var segment_center_x := DIRECTIONAL_DOOR_OPENING * 0.5 + segment_width * 0.5
+	_ensure_boundary_wall_segment(arena, "Wall%sLeft" % prefix, Vector2(-segment_center_x, y_position), Vector2(segment_width, HORIZONTAL_BOUNDARY_THICKNESS))
+	_ensure_boundary_wall_segment(arena, "Wall%sRight" % prefix, Vector2(segment_center_x, y_position), Vector2(segment_width, HORIZONTAL_BOUNDARY_THICKNESS))
+
+
+func _ensure_boundary_wall_segment(arena: Node2D, wall_name: String, wall_position: Vector2, size: Vector2) -> void:
+	if arena.get_node_or_null(wall_name) != null:
+		return
+	var wall := StaticBody2D.new()
+	wall.name = wall_name
+	wall.position = wall_position
+	wall.collision_layer = 8
+	wall.collision_mask = 0
+	arena.add_child(wall)
+
+	var visual := Polygon2D.new()
+	visual.name = "Visual"
+	visual.color = biome_visual_wall_color
+	visual.polygon = PackedVector2Array([
+		Vector2(-size.x * 0.5, -size.y * 0.5),
+		Vector2(size.x * 0.5, -size.y * 0.5),
+		Vector2(size.x * 0.5, size.y * 0.5),
+		Vector2(-size.x * 0.5, size.y * 0.5),
+	])
+	wall.add_child(visual)
+	_configure_surface_visual(wall, 0, size, biome_visual_wall_texture_modulate, biome_visual_wall_texture_opacity)
+
+	var collision := CollisionShape2D.new()
+	collision.name = "CollisionShape2D"
+	var shape := RectangleShape2D.new()
+	shape.size = size
+	collision.shape = shape
+	wall.add_child(collision)
 
 
 func _set_arena_wall_enabled(wall_name: String, enabled: bool) -> void:
@@ -914,12 +970,42 @@ func _apply_biome_terrain_visual() -> void:
 		)
 
 
+func _apply_biome_room_trim() -> void:
+	if get_parent() == null:
+		return
+	var arena := get_parent().get_node_or_null("Arena") as Node2D
+	if arena == null:
+		return
+	var trim_layer := arena.get_node_or_null("BiomeTrimLayer")
+	if trim_layer == null:
+		trim_layer = BIOME_ROOM_TRIM_VISUAL_SCRIPT.new()
+		trim_layer.name = "BiomeTrimLayer"
+		arena.add_child(trim_layer)
+	if trim_layer.has_method("configure"):
+		trim_layer.call(
+			"configure",
+			biome_visual_trim_atlas_path,
+			connected_directions,
+			biome_visual_trim_texture_modulate,
+			biome_visual_trim_texture_opacity
+		)
+
+
 func _get_terrain_layer_summary() -> Dictionary:
 	if get_parent() == null:
 		return {}
 	var terrain_layer := get_parent().get_node_or_null("Arena/TerrainLayer")
 	if terrain_layer != null and terrain_layer.has_method("get_terrain_summary"):
 		return terrain_layer.call("get_terrain_summary")
+	return {}
+
+
+func _get_biome_trim_summary() -> Dictionary:
+	if get_parent() == null:
+		return {}
+	var trim_layer := get_parent().get_node_or_null("Arena/BiomeTrimLayer")
+	if trim_layer != null and trim_layer.has_method("get_trim_summary"):
+		return trim_layer.call("get_trim_summary")
 	return {}
 
 

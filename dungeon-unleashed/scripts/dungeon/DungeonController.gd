@@ -242,6 +242,9 @@ func _build_room_record(index: int, _room_count: int, room_data: Resource, defin
 		"biome_visual_wall_color": definition.get("biome_visual_wall_color", Color(0.22, 0.24, 0.27, 1.0)),
 		"biome_visual_obstacle_tint": definition.get("biome_visual_obstacle_tint", Color(0.24, 0.26, 0.29, 1.0)),
 		"biome_visual_surface_atlas_path": str(definition.get("biome_visual_surface_atlas_path", "")),
+		"biome_visual_trim_atlas_path": str(definition.get("biome_visual_trim_atlas_path", "")),
+		"biome_visual_trim_texture_modulate": definition.get("biome_visual_trim_texture_modulate", Color.WHITE),
+		"biome_visual_trim_texture_opacity": float(definition.get("biome_visual_trim_texture_opacity", 0.0)),
 		"biome_visual_wall_texture_modulate": definition.get("biome_visual_wall_texture_modulate", Color.WHITE),
 		"biome_visual_wall_texture_opacity": float(definition.get("biome_visual_wall_texture_opacity", 0.0)),
 		"biome_visual_obstacle_texture_modulate": definition.get("biome_visual_obstacle_texture_modulate", Color.WHITE),
@@ -300,6 +303,9 @@ func _apply_room_config(combat_room: Node, room_data: Resource, connections: Pac
 	typed_room.biome_visual_wall_color = _get_definition_color(definition, "biome_visual_wall_color", typed_room.biome_visual_wall_color)
 	typed_room.biome_visual_obstacle_tint = _get_definition_color(definition, "biome_visual_obstacle_tint", typed_room.biome_visual_obstacle_tint)
 	typed_room.biome_visual_surface_atlas_path = str(definition.get("biome_visual_surface_atlas_path", typed_room.biome_visual_surface_atlas_path))
+	typed_room.biome_visual_trim_atlas_path = str(definition.get("biome_visual_trim_atlas_path", typed_room.biome_visual_trim_atlas_path))
+	typed_room.biome_visual_trim_texture_modulate = _get_definition_color(definition, "biome_visual_trim_texture_modulate", typed_room.biome_visual_trim_texture_modulate)
+	typed_room.biome_visual_trim_texture_opacity = float(definition.get("biome_visual_trim_texture_opacity", typed_room.biome_visual_trim_texture_opacity))
 	typed_room.biome_visual_wall_texture_modulate = _get_definition_color(definition, "biome_visual_wall_texture_modulate", typed_room.biome_visual_wall_texture_modulate)
 	typed_room.biome_visual_wall_texture_opacity = float(definition.get("biome_visual_wall_texture_opacity", typed_room.biome_visual_wall_texture_opacity))
 	typed_room.biome_visual_obstacle_texture_modulate = _get_definition_color(definition, "biome_visual_obstacle_texture_modulate", typed_room.biome_visual_obstacle_texture_modulate)
@@ -442,6 +448,9 @@ func _get_room_definitions() -> Array[Dictionary]:
 			"biome_visual_wall_color": _get_biome_color(biome, "visual_wall_color", Color(0.22, 0.24, 0.27, 1.0)),
 			"biome_visual_obstacle_tint": _get_biome_color(biome, "visual_obstacle_tint", Color(0.24, 0.26, 0.29, 1.0)),
 			"biome_visual_surface_atlas_path": _get_biome_string(biome, "visual_surface_atlas_path", ""),
+			"biome_visual_trim_atlas_path": _get_biome_string(biome, "visual_trim_atlas_path", ""),
+			"biome_visual_trim_texture_modulate": _get_biome_color(biome, "visual_trim_texture_modulate", Color.WHITE),
+			"biome_visual_trim_texture_opacity": _get_biome_float(biome, "visual_trim_texture_opacity", 0.0),
 			"biome_visual_wall_texture_modulate": _get_biome_color(biome, "visual_wall_texture_modulate", Color.WHITE),
 			"biome_visual_wall_texture_opacity": _get_biome_float(biome, "visual_wall_texture_opacity", 0.0),
 			"biome_visual_obstacle_texture_modulate": _get_biome_color(biome, "visual_obstacle_texture_modulate", Color.WHITE),
@@ -592,6 +601,9 @@ func _get_biome_metadata(biome: Resource, biome_index: int) -> Dictionary:
 		"biome_visual_wall_color": _get_biome_color(biome, "visual_wall_color", Color(0.22, 0.24, 0.27, 1.0)),
 		"biome_visual_obstacle_tint": _get_biome_color(biome, "visual_obstacle_tint", Color(0.24, 0.26, 0.29, 1.0)),
 		"biome_visual_surface_atlas_path": _get_biome_string(biome, "visual_surface_atlas_path", ""),
+		"biome_visual_trim_atlas_path": _get_biome_string(biome, "visual_trim_atlas_path", ""),
+		"biome_visual_trim_texture_modulate": _get_biome_color(biome, "visual_trim_texture_modulate", Color.WHITE),
+		"biome_visual_trim_texture_opacity": _get_biome_float(biome, "visual_trim_texture_opacity", 0.0),
 		"biome_visual_wall_texture_modulate": _get_biome_color(biome, "visual_wall_texture_modulate", Color.WHITE),
 		"biome_visual_wall_texture_opacity": _get_biome_float(biome, "visual_wall_texture_opacity", 0.0),
 		"biome_visual_obstacle_texture_modulate": _get_biome_color(biome, "visual_obstacle_texture_modulate", Color.WHITE),

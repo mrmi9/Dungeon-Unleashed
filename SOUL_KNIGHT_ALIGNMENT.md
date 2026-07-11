@@ -2540,13 +2540,21 @@
 - 激活 `BiomeData.music_key`：键值进入生成 metadata、Biome summary、房间记录和实例，普通房按当前层切换独立轨道，Boss 与结算继续覆盖专属音乐。
 - 内容管线锁定三层 music key 唯一映射和资源存在；音频、地牢生成、设置持久化、Windows Dummy 播放路径和格式/循环边界 QA 全部通过。
 
+## 第二百六十四批已落地靠拢改动
+
+### 三层 Biome 门框与边角装饰 Atlas 第一版
+- 新增 Outer Warrens、Iron Catacombs、Void Foundry 三套原创 `512x512 / 2x2` trim atlas，分别提供竖向门框、横向门框、边角和门槛区域。
+- 新增 `BiomeRoomTrimVisual`，按房间连接方向绘制独立门体装饰，并将 atlas 路径、调制色和透明度接入 `BiomeData`、生成 metadata、Biome summary、房间记录与运行时实例。
+- 南北入口从 1260px 整墙开口修正为 170px 居中门洞及两段 595px 碰撞墙，使门框视觉、Surface Atlas 和实际通行区域一致。
+- 内容管线、地牢生成、完整房间流转和 headless 回归通过；Windows/OpenGL 三层联系表已检查门框、边角、门槛、视口裁切和房间完整性。
+
 ## 后续建议顺序
 
 1. 战斗外大厅：在 Outpost Hall、Data Shards、角色解锁、训练入口、训练靶场布局、训练 drill、训练目标类型、drill 完成目标、drill 评级、训练徽章记录、训练徽章 token、训练奖励 toast、熟练度加成、图鉴分页、全内容 SVG 图标、Featured Card、CodexDetailCard、Build 路线筛选和搜索/排序/稀有度筛选基础上继续补正式像素 Atlas、视觉进度条、多卡片详情布局、更完整训练奖励演出和更清晰的视觉层级。
 2. 特殊房间：在已落地武器房、治疗补给房、事件房随机结果池、商人折扣、诅咒武器、短时过载规则、雕像选择、雕像调谐、挑战房变体和陷阱房基础上，继续补更多随机强化、更细挑战奖励差异和多机关组合。
 3. 角色深度：在当前 6 角色、清房/击杀/受伤事件驱动祝福基础上继续让角色技能与遗物、Boss 后天赋、事件祝福和雕像系统产生更可读的组合变化。
 4. 内容池深度：当前已达到 40 武器 / 45 遗物，并具备全条目 SVG 图标、Field/Mine/Sentry 部署、Homing/Chain 路线和七类 authored 武器音效；后续优先补掉落权重实机调优、更多部署行为、武器专属命中反馈和特殊交互。
-5. Biome 差异化：在当前三层独立像素地板、三套墙体/障碍 Surface Atlas、三条独立 authored 音乐、3 个 Boss Signature Attack、3 个二阶段第二专属机制、18 个普通敌人四帧 Atlas、Barrage Totem/Needle Skater 独立 Atlas、3 套 Boss 阶段/招牌技 Atlas、6 套精英动态标识与独立战斗特性、独立布局池、奖励权重接线和小地图分层显示基础上，继续补门/边角装饰 Atlas、更细的精英组合变化和奖励曲线。
+5. Biome 差异化：在当前三层独立像素地板、三套墙体/障碍 Surface Atlas、三套门框/边角 trim atlas、三条独立 authored 音乐、3 个 Boss Signature Attack、3 个二阶段第二专属机制、18 个普通敌人四帧 Atlas、Barrage Totem/Needle Skater 独立 Atlas、3 套 Boss 阶段/招牌技 Atlas、6 套精英动态标识与独立战斗特性、独立布局池、奖励权重接线和小地图分层显示基础上，继续补多形态场景装饰、门体状态动画、更细的精英组合变化和奖励曲线。
 6. 手感打磨：在已有辅助瞄准锁定权重、低血量反馈、屏幕震动、伤害闪屏、武器槽反馈、语义化敌人前摇、54 个 authored SFX 和 7 条 authored 音乐基础上，继续优化弹幕密度、受击反馈、击退、危险区纹样、统一像素密度、独立敌人轮廓、音频优先级和最终混音。
 
 ## 验收方向

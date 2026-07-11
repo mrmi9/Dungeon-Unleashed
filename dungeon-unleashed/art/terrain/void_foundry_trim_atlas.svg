@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" shape-rendering="crispEdges">
+  <g>
+    <path d="M22 18h58l-10 220H30z" fill="#181226"/>
+    <path d="M34 28h34l-8 198H42z" fill="#4e3774"/>
+    <path d="M44 38h14l-4 178H48z" fill="#9d74e8"/>
+    <path d="M176 18h58l-8 220h-40z" fill="#181226"/>
+    <path d="M188 28h34l-8 198h-18z" fill="#4e3774"/>
+    <path d="M198 38h14l-4 178h-6z" fill="#9d74e8"/>
+    <path d="M18 16h220l-20 42H38z" fill="#271a3d"/>
+    <path d="M34 24h188l-14 20H48z" fill="#684a9c"/>
+    <rect x="42" y="54" width="18" height="18" fill="#57d7d0"/>
+    <rect x="196" y="54" width="18" height="18" fill="#57d7d0"/>
+    <rect x="48" y="60" width="6" height="6" fill="#d2fffa"/>
+    <rect x="202" y="60" width="6" height="6" fill="#d2fffa"/>
+  </g>
+  <g transform="translate(256 0)">
+    <path d="M18 22l220 8v50L18 70z" fill="#181226"/>
+    <path d="M28 34l198 6v28L28 60z" fill="#4e3774"/>
+    <path d="M38 44l178 4v12L38 54z" fill="#9d74e8"/>
+    <path d="M18 176l220 10v48L18 226z" fill="#181226"/>
+    <path d="M28 188l198 8v28L28 216z" fill="#4e3774"/>
+    <path d="M38 198l178 6v12L38 208z" fill="#9d74e8"/>
+    <path d="M16 18l42 20v180l-42 20z" fill="#271a3d"/>
+    <path d="M24 34l20 14v160l-20 14z" fill="#684a9c"/>
+    <rect x="54" y="42" width="18" height="18" fill="#57d7d0"/>
+    <rect x="54" y="196" width="18" height="18" fill="#57d7d0"/>
+    <rect x="60" y="48" width="6" height="6" fill="#d2fffa"/>
+    <rect x="60" y="202" width="6" height="6" fill="#d2fffa"/>
+  </g>
+  <g transform="translate(0 256)">
+    <path d="M20 20h194l-18 46H66v130l-46 18z" fill="#181226"/>
+    <path d="M32 32h162l-12 22H54v128l-22 12z" fill="#4e3774"/>
+    <path d="M60 60h88l-14 22H82v52l-22 14z" fill="#684a9c"/>
+    <polygon points="68,68 80,58 92,68 80,80" fill="#57d7d0"/>
+    <polygon points="158,38 168,30 178,38 168,46" fill="#9d74e8"/>
+    <polygon points="38,158 46,168 38,178 30,168" fill="#9d74e8"/>
+  </g>
+  <g transform="translate(256 256)">
+    <path d="M18 64l220-10v148L18 192z" fill="#181226"/>
+    <path d="M30 76l196-8v120l-196-8z" fill="#362554"/>
+    <path d="M44 90l168-6v88l-168-6z" fill="#4e3774"/>
+    <path d="M58 104l140-4v56l-140-4z" fill="#271a3d"/>
+    <path d="M70 122l116-2v16l-116-2z" fill="#684a9c"/>
+    <polygon points="116,126 128,112 140,126 128,140" fill="#57d7d0"/>
+    <rect x="124" y="122" width="8" height="8" fill="#d2fffa"/>
+  </g>
+</svg>

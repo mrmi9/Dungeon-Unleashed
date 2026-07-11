@@ -852,6 +852,7 @@ func _verify_biomes() -> void:
 	var color_keys := {}
 	var floor_texture_paths := {}
 	var surface_atlas_paths := {}
+	var trim_atlas_paths := {}
 	var music_keys := {}
 	var reward_multiplier_by_index := {}
 	_expect(biomes.size() >= 3, "Biome library should include three Alpha-facing biome resources")
@@ -891,6 +892,16 @@ func _verify_biomes() -> void:
 		_expect(ResourceLoader.exists(surface_atlas_path), "Biome %s surface atlas should load" % id)
 		var surface_atlas := load(surface_atlas_path) as Texture2D
 		_expect(surface_atlas != null and surface_atlas.get_size() == Vector2(512.0, 256.0), "Biome %s surface atlas should expose two 256px regions" % id)
+		var trim_atlas_path := str(biome.get("visual_trim_atlas_path"))
+		_expect(trim_atlas_path.begins_with("res://art/terrain/") and trim_atlas_path.ends_with("_trim_atlas.svg"), "Biome %s should define a project trim atlas" % id)
+		_expect(not trim_atlas_paths.has(trim_atlas_path), "Biome trim atlas should be unique: %s" % trim_atlas_path)
+		trim_atlas_paths[trim_atlas_path] = true
+		_expect(ResourceLoader.exists(trim_atlas_path), "Biome %s trim atlas should load" % id)
+		var trim_atlas := load(trim_atlas_path) as Texture2D
+		_expect(trim_atlas != null and trim_atlas.get_size() == Vector2(512.0, 512.0), "Biome %s trim atlas should expose four 256px regions" % id)
+		_expect(biome.get("visual_trim_texture_modulate") is Color, "Biome %s should define trim texture modulation" % id)
+		var trim_texture_opacity := float(biome.get("visual_trim_texture_opacity"))
+		_expect(trim_texture_opacity > 0.0 and trim_texture_opacity <= 1.0, "Biome %s should define visible trim texture opacity" % id)
 		_expect(biome.get("visual_wall_texture_modulate") is Color, "Biome %s should define wall texture modulation" % id)
 		_expect(biome.get("visual_obstacle_texture_modulate") is Color, "Biome %s should define obstacle texture modulation" % id)
 		var wall_texture_opacity := float(biome.get("visual_wall_texture_opacity"))

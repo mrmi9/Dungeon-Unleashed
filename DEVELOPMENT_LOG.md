@@ -16915,3 +16915,35 @@ SettingsSmokeTest passed. (9.9s)
 ### 仍需人工复核
 - 使用耳机和扬声器完整听取 7 条轨道，确认三层主题辨识度、Boss 压力感、Victory/Defeat 收束感和长时间循环疲劳度。
 - 在实际跑图中确认 `0.45s` 交叉淡化不会掩盖房间开战前摇，并对 Music/SFX bus 做最终响度平衡。
+
+## 2026-07-11 三层 Biome 门框与边角装饰 Atlas 第一版
+
+### 目标
+- 为三层 Biome 增加独立门框、边角和门槛视觉，使房间差异不再只依赖地板、墙体与障碍纹理。
+- 修正南北入口此前移除整段墙体形成 1260px 开口的问题，使视觉门框与实际碰撞通道一致。
+
+### 资产与运行时
+- 新增 Outer Warrens、Iron Catacombs、Void Foundry 三套原创 `512x512 / 2x2` SVG trim atlas，每套固定提供竖向门框、横向门框、边角和门槛四个区域。
+- 新增 `BiomeRoomTrimVisual`，使用最近邻过滤和 Atlas region 绘制四角及当前房间已连接方向的门框/门槛；组件位置向房间内部收拢，避免 1280x720 视口裁切。
+- `BiomeData` 新增 trim atlas 路径、调制色和透明度；`DungeonController` 将字段写入 metadata、Biome summary、房间记录和运行时房间配置。
+- `CombatRoom` 新增独立 `BiomeTrimLayer`，并在运行时视觉摘要中暴露资源加载、过滤、区域和绘制数量，供回归测试检查。
+
+### 门体几何修正
+- 南北方向从原 1260px 整墙开口改为居中的 `170x42` 门洞。
+- 门洞左右保留两段 `595x40` 墙体，并继续接入 Biome Surface Atlas 与静态碰撞；东西方向现有门体逻辑保持不变。
+
+### 验证状态
+```text
+Godot SVG/script import passed.
+ContentPipelineSmokeTest passed.
+DungeonGenerationSmokeTest passed. (55.3s)
+BiomeTrimSmokeTest passed headless. (screenshot skipped by design)
+BiomeTrimSmokeTest passed with Windows/OpenGL. (contact sheet captured and inspected)
+RoomFlowSmokeTest passed. (247s)
+```
+
+Windows/OpenGL 回归生成了三层 1920x360 联系表，已逐层检查门框、边角、门槛、视口裁切和房间完整性。内容管线退出时仍有项目既有 RID/ObjectDB 释放告警，但通过运行的退出码为 0。
+
+### 仍需人工复核
+- 在实际跑图和镜头切换中确认门框不会遮挡敌人、掉落物或交互提示，门洞宽度与玩家/召唤物通行手感一致。
+- 在不同显示器和色觉条件下检查三层 trim 与墙体、危险预警的对比度，必要时只调整 Biome 调制色和透明度。

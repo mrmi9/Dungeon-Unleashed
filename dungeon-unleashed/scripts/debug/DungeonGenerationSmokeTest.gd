@@ -211,6 +211,9 @@ func _validate_room_record(record: Dictionary, index: int, combat_rooms: Array) 
 	_expect(typeof(record.get("biome_visual_wall_color")) == TYPE_COLOR, "%s should record biome wall visual color" % expected_id)
 	_expect(typeof(record.get("biome_visual_obstacle_tint")) == TYPE_COLOR, "%s should record biome obstacle visual tint" % expected_id)
 	_expect(str(record.get("biome_visual_surface_atlas_path", "")).ends_with("_surface_atlas.svg"), "%s should record biome surface atlas path" % expected_id)
+	_expect(str(record.get("biome_visual_trim_atlas_path", "")).ends_with("_trim_atlas.svg"), "%s should record biome trim atlas path" % expected_id)
+	_expect(typeof(record.get("biome_visual_trim_texture_modulate")) == TYPE_COLOR, "%s should record trim texture modulation" % expected_id)
+	_expect(float(record.get("biome_visual_trim_texture_opacity", 0.0)) > 0.0, "%s should record active trim texture opacity" % expected_id)
 	_expect(typeof(record.get("biome_visual_wall_texture_modulate")) == TYPE_COLOR, "%s should record wall texture modulation" % expected_id)
 	_expect(float(record.get("biome_visual_wall_texture_opacity", 0.0)) > 0.0, "%s should record active wall texture opacity" % expected_id)
 	_expect(typeof(record.get("biome_visual_obstacle_texture_modulate")) == TYPE_COLOR, "%s should record obstacle texture modulation" % expected_id)
@@ -231,6 +234,7 @@ func _validate_room_record(record: Dictionary, index: int, combat_rooms: Array) 
 		_expect(room.get("wave_enemy_counts") == wave_counts, "%s wave counts should match metadata" % expected_id)
 		_expect(room.global_position == Vector2(1320.0 * grid_position.x, 820.0 * grid_position.y), "%s should be placed from its grid position" % expected_id)
 		_expect(room.get("connected_directions") == connections, "%s runtime connections should match metadata" % expected_id)
+		_validate_directional_door_geometry(room, connections, expected_id)
 		_expect(room.get("auto_clear_on_enter") == record["auto_clear"], "%s auto-clear config should match metadata" % expected_id)
 		_expect(room.get("lock_doors_during_combat") == record["locks_doors"], "%s door-lock config should match metadata" % expected_id)
 		_expect(is_equal_approx(float(room.get("biome_reward_weight_multiplier")), biome_reward_weight_multiplier), "%s runtime reward weight multiplier should match metadata" % expected_id)
@@ -254,6 +258,18 @@ func _validate_room_record(record: Dictionary, index: int, combat_rooms: Array) 
 			_expect(_as_color(visual_summary.get("wall_color")) == _as_color(record.get("biome_visual_wall_color")), "%s runtime wall color should match metadata" % expected_id)
 			_expect(_as_color(visual_summary.get("obstacle_tint")) == _as_color(record.get("biome_visual_obstacle_tint")), "%s runtime obstacle tint should match metadata" % expected_id)
 			_expect(str(visual_summary.get("surface_atlas_path", "")) == str(record.get("biome_visual_surface_atlas_path", "")), "%s runtime surface atlas should match metadata" % expected_id)
+			_expect(str(visual_summary.get("trim_atlas_path", "")) == str(record.get("biome_visual_trim_atlas_path", "")), "%s runtime trim atlas should match metadata" % expected_id)
+			_expect(_as_color(visual_summary.get("trim_texture_modulate")) == _as_color(record.get("biome_visual_trim_texture_modulate")), "%s runtime trim modulation should match metadata" % expected_id)
+			_expect(is_equal_approx(float(visual_summary.get("trim_texture_opacity", 0.0)), float(record.get("biome_visual_trim_texture_opacity", 0.0))), "%s runtime trim opacity should match metadata" % expected_id)
+			var trim_summary := visual_summary.get("trim_layer", {}) as Dictionary
+			_expect(bool(trim_summary.get("atlas_loaded", false)), "%s trim layer should load its biome atlas" % expected_id)
+			_expect(trim_summary.get("atlas_size", Vector2.ZERO) == Vector2(512.0, 512.0), "%s trim layer should expose four 256px regions" % expected_id)
+			_expect(str(trim_summary.get("atlas_path", "")) == str(record.get("biome_visual_trim_atlas_path", "")), "%s trim layer should expose its configured atlas" % expected_id)
+			_expect(int(trim_summary.get("corner_count", 0)) == 4, "%s trim layer should draw all four room corners" % expected_id)
+			_expect(int(trim_summary.get("door_frame_count", -1)) == connections.size(), "%s trim layer should draw one frame per connected door" % expected_id)
+			_expect(int(trim_summary.get("threshold_count", -1)) == connections.size(), "%s trim layer should draw one threshold per connected door" % expected_id)
+			_expect(int(trim_summary.get("draw_item_count", 0)) == 4 + connections.size() * 2, "%s trim layer draw count should match corners plus connected doors" % expected_id)
+			_expect(bool(trim_summary.get("nearest_filter", false)), "%s trim layer should preserve pixel edges" % expected_id)
 			_expect(_as_color(visual_summary.get("wall_texture_modulate")) == _as_color(record.get("biome_visual_wall_texture_modulate")), "%s runtime wall texture modulation should match metadata" % expected_id)
 			_expect(is_equal_approx(float(visual_summary.get("wall_texture_opacity", 0.0)), float(record.get("biome_visual_wall_texture_opacity", 0.0))), "%s runtime wall texture opacity should match metadata" % expected_id)
 			_expect(_as_color(visual_summary.get("obstacle_texture_modulate")) == _as_color(record.get("biome_visual_obstacle_texture_modulate")), "%s runtime obstacle texture modulation should match metadata" % expected_id)
@@ -559,6 +575,9 @@ func _validate_biome_summaries(records: Array, biome_summaries: Array) -> void:
 		_expect(typeof(summary.get("biome_visual_wall_color")) == TYPE_COLOR, "Biome summary should preserve wall visual color")
 		_expect(typeof(summary.get("biome_visual_obstacle_tint")) == TYPE_COLOR, "Biome summary should preserve obstacle visual tint")
 		_expect(str(summary.get("biome_visual_surface_atlas_path", "")).ends_with("_surface_atlas.svg"), "Biome summary should preserve surface atlas path")
+		_expect(str(summary.get("biome_visual_trim_atlas_path", "")).ends_with("_trim_atlas.svg"), "Biome summary should preserve trim atlas path")
+		_expect(typeof(summary.get("biome_visual_trim_texture_modulate")) == TYPE_COLOR, "Biome summary should preserve trim texture modulation")
+		_expect(float(summary.get("biome_visual_trim_texture_opacity", 0.0)) > 0.0, "Biome summary should preserve trim texture opacity")
 		_expect(typeof(summary.get("biome_visual_wall_texture_modulate")) == TYPE_COLOR, "Biome summary should preserve wall texture modulation")
 		_expect(float(summary.get("biome_visual_wall_texture_opacity", 0.0)) > 0.0, "Biome summary should preserve wall texture opacity")
 		_expect(typeof(summary.get("biome_visual_obstacle_texture_modulate")) == TYPE_COLOR, "Biome summary should preserve obstacle texture modulation")
@@ -779,6 +798,38 @@ func _opposite_direction(direction: String) -> String:
 		"south":
 			return "north"
 	return ""
+
+
+func _validate_directional_door_geometry(room: Node, connections: PackedStringArray, room_id: String) -> void:
+	for direction in ["north", "south"]:
+		if not connections.has(direction):
+			continue
+		var prefix := "North" if direction == "north" else "South"
+		var door := room.get_node_or_null("Doors/%sDoor" % prefix) as StaticBody2D
+		_expect(door != null, "%s should create a %s directional door" % [room_id, direction])
+		if door != null:
+			var door_collision := door.get_node_or_null("CollisionShape2D") as CollisionShape2D
+			_expect(door_collision != null and door_collision.shape is RectangleShape2D, "%s %s door should define rectangle collision" % [room_id, direction])
+			if door_collision != null and door_collision.shape is RectangleShape2D:
+				var door_size := (door_collision.shape as RectangleShape2D).size
+				_expect(is_equal_approx(door_size.x, 170.0) and is_equal_approx(door_size.y, 42.0), "%s %s door should use the centered 170px opening" % [room_id, direction])
+		var arena: Node = null
+		if room.get_parent() != null:
+			arena = room.get_parent().get_node_or_null("Arena")
+		for side in ["Left", "Right"]:
+			var segment: StaticBody2D = null
+			if arena != null:
+				segment = arena.get_node_or_null("Wall%s%s" % [prefix, side]) as StaticBody2D
+			_expect(segment != null, "%s %s boundary should keep its %s wall segment" % [room_id, direction, side.to_lower()])
+			if segment == null:
+				continue
+			var segment_collision := segment.get_node_or_null("CollisionShape2D") as CollisionShape2D
+			_expect(segment_collision != null and segment_collision.shape is RectangleShape2D, "%s %s wall segment should define rectangle collision" % [room_id, direction])
+			if segment_collision != null and segment_collision.shape is RectangleShape2D:
+				var segment_size := (segment_collision.shape as RectangleShape2D).size
+				_expect(is_equal_approx(segment_size.x, 595.0) and is_equal_approx(segment_size.y, 40.0), "%s %s wall segment should close the boundary outside the doorway" % [room_id, direction])
+			var segment_surface := segment.get_node_or_null("SurfaceVisual")
+			_expect(segment_surface != null and segment_surface.has_method("get_surface_summary"), "%s %s wall segment should receive biome surface art" % [room_id, direction])
 
 
 func _get_layout_obstacle_count(room: Node) -> int:
