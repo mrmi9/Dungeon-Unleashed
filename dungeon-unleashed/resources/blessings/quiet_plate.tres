@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BlessingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/BlessingData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "quiet_plate"
+display_name = "Quiet Plate"
+description = "Event blessing that adds a small armor buffer for longer routes."
+rarity = "common"
+duration_scope = "run"
+trigger_event = "passive"
+effect_type = "max_shield"
+effect_value = 1.0
+effect_duration = 0.0
+drop_weight = 1.1
+build_tags = PackedStringArray("survival", "armor", "event")
+conflict_tags = PackedStringArray()
+rule_text = "Run rule: +1 max Armor after accepting an event sacrifice."

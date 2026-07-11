@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="256" viewBox="0 0 512 256" shape-rendering="crispEdges">
+  <defs>
+    <pattern id="iron-wall" width="64" height="64" patternUnits="userSpaceOnUse">
+      <rect width="64" height="64" fill="#3c3937"/>
+      <rect x="0" y="0" width="64" height="5" fill="#18191b"/>
+      <rect x="0" y="31" width="64" height="4" fill="#232326"/>
+      <rect x="30" y="0" width="4" height="31" fill="#242427"/>
+      <rect x="46" y="35" width="4" height="29" fill="#242427"/>
+      <rect x="6" y="9" width="20" height="3" fill="#67615b"/>
+      <rect x="8" y="20" width="15" height="2" fill="#2d2d30"/>
+      <rect x="36" y="42" width="18" height="3" fill="#686057"/>
+      <rect x="8" y="8" width="4" height="4" fill="#b77a3e"/>
+      <rect x="54" y="54" width="4" height="4" fill="#c8833e"/>
+      <rect x="55" y="15" width="5" height="12" fill="#6f321d"/>
+      <rect x="56" y="17" width="3" height="8" fill="#dd6e2f"/>
+    </pattern>
+    <pattern id="iron-obstacle" width="64" height="64" patternUnits="userSpaceOnUse">
+      <rect width="64" height="64" fill="#48423d"/>
+      <rect x="0" y="0" width="64" height="7" fill="#202023"/>
+      <rect x="0" y="57" width="64" height="7" fill="#17181a"/>
+      <rect x="0" y="0" width="7" height="64" fill="#262528"/>
+      <rect x="57" y="0" width="7" height="64" fill="#191a1c"/>
+      <rect x="12" y="12" width="40" height="40" fill="#55504c"/>
+      <rect x="16" y="16" width="32" height="5" fill="#706960"/>
+      <rect x="16" y="43" width="32" height="5" fill="#302f31"/>
+      <rect x="10" y="10" width="5" height="5" fill="#c18347"/>
+      <rect x="49" y="10" width="5" height="5" fill="#c18347"/>
+      <rect x="10" y="49" width="5" height="5" fill="#9b6339"/>
+      <rect x="49" y="49" width="5" height="5" fill="#9b6339"/>
+      <rect x="28" y="25" width="8" height="14" fill="#6c2f1c"/>
+      <rect x="30" y="27" width="4" height="10" fill="#df7330"/>
+    </pattern>
+  </defs>
+  <rect width="256" height="256" fill="url(#iron-wall)"/>
+  <rect x="256" width="256" height="256" fill="url(#iron-obstacle)"/>
+</svg>

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"prism_ray"
+display_name = "Prism Ray"
+description = "Long-range piercing laser that rewards lining enemies into a lane."
+rarity = "epic"
+weapon_class = "laser"
+recommended_range = "long"
+drop_weight = 0.48
+content_role = "premium line clear laser"
+damage = 2
+fire_rate = 3.6
+projectile_speed = 1520.0
+projectile_range = 1050.0
+projectile_count = 1
+spread_angle = 0.5
+fire_mode = "projectile"
+energy_cost = 3
+magazine_size = 10
+reload_duration = 1.2
+knockback = 70.0
+crit_chance = 0.12
+crit_multiplier = 2.0
+pierce_count = 5
+bounce_count = 0
+explosion_radius = 0.0
+aim_assist_priority = 1.4
+icon_key = "weapon_prism_ray"
+fire_sfx_key = "prism_fire"
+projectile_vfx_key = "prism_beam"
+tags = PackedStringArray("laser", "piercing", "precision")

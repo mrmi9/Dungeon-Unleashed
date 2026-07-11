@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"shatter_fan"
+display_name = "Shatter Fan"
+description = "Wide burst weapon that floods close corridors with low-damage shards."
+rarity = "rare"
+weapon_class = "shotgun"
+recommended_range = "close"
+drop_weight = 0.75
+content_role = "wide close burst"
+damage = 1
+fire_rate = 2.7
+projectile_speed = 650.0
+projectile_range = 520.0
+projectile_count = 6
+spread_angle = 46.0
+fire_mode = "projectile"
+energy_cost = 2
+magazine_size = 7
+reload_duration = 1.35
+knockback = 185.0
+crit_chance = 0.05
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+aim_assist_priority = 0.9
+icon_key = "weapon_shatter_fan"
+fire_sfx_key = "fan_burst"
+projectile_vfx_key = "shard_round"
+tags = PackedStringArray("spread", "burst", "close_range")

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"pulse_needler"
+display_name = "Pulse Needler"
+description = "Fast precision sidearm that rewards steady aim with high crit uptime."
+rarity = "common"
+weapon_class = "sidearm"
+recommended_range = "mid"
+drop_weight = 1.0
+content_role = "precision crit sidearm"
+damage = 1
+fire_rate = 8.0
+projectile_speed = 920.0
+projectile_range = 760.0
+projectile_count = 1
+spread_angle = 1.5
+fire_mode = "projectile"
+energy_cost = 1
+magazine_size = 24
+reload_duration = 0.95
+knockback = 75.0
+crit_chance = 0.16
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+aim_assist_priority = 1.2
+icon_key = "weapon_pulse_needler"
+fire_sfx_key = "needler_fire"
+projectile_vfx_key = "pulse_needle"
+tags = PackedStringArray("precise", "crit", "mid_range")

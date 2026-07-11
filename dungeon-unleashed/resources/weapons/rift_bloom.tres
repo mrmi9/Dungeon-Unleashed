@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rift_bloom"
+display_name = "Rift Bloom"
+description = "Releases a ring of ricocheting shards that keeps enclosed rooms dangerous."
+rarity = "epic"
+weapon_class = "core"
+recommended_range = "all"
+drop_weight = 0.38
+content_role = "radial ricochet room control"
+damage = 1
+fire_rate = 1.1
+projectile_speed = 620.0
+projectile_range = 820.0
+projectile_count = 10
+spread_angle = 360.0
+fire_mode = "radial"
+energy_cost = 4
+magazine_size = 5
+reload_duration = 1.5
+knockback = 90.0
+crit_chance = 0.08
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 1
+explosion_radius = 0.0
+aim_assist_priority = 0.82
+icon_key = "weapon_rift_bloom"
+fire_sfx_key = "rift_bloom_fire"
+projectile_vfx_key = "rift_shard"
+tags = PackedStringArray("radial", "bounce", "crowd_control")

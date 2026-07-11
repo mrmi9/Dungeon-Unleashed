@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="1"]
+[ext_resource type="Texture2D" path="res://art/enemies/marksman_action_atlas.png" id="2"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ember_marksman"]
+radius = 16.0
+
+[node name="EmberMarksman" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1")
+display_name = "Ember Marksman"
+behavior_type = 1
+max_health = 3
+move_speed = 68.0
+contact_damage = 1
+attack_damage = 1
+attack_cooldown = 1.05
+attack_range = 430.0
+preferred_range = 310.0
+projectile_speed = 430.0
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false
+color = Color(1, 0.68, 0.16, 1)
+polygon = PackedVector2Array(22, 0, 7, -14, -16, -11, -10, 0, -16, 11, 7, 14)
+
+[node name="ActionSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+modulate = Color(1, 0.88, 0.72, 1)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2")
+hframes = 2
+vframes = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_ember_marksman")

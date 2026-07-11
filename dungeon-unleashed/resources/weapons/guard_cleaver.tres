@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"guard_cleaver"
+display_name = "Guard Cleaver"
+description = "A steady close-range blade that can cut down incoming enemy shots."
+rarity = "common"
+weapon_class = "melee"
+recommended_range = "close"
+drop_weight = 0.82
+content_role = "defensive melee projectile guard"
+damage = 2
+fire_rate = 3.9
+projectile_speed = 0.0
+projectile_range = 118.0
+projectile_count = 1
+spread_angle = 118.0
+fire_mode = "melee"
+energy_cost = 1
+magazine_size = 16
+reload_duration = 0.9
+knockback = 130.0
+crit_chance = 0.05
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+blocks_projectiles = true
+projectile_block_radius = 126.0
+projectile_block_arc_degrees = 128.0
+projectile_block_damage = 1
+aim_assist_priority = 0.78
+icon_key = "weapon_guard_cleaver"
+fire_sfx_key = "guard_cleave"
+projectile_vfx_key = "guard_arc"
+tags = PackedStringArray("melee", "guard", "defensive")

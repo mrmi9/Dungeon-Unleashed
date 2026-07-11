@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lingering_ash"
+display_name = "Lingering Ash"
+description = "Increase status duration by 25%."
+rarity = "common"
+trigger_event = "passive"
+effect_type = "status_duration_multiplier"
+effect_value = 0.25
+drop_weight = 0.9
+description_value_template = "+25% status duration"
+stackable = true
+max_stacks = 3
+build_tags = PackedStringArray("elemental", "status")
+tags = PackedStringArray("duration", "status")

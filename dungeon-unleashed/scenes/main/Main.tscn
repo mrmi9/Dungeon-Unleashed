@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/main/Main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2"]
@@ -6,6 +6,9 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="4"]
 [ext_resource type="Script" path="res://scripts/relics/RelicSystem.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/audio/AudioFeedback.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/talents/TalentSystem.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/blessings/BlessingSystem.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/statues/StatueSystem.gd" id="9"]
 
 [node name="Main" type="Node2D"]
 process_mode = 3
@@ -20,6 +23,15 @@ script = ExtResource("3")
 
 [node name="RelicSystem" type="Node" parent="."]
 script = ExtResource("5")
+
+[node name="TalentSystem" type="Node" parent="."]
+script = ExtResource("7")
+
+[node name="BlessingSystem" type="Node" parent="."]
+script = ExtResource("8")
+
+[node name="StatueSystem" type="Node" parent="."]
+script = ExtResource("9")
 
 [node name="AudioFeedback" type="Node" parent="."]
 process_mode = 3

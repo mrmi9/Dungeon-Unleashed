@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="1"]
+[ext_resource type="Texture2D" path="res://art/enemies/volatile_vessel_action_atlas.png" id="2"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bomber"]
 radius = 18.0
@@ -20,8 +21,16 @@ self_destruct_radius = 98.0
 self_destruct_windup = 0.72
 
 [node name="Visual" type="Polygon2D" parent="."]
+visible = false
 color = Color(1, 0.18, 0.08, 1)
 polygon = PackedVector2Array(0, -21, 15, -15, 21, 0, 15, 15, 0, 21, -15, 15, -21, 0, -15, -15)
+
+[node name="ActionSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2")
+hframes = 2
+vframes = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_bomber")

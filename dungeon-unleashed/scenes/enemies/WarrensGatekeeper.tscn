@@ -1,0 +1,56 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/BossEnemy.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/ChaserEnemy.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://art/enemies/warrens_gatekeeper_action_atlas.png" id="3_boss_action"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_warrens_gatekeeper"]
+radius = 35.0
+
+[node name="WarrensGatekeeper" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1")
+display_name = "Warrens Gatekeeper"
+source_id = &"warrens_gatekeeper"
+max_health = 44
+move_speed = 82.0
+attack_cooldown = 1.55
+attack_windup = 0.32
+preferred_range = 280.0
+radial_projectile_count = 10
+volley_projectile_count = 3
+volley_spread_degrees = 18.0
+summon_scene = ExtResource("2")
+summon_count = 2
+max_active_summons = 3
+signature_attack = "pincer_gates"
+signature_windup = 0.52
+signature_projectile_count = 8
+signature_radius = 135.0
+signature_range = 560.0
+phase_two_attack = "warren_sweep"
+phase_two_attack_windup = 0.48
+phase_two_attack_projectile_count = 9
+phase_two_attack_radius = 160.0
+phase_two_attack_range = 580.0
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.42, 0.7, 0.34, 1)
+polygon = PackedVector2Array(42, 0, 22, -28, -10, -38, -38, -12, -34, 22, -4, 40, 28, 26)
+
+[node name="Core" type="Polygon2D" parent="."]
+visible = false
+color = Color(1, 0.76, 0.3, 1)
+polygon = PackedVector2Array(19, 0, 6, -14, -12, -10, -16, 8, 4, 16)
+
+[node name="ActionSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("3_boss_action")
+hframes = 2
+vframes = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_warrens_gatekeeper")

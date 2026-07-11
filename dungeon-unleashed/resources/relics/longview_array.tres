@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"longview_array"
+display_name = "Longview Array"
+description = "Homing projectiles acquire targets from farther away."
+rarity = "common"
+trigger_event = "passive"
+effect_type = "homing_radius_bonus"
+effect_value = 100.0
+drop_weight = 0.9
+icon_key = "relic_longview_array"
+description_value_template = "+100 homing acquisition radius"
+stackable = true
+max_stacks = 3
+build_tags = PackedStringArray("homing", "range")
+tags = PackedStringArray("projectile", "tracking")

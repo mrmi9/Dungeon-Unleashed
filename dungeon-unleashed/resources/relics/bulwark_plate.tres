@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"bulwark_plate"
+display_name = "Bulwark Plate"
+description = "Gain 2 armor when a room is cleared."
+rarity = "epic"
+trigger_event = "on_room_clear"
+effect_type = "room_clear_shield"
+effect_value = 2.0
+drop_weight = 0.5
+description_value_template = "+2 armor on room clear"
+stackable = false
+max_stacks = 1
+build_tags = PackedStringArray("armor", "survival")
+conflict_tags = PackedStringArray("room_clear_armor")
+tags = PackedStringArray("armor", "room_clear")

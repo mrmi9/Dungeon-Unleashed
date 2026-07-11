@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <g shape-rendering="crispEdges">
+    <g id="idle">
+      <rect x="21" y="20" width="27" height="29" fill="#c9c9bd"/><rect x="24" y="16" width="21" height="8" fill="#e8e4d3"/><rect x="19" y="27" width="5" height="17" fill="#8f999e"/>
+      <rect x="45" y="27" width="6" height="17" fill="#8f999e"/><rect x="25" y="48" width="8" height="7" fill="#555d66"/><rect x="38" y="48" width="8" height="7" fill="#555d66"/>
+      <rect x="31" y="26" width="12" height="12" fill="#384d5a"/><rect x="34" y="29" width="7" height="7" fill="#80e4ef"/><rect x="39" y="20" width="4" height="3" fill="#f08b72"/>
+    </g>
+    <g id="anticipation" transform="translate(64 0)">
+      <rect x="22" y="22" width="26" height="28" fill="#c9c9bd"/><rect x="25" y="18" width="20" height="8" fill="#e8e4d3"/><rect x="17" y="31" width="13" height="7" fill="#8f999e"/>
+      <rect x="41" y="31" width="12" height="7" fill="#8f999e"/><rect x="25" y="49" width="8" height="6" fill="#555d66"/><rect x="38" y="49" width="8" height="6" fill="#555d66"/>
+      <rect x="31" y="28" width="12" height="11" fill="#384d5a"/><rect x="35" y="31" width="5" height="5" fill="#b7f8ff"/><rect x="39" y="22" width="4" height="3" fill="#f08b72"/>
+    </g>
+    <g id="peak" transform="translate(0 64)">
+      <rect x="21" y="19" width="27" height="30" fill="#e2dfcf"/><rect x="24" y="15" width="21" height="8" fill="#fff7e4"/><rect x="11" y="25" width="13" height="7" fill="#aeb9bd"/>
+      <rect x="47" y="24" width="13" height="7" fill="#aeb9bd"/><rect x="25" y="48" width="8" height="7" fill="#555d66"/><rect x="38" y="48" width="8" height="7" fill="#555d66"/>
+      <rect x="30" y="25" width="14" height="14" fill="#416272"/><rect x="33" y="28" width="9" height="9" fill="#b7f8ff"/><rect x="7" y="23" width="5" height="11" fill="#80e4ef"/><rect x="59" y="22" width="5" height="11" fill="#80e4ef"/>
+      <rect x="34" y="8" width="6" height="6" fill="#80e4ef"/><rect x="39" y="19" width="4" height="3" fill="#f6a28b"/>
+    </g>
+    <g id="recovery" transform="translate(64 64)">
+      <rect x="22" y="23" width="26" height="27" fill="#b9bab1"/><rect x="25" y="19" width="20" height="8" fill="#d7d3c4"/><rect x="18" y="34" width="7" height="13" fill="#7d878d"/>
+      <rect x="46" y="33" width="7" height="13" fill="#7d878d"/><rect x="25" y="49" width="8" height="6" fill="#555d66"/><rect x="38" y="49" width="8" height="6" fill="#555d66"/>
+      <rect x="31" y="29" width="12" height="11" fill="#384d5a"/><rect x="35" y="32" width="5" height="5" fill="#63bac8"/><rect x="39" y="23" width="4" height="3" fill="#d77a67"/>
+    </g>
+  </g>
+</svg>

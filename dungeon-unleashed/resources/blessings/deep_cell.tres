@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BlessingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/BlessingData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "deep_cell"
+display_name = "Deep Cell"
+description = "Event blessing that expands the energy pool for longer weapon chains."
+rarity = "common"
+duration_scope = "run"
+trigger_event = "passive"
+effect_type = "max_energy"
+effect_value = 18.0
+effect_duration = 0.0
+drop_weight = 1.2
+build_tags = PackedStringArray("energy", "event", "weapon")
+conflict_tags = PackedStringArray()
+rule_text = "Run rule: +18 max Energy after accepting an event sacrifice."

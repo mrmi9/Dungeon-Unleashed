@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"thunder_nest"
+display_name = "Thunder Nest"
+description = "Deploys a long-lived pulse engine that slows and repels nearby threats."
+rarity = "legendary"
+weapon_class = "core"
+recommended_range = "all"
+drop_weight = 0.16
+content_role = "legendary deployable control anchor"
+damage = 2
+fire_rate = 0.85
+projectile_speed = 0.0
+projectile_range = 620.0
+projectile_count = 1
+spread_angle = 0.0
+fire_mode = "deployable"
+energy_cost = 5
+magazine_size = 4
+reload_duration = 1.65
+knockback = 180.0
+crit_chance = 0.08
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+status_effect = "slow"
+status_chance = 0.55
+status_duration = 1.0
+status_slow_multiplier = 0.68
+deployable_behavior = "field"
+deployable_duration = 5.2
+deployable_radius = 180.0
+deployable_tick_interval = 0.55
+deployable_arming_time = 0.1
+deployable_damage_multiplier = 1.0
+aim_assist_priority = 0.7
+icon_key = "weapon_thunder_nest"
+fire_sfx_key = "thunder_nest_deploy"
+projectile_vfx_key = "thunder_pulse"
+tags = PackedStringArray("deployable", "summon", "control", "slow")

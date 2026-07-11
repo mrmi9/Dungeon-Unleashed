@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"cinder_mortar"
+display_name = "Cinder Mortar"
+description = "Fires slow heavy shells that punish clustered enemies at medium range."
+rarity = "rare"
+weapon_class = "launcher"
+recommended_range = "mid"
+drop_weight = 0.6
+content_role = "heavy area launcher"
+damage = 3
+fire_rate = 1.25
+projectile_speed = 360.0
+projectile_range = 680.0
+projectile_count = 1
+spread_angle = 4.0
+fire_mode = "projectile"
+energy_cost = 5
+magazine_size = 5
+reload_duration = 1.85
+knockback = 170.0
+crit_chance = 0.05
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 112.0
+aim_assist_priority = 0.95
+icon_key = "weapon_cinder_mortar"
+fire_sfx_key = "mortar_fire"
+projectile_vfx_key = "cinder_shell"
+tags = PackedStringArray("explosive", "area_damage", "slow_projectile")

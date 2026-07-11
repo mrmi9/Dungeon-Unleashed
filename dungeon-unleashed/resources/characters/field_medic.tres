@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="PlayerCharacterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/PlayerCharacterData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"field_medic"
+display_name = "Field Medic"
+description = "Support-oriented survivor with steady recovery and lower burst damage."
+sort_order = 5
+unlock_condition = "currency"
+meta_currency_unlock_cost = 22
+starting_weapon_ids = PackedStringArray("basic_pistol", "energy_staff", "shatter_fan")
+passive_id = "triage_kit"
+passive_description = "Recovery tools make long routes safer, but damage output is modest."
+role_tags = PackedStringArray("heal", "survival", "unlockable")
+hall_summary = "Unlockable sustain specialist for players who value recovery and route consistency."
+upgrade_slots = 3
+mastery_level_2_xp = 50
+mastery_level_3_xp = 125
+max_health = 7
+max_armor = 5
+max_energy = 115
+move_speed = 244.0
+skill_id = "stabilize"
+skill_name = "Stabilize"
+skill_description = "Restores health and armor during a short recovery window."
+skill_cooldown = 12.0
+skill_duration = 0.4
+skill_energy_cost = 16
+skill_power = 2.0

@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/CombatRoom.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/rooms/BiomeTerrainLayer.gd" id="2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
 size = Vector2(1360, 40)
@@ -19,8 +20,13 @@ size = Vector2(42, 150)
 [node name="Arena" type="Node2D" parent="."]
 
 [node name="Floor" type="Polygon2D" parent="Arena"]
+z_index = -2
 color = Color(0.095, 0.105, 0.12, 1)
 polygon = PackedVector2Array(-640, -360, 640, -360, 640, 360, -640, 360)
+
+[node name="TerrainLayer" type="Node2D" parent="Arena"]
+z_index = -1
+script = ExtResource("2")
 
 [node name="WallTop" type="StaticBody2D" parent="Arena"]
 position = Vector2(0, -380)

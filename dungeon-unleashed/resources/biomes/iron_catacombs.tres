@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="BiomeData" load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/BiomeData.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/ChargerEnemy.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/ShooterEnemy.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/SummonerEnemy.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/ShieldEnemy.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/ChaserEnemy.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/IronBulwark.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/IronBreaker.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/AegisDrone.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/MireConduit.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/GraveMender.tscn" id="11"]
+[ext_resource type="Resource" path="res://resources/room_layouts/bunker.tres" id="12"]
+[ext_resource type="Resource" path="res://resources/room_layouts/narrow_gap.tres" id="13"]
+[ext_resource type="Resource" path="res://resources/room_layouts/split_cover.tres" id="14"]
+[ext_resource type="Resource" path="res://resources/room_layouts/center_ring.tres" id="15"]
+
+[resource]
+script = ExtResource("1")
+id = &"iron_catacombs"
+display_name = "Iron Catacombs"
+description = "Middle biome that adds armor pressure, chargers, and target-priority summons."
+biome_index = 2
+room_count_min = 7
+room_count_max = 9
+branch_count_min = 6
+branch_count_max = 6
+layout_pool = Array[Resource]([ExtResource("12"), ExtResource("13"), ExtResource("14"), ExtResource("15")])
+enemy_pool = Array[PackedScene]([ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("8"), ExtResource("9"), ExtResource("10"), ExtResource("11")])
+boss_scene = ExtResource("7")
+music_key = "biome_iron_catacombs"
+color_key = "iron"
+visual_floor_tint = Color(0.12, 0.1, 0.085, 1)
+visual_floor_texture_path = "res://art/terrain/iron_catacombs_floor.png"
+visual_floor_texture_modulate = Color(0.95, 0.88, 0.82, 1)
+visual_floor_texture_opacity = 0.84
+visual_wall_color = Color(0.29, 0.26, 0.22, 1)
+visual_obstacle_tint = Color(0.34, 0.31, 0.27, 1)
+visual_surface_atlas_path = "res://art/terrain/iron_catacombs_surface_atlas.svg"
+visual_wall_texture_modulate = Color(1, 0.92, 0.86, 1)
+visual_wall_texture_opacity = 0.93
+visual_obstacle_texture_modulate = Color(1, 0.9, 0.82, 1)
+visual_obstacle_texture_opacity = 0.95
+visual_accent_color = Color(0.9, 0.55, 0.28, 1)
+visual_tint_strength = 0.38
+reward_weight_multiplier = 1.08

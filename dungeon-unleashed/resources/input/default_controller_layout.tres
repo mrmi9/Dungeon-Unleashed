@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ControllerLayoutData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/input/ControllerLayoutData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+scheme = "default_gamepad"
+item_ids = PackedStringArray("move", "aim", "shoot", "reload", "skill", "weapons", "interact", "pause")
+item_labels = PackedStringArray("Move", "Aim", "Shoot", "Reload", "Skill", "Weapons", "Interact", "Pause")
+item_controls = PackedStringArray("LS", "RS", "RT/RB", "X", "A", "D-Pad", "Y", "Start")
+item_actions = PackedStringArray("move_left,move_right,move_up,move_down", "aim_left,aim_right,aim_up,aim_down", "shoot", "reload", "skill", "weapon_slot_1,weapon_slot_2,weapon_slot_3", "interact", "pause")
+aim_deadzone = 0.22
+aim_target_distance = 900.0
+input_switch_threshold = 0.45
+mouse_return_threshold = 2.0

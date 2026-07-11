@@ -11,6 +11,7 @@ var _direction := Vector2.RIGHT
 var _owner_ref: WeakRef
 var _owner_rid := RID()
 var _distance_traveled := 0.0
+var _damage_source_summary: Dictionary = {}
 
 
 func _ready() -> void:
@@ -23,6 +24,7 @@ func launch(direction: Vector2, projectile_speed: float, projectile_damage: int,
 	damage = projectile_damage
 	_owner_ref = weakref(owner_body) if owner_body != null else null
 	_owner_rid = (owner_body as CollisionObject2D).get_rid() if owner_body is CollisionObject2D else RID()
+	_damage_source_summary = _build_damage_source_summary(owner_body)
 	global_rotation = _direction.angle()
 
 
@@ -54,7 +56,8 @@ func _raycast(start_position: Vector2, end_position: Vector2) -> Dictionary:
 
 func _handle_collision(collider: Object) -> void:
 	if collider is Node and (collider as Node).has_method("take_damage"):
-		(collider as Node).call("take_damage", damage, _get_safe_owner_body())
+		var source := _get_safe_owner_body()
+		(collider as Node).call("take_damage", damage, source if source != null else self)
 		_spawn_hit_effect()
 	queue_free()
 
@@ -76,3 +79,53 @@ func _get_safe_owner_body() -> Node:
 	if owner.is_queued_for_deletion():
 		return null
 	return owner
+
+
+func get_damage_source_summary() -> Dictionary:
+	if not _damage_source_summary.is_empty():
+		return _damage_source_summary.duplicate()
+	return _build_damage_source_summary(null)
+
+
+func _build_damage_source_summary(source: Node = null) -> Dictionary:
+	var source_name := "Enemy Projectile"
+	var source_type := "enemy"
+	var source_scene := ""
+	if source != null and is_instance_valid(source):
+		if source.has_method("get_damage_source_summary"):
+			var provided = source.call("get_damage_source_summary")
+			if provided is Dictionary and not (provided as Dictionary).is_empty():
+				return (provided as Dictionary).duplicate()
+
+		var display_value = source.get("display_name")
+		if display_value != null and not str(display_value).strip_edges().is_empty():
+			source_name = str(display_value).strip_edges()
+		elif not source.name.is_empty():
+			source_name = source.name
+		source_scene = source.scene_file_path
+		if source.is_in_group("bosses"):
+			source_type = "boss"
+		elif source.is_in_group("enemies"):
+			source_type = "enemy"
+		else:
+			source_type = "hazard"
+	return {
+		"source_id": _get_damage_source_id(source, source_name),
+		"source_name": source_name,
+		"source_type": source_type,
+		"source_scene": source_scene,
+	}
+
+
+func _get_damage_source_id(source: Node, source_name: String) -> String:
+	if source != null and is_instance_valid(source):
+		for property_name in ["source_id", "enemy_id", "id"]:
+			var value = source.get(property_name)
+			if value != null and not str(value).strip_edges().is_empty():
+				return str(value).strip_edges().to_snake_case()
+		var scene_path := source.scene_file_path.strip_edges()
+		if not scene_path.is_empty():
+			return scene_path.get_file().get_basename().to_snake_case()
+	if not source_name.strip_edges().is_empty() and source_name != "Unknown":
+		return source_name.strip_edges().to_snake_case()
+	return "enemy_projectile"

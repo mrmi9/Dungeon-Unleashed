@@ -107,6 +107,8 @@ func _check_visible_children_inside(node: Node, resolution: Vector2i, context: S
 			var control := child as Control
 			if control.visible:
 				_check_rect_inside(control, resolution, "%s child %s" % [context, child.name])
+				if control is ScrollContainer:
+					continue
 				_check_visible_children_inside(child, resolution, context)
 		else:
 			_check_visible_children_inside(child, resolution, context)

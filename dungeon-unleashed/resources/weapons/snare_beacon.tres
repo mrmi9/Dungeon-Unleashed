@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"snare_beacon"
+display_name = "Snare Beacon"
+description = "Deploys a slowing field that chips enemies over time."
+rarity = "rare"
+weapon_class = "staff"
+recommended_range = "mid"
+drop_weight = 0.66
+content_role = "deployable control field"
+damage = 1
+fire_rate = 1.5
+projectile_speed = 0.0
+projectile_range = 560.0
+projectile_count = 1
+spread_angle = 0.0
+fire_mode = "deployable"
+energy_cost = 2
+magazine_size = 7
+reload_duration = 1.15
+knockback = 45.0
+crit_chance = 0.03
+crit_multiplier = 1.8
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+status_effect = "slow"
+status_chance = 1.0
+status_duration = 0.8
+status_slow_multiplier = 0.55
+deployable_behavior = "field"
+deployable_duration = 3.4
+deployable_radius = 92.0
+deployable_tick_interval = 0.55
+deployable_arming_time = 0.0
+deployable_damage_multiplier = 1.0
+aim_assist_priority = 0.9
+icon_key = "weapon_snare_beacon"
+fire_sfx_key = "deploy_beacon"
+projectile_vfx_key = "snare_field"
+tags = PackedStringArray("deployable", "trap", "control", "status", "slow")

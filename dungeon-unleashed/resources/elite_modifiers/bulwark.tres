@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EliteModifierData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/EliteModifierData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"bulwark"
+display_name = "Bulwark"
+name_prefix = "Bulwark"
+description = "Durable elite whose guarded core reduces incoming damage, balanced by slower movement."
+role_tags = PackedStringArray("tank", "attrition")
+health_multiplier = 2.15
+damage_multiplier = 1.1
+move_speed_multiplier = 0.82
+attack_cooldown_multiplier = 1.05
+projectile_speed_multiplier = 1.0
+death_explosion_radius = 0.0
+death_explosion_damage = 0
+visual_color = Color(0.32, 0.66, 1, 1)
+visual_pattern = "shield"
+aura_radius = 34.0
+pulse_speed = 1.4
+combat_trait = "guarded_core"
+trait_interval = 0.0
+trait_windup = 0.5
+trait_duration = 0.0
+trait_radius = 90.0
+trait_strength = 0.68
+scale_multiplier = 1.26

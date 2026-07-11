@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"parry_grip"
+display_name = "Parry Grip"
+description = "Increase melee projectile block radius by 24."
+rarity = "common"
+trigger_event = "passive"
+effect_type = "projectile_block_radius_bonus"
+effect_value = 24.0
+drop_weight = 0.88
+description_value_template = "+24 block radius"
+stackable = true
+max_stacks = 3
+build_tags = PackedStringArray("melee", "guard")
+tags = PackedStringArray("guard", "melee")

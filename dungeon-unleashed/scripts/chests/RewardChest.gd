@@ -7,11 +7,45 @@ class_name RewardChest
 @export var gold_min: int = 8
 @export var gold_max: int = 16
 @export var heal_amount: int = 2
+@export var biome_id: String = "prototype_depths"
+@export var biome_name: String = "Prototype Depths"
+@export var biome_reward_weight_multiplier: float = 1.0
 @export var relic_pool: Array[Resource] = [
 	preload("res://resources/relics/sharp_rounds.tres"),
 	preload("res://resources/relics/quick_trigger.tres"),
 	preload("res://resources/relics/split_chamber.tres"),
 	preload("res://resources/relics/phase_tip.tres"),
+	preload("res://resources/relics/keen_sights.tres"),
+	preload("res://resources/relics/hollow_needle.tres"),
+	preload("res://resources/relics/momentum_coil.tres"),
+	preload("res://resources/relics/field_rations.tres"),
+	preload("res://resources/relics/steady_capacitor.tres"),
+	preload("res://resources/relics/gilded_tip.tres"),
+	preload("res://resources/relics/echo_chamber.tres"),
+	preload("res://resources/relics/breakwater_guard.tres"),
+	preload("res://resources/relics/siphon_clasp.tres"),
+	preload("res://resources/relics/kinetic_ram.tres"),
+	preload("res://resources/relics/volatile_oil.tres"),
+	preload("res://resources/relics/ember_catalyst.tres"),
+	preload("res://resources/relics/lingering_ash.tres"),
+	preload("res://resources/relics/parry_grip.tres"),
+	preload("res://resources/relics/warding_hinge.tres"),
+	preload("res://resources/relics/counterweight_core.tres"),
+	preload("res://resources/relics/draw_weight.tres"),
+	preload("res://resources/relics/quick_windup.tres"),
+	preload("res://resources/relics/stored_spark.tres"),
+	preload("res://resources/relics/tripwire_amplifier.tres"),
+	preload("res://resources/relics/anchor_spool.tres"),
+	preload("res://resources/relics/ricochet_gyro.tres"),
+	preload("res://resources/relics/blast_radius_gauge.tres"),
+	preload("res://resources/relics/kinetic_bridle.tres"),
+	preload("res://resources/relics/reserve_drum.tres"),
+	preload("res://resources/relics/flux_reservoir.tres"),
+	preload("res://resources/relics/tracking_vane.tres"),
+	preload("res://resources/relics/longview_array.tres"),
+	preload("res://resources/relics/forked_bus.tres"),
+	preload("res://resources/relics/conduction_mesh.tres"),
+	preload("res://resources/relics/stormglass_filament.tres"),
 ]
 @export var weapon_pool: Array[Resource] = [
 	preload("res://resources/weapons/ricochet_blaster.tres"),
@@ -21,6 +55,38 @@ class_name RewardChest
 	preload("res://resources/weapons/nova_core.tres"),
 	preload("res://resources/weapons/blast_launcher.tres"),
 	preload("res://resources/weapons/laser_lance.tres"),
+	preload("res://resources/weapons/coil_carbine.tres"),
+	preload("res://resources/weapons/shatter_fan.tres"),
+	preload("res://resources/weapons/rift_spear.tres"),
+	preload("res://resources/weapons/orbit_sower.tres"),
+	preload("res://resources/weapons/pulse_needler.tres"),
+	preload("res://resources/weapons/cinder_mortar.tres"),
+	preload("res://resources/weapons/mirror_sickle.tres"),
+	preload("res://resources/weapons/storm_fan.tres"),
+	preload("res://resources/weapons/prism_ray.tres"),
+	preload("res://resources/weapons/halo_kernel.tres"),
+	preload("res://resources/weapons/ember_sprayer.tres"),
+	preload("res://resources/weapons/frost_sickle.tres"),
+	preload("res://resources/weapons/slag_comet.tres"),
+	preload("res://resources/weapons/guard_cleaver.tres"),
+	preload("res://resources/weapons/riposte_saber.tres"),
+	preload("res://resources/weapons/bulwark_fan.tres"),
+	preload("res://resources/weapons/coil_bow.tres"),
+	preload("res://resources/weapons/storm_capacitor.tres"),
+	preload("res://resources/weapons/vault_lance.tres"),
+	preload("res://resources/weapons/snare_beacon.tres"),
+	preload("res://resources/weapons/ember_mine.tres"),
+	preload("res://resources/weapons/sentry_seed.tres"),
+	preload("res://resources/weapons/quench_repeater.tres"),
+	preload("res://resources/weapons/furnace_scattergun.tres"),
+	preload("res://resources/weapons/bastion_saw.tres"),
+	preload("res://resources/weapons/rift_bloom.tres"),
+	preload("res://resources/weapons/thunder_nest.tres"),
+	preload("res://resources/weapons/compass_needle.tres"),
+	preload("res://resources/weapons/relay_arc.tres"),
+	preload("res://resources/weapons/lantern_swarm.tres"),
+	preload("res://resources/weapons/undertow_volley.tres"),
+	preload("res://resources/weapons/stormglass_rail.tres"),
 ]
 @export var complete_run_on_open: bool = false
 
@@ -71,6 +137,14 @@ func get_chest_type() -> String:
 	return chest_type
 
 
+func get_biome_reward_summary() -> Dictionary:
+	return {
+		"biome_id": biome_id,
+		"biome_name": biome_name,
+		"reward_weight_multiplier": biome_reward_weight_multiplier,
+	}
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _nearby_player == null or _opened:
 		return
@@ -102,7 +176,7 @@ func _apply_drop(kind: String, player: Node) -> void:
 			_grant_relic()
 		"weapon":
 			if player.has_method("buy_weapon"):
-				player.call("buy_weapon", _pick_resource(weapon_pool))
+				player.call("buy_weapon", _pick_resource(weapon_pool, biome_reward_weight_multiplier))
 		_:
 			if player.has_method("add_gold"):
 				player.call("add_gold", _roll_gold())
@@ -115,11 +189,11 @@ func _grant_relic() -> void:
 
 	if relic_system.has_method("choose_reward_relic"):
 		var source := _get_relic_source_name()
-		var source_relic: Resource = relic_system.call("choose_reward_relic", source)
+		var source_relic: Resource = relic_system.call("choose_reward_relic", source, biome_reward_weight_multiplier)
 		if source_relic != null and bool(relic_system.call("obtain_relic", source_relic)):
 			return
 
-	var relic := _pick_resource(relic_pool)
+	var relic := _pick_resource(relic_pool, biome_reward_weight_multiplier)
 	if relic != null:
 		relic_system.call("obtain_relic", relic)
 
@@ -137,17 +211,55 @@ func _pick_drop_kind(index: int) -> String:
 func _roll_gold() -> int:
 	var low := mini(gold_min, gold_max)
 	var high := maxi(gold_min, gold_max)
-	return _rng.randi_range(low, high)
+	return maxi(1, roundi(float(_rng.randi_range(low, high)) * _get_reward_value_multiplier()))
 
 
-func _pick_resource(pool: Array[Resource]) -> Resource:
+func _pick_resource(pool: Array[Resource], weight_multiplier: float = 1.0) -> Resource:
 	var candidates: Array[Resource] = []
 	for resource in pool:
 		if resource != null:
 			candidates.append(resource)
 	if candidates.is_empty():
 		return null
-	return candidates[_rng.randi_range(0, candidates.size() - 1)]
+
+	var total_weight := 0.0
+	for resource in candidates:
+		total_weight += _get_resource_weight(resource, weight_multiplier)
+	if total_weight <= 0.0:
+		return candidates[_rng.randi_range(0, candidates.size() - 1)]
+
+	var roll := _rng.randf_range(0.0, total_weight)
+	for resource in candidates:
+		roll -= _get_resource_weight(resource, weight_multiplier)
+		if roll <= 0.0:
+			return resource
+	return candidates[candidates.size() - 1]
+
+
+func _get_resource_weight(resource: Resource, weight_multiplier: float = 1.0) -> float:
+	if resource == null:
+		return 0.0
+	var drop_weight := 1.0
+	var drop_weight_value = resource.get("drop_weight")
+	if drop_weight_value != null:
+		drop_weight = float(drop_weight_value)
+	return maxf(drop_weight, 0.0) * _get_rarity_multiplier(str(resource.get("rarity")), weight_multiplier)
+
+
+func _get_rarity_multiplier(rarity: String, weight_multiplier: float) -> float:
+	var multiplier := maxf(weight_multiplier, 0.0)
+	match rarity:
+		"rare":
+			return multiplier
+		"epic":
+			return multiplier * multiplier
+		"legendary":
+			return multiplier * multiplier * multiplier
+	return 1.0
+
+
+func _get_reward_value_multiplier() -> float:
+	return maxf(biome_reward_weight_multiplier, 0.1)
 
 
 func _set_collision_enabled(enabled: bool) -> void:

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="PlayerCharacterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/PlayerCharacterData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rift_runner"
+display_name = "Rift Runner"
+description = "Fast skirmisher with low armor and high repositioning uptime."
+sort_order = 3
+unlock_condition = "currency"
+meta_currency_unlock_cost = 10
+starting_weapon_ids = PackedStringArray("basic_pistol", "ricochet_blaster", "arc_blade")
+passive_id = "phase_footing"
+passive_description = "High speed rewards short trades, but low armor makes mistakes costly."
+role_tags = PackedStringArray("mobility", "skirmisher", "unlockable")
+hall_summary = "Unlockable mobility specialist for players who weave through projectile pressure."
+upgrade_slots = 3
+mastery_level_2_xp = 45
+mastery_level_3_xp = 110
+max_health = 5
+max_armor = 3
+max_energy = 130
+move_speed = 292.0
+skill_id = "dash"
+skill_name = "Rift Step"
+skill_description = "Sharp evasive burst with brief invulnerability."
+skill_cooldown = 6.5
+skill_duration = 0.9
+skill_energy_cost = 10
+skill_power = 0.85

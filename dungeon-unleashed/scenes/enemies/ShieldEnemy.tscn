@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="1"]
+[ext_resource type="Texture2D" path="res://art/enemies/shield_sentinel_action_atlas.svg" id="2"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_shield"]
 radius = 19.0
@@ -14,16 +15,30 @@ behavior_type = 5
 max_health = 5
 move_speed = 76.0
 contact_damage = 1
+attack_cooldown = 2.1
 shield_front_arc_degrees = 125.0
 shield_front_damage_multiplier = 0.2
+shield_bash_range = 100.0
+shield_bash_speed = 290.0
+shield_bash_windup = 0.36
+shield_bash_duration = 0.22
+shield_bash_recover = 0.44
 
 [node name="Visual" type="Polygon2D" parent="."]
+visible = false
 color = Color(0.18, 0.45, 1, 1)
 polygon = PackedVector2Array(18, 0, 6, -18, -15, -13, -20, 0, -15, 13, 6, 18)
 
 [node name="ShieldVisual" type="Polygon2D" parent="."]
+visible = false
 color = Color(0.55, 0.8, 1, 0.82)
 polygon = PackedVector2Array(10, -22, 30, -12, 30, 12, 10, 22)
+
+[node name="ActionSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("2")
+hframes = 2
+vframes = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_shield")

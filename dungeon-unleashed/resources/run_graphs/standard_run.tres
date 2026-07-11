@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RunGraphData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/RunGraphData.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/biomes/outer_warrens.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/biomes/iron_catacombs.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/biomes/void_foundry.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = &"standard_three_biome_run"
+display_name = "Standard Three-Biome Run"
+generation_seed = 0
+biome_sequence = Array[Resource]([ExtResource("2"), ExtResource("3"), ExtResource("4")])
+rooms_per_biome_min = 7
+rooms_per_biome_max = 9
+branch_rooms_per_biome_min = 5
+branch_rooms_per_biome_max = 6
+required_room_types = PackedStringArray("start", "event", "challenge", "trap", "shop", "elite", "boss", "armory", "healing")
+allow_seed_replay = true

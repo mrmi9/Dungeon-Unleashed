@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"anchor_spool"
+display_name = "Anchor Spool"
+description = "Deployable weapons last 30% longer."
+rarity = "common"
+trigger_event = "passive"
+effect_type = "deployable_duration_multiplier"
+effect_value = 0.3
+drop_weight = 0.82
+description_value_template = "+30% deployable duration"
+stackable = true
+max_stacks = 3
+build_tags = PackedStringArray("deployable", "control")
+tags = PackedStringArray("deployable", "duration")

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StatueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/StatueData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bulwark_idol"
+display_name = "Bulwark Idol"
+description = "Skill-linked statue that restores a small amount of armor whenever a skill is used."
+rarity = "common"
+icon_key = "statue_bulwark_idol"
+duration_scope = "run"
+trigger_event = "on_skill_used"
+trigger_interval = 1
+effect_type = "gain_shield"
+effect_value = 1.0
+effect_duration = 0.0
+drop_weight = 1.0
+build_tags = PackedStringArray("armor", "skill", "survival")
+conflict_tags = PackedStringArray()
+rule_text = "Run rule: gain 1 Armor whenever your character skill is used."

@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"frost_sickle"
+display_name = "Frost Sickle"
+description = "A close-range sweep that can slow enemies caught in its arc."
+rarity = "rare"
+weapon_class = "melee"
+recommended_range = "close"
+drop_weight = 0.65
+content_role = "melee slow control"
+damage = 2
+fire_rate = 4.3
+projectile_speed = 0.0
+projectile_range = 124.0
+projectile_count = 1
+spread_angle = 135.0
+fire_mode = "melee"
+energy_cost = 1
+magazine_size = 14
+reload_duration = 0.85
+knockback = 120.0
+crit_chance = 0.07
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+status_effect = "slow"
+status_chance = 0.68
+status_duration = 2.2
+status_damage_per_tick = 0
+status_tick_interval = 1.0
+status_slow_multiplier = 0.55
+aim_assist_priority = 0.8
+icon_key = "weapon_frost_sickle"
+fire_sfx_key = "frost_swing"
+projectile_vfx_key = "frost_arc"
+tags = PackedStringArray("melee", "slow", "crowd_control")

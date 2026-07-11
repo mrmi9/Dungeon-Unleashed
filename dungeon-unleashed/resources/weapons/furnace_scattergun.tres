@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"furnace_scattergun"
+display_name = "Furnace Scattergun"
+description = "Fans burning fragments across close targets and crowded doorways."
+rarity = "rare"
+weapon_class = "shotgun"
+recommended_range = "close"
+drop_weight = 0.62
+content_role = "close elemental burst spread"
+damage = 1
+fire_rate = 1.7
+projectile_speed = 640.0
+projectile_range = 500.0
+projectile_count = 6
+spread_angle = 32.0
+fire_mode = "projectile"
+energy_cost = 3
+magazine_size = 6
+reload_duration = 1.25
+knockback = 145.0
+crit_chance = 0.06
+crit_multiplier = 1.9
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+status_effect = "burn"
+status_chance = 0.42
+status_duration = 1.5
+status_damage_per_tick = 1
+status_tick_interval = 0.5
+aim_assist_priority = 0.72
+icon_key = "weapon_furnace_scattergun"
+fire_sfx_key = "furnace_scatter_fire"
+projectile_vfx_key = "furnace_fragment"
+tags = PackedStringArray("spread", "burn", "elemental")

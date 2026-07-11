@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"redline_boots"
+display_name = "Redline Boots"
+description = "After taking damage, move 50% faster for 3 seconds."
+rarity = "rare"
+trigger_event = "on_hurt"
+effect_type = "hurt_speed_boost"
+effect_value = 0.5
+effect_duration = 3.0
+drop_weight = 0.7
+description_value_template = "+50% move speed for 3s after hurt"
+stackable = false
+max_stacks = 1
+build_tags = PackedStringArray("speed", "low_health")
+tags = PackedStringArray("speed", "hurt")

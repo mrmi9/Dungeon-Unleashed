@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="BiomeData" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/BiomeData.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/ChaserEnemy.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/ShooterEnemy.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/BomberEnemy.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/WarrensGatekeeper.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/RustSkirmisher.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/EmberMarksman.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/NeedleSkater.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/SootSplitter.tscn" id="9"]
+[ext_resource type="Resource" path="res://resources/room_layouts/crossfire.tres" id="10"]
+[ext_resource type="Resource" path="res://resources/room_layouts/open_cross.tres" id="11"]
+[ext_resource type="Resource" path="res://resources/room_layouts/corner_nests.tres" id="12"]
+[ext_resource type="Resource" path="res://resources/room_layouts/wide_arena.tres" id="13"]
+
+[resource]
+script = ExtResource("1")
+id = &"outer_warrens"
+display_name = "Outer Warrens"
+description = "Opening biome focused on readable pursuit, simple crossfire, and early build setup."
+biome_index = 1
+room_count_min = 7
+room_count_max = 9
+branch_count_min = 6
+branch_count_max = 6
+layout_pool = Array[Resource]([ExtResource("10"), ExtResource("11"), ExtResource("12"), ExtResource("13")])
+enemy_pool = Array[PackedScene]([ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9")])
+boss_scene = ExtResource("5")
+music_key = "biome_outer_warrens"
+color_key = "warrens"
+visual_floor_tint = Color(0.085, 0.125, 0.105, 1)
+visual_floor_texture_path = "res://art/terrain/outer_warrens_floor.png"
+visual_floor_texture_modulate = Color(0.88, 0.96, 0.9, 1)
+visual_floor_texture_opacity = 0.82
+visual_wall_color = Color(0.16, 0.24, 0.19, 1)
+visual_obstacle_tint = Color(0.22, 0.31, 0.22, 1)
+visual_surface_atlas_path = "res://art/terrain/outer_warrens_surface_atlas.svg"
+visual_wall_texture_modulate = Color(0.9, 1, 0.92, 1)
+visual_wall_texture_opacity = 0.92
+visual_obstacle_texture_modulate = Color(0.92, 1, 0.9, 1)
+visual_obstacle_texture_opacity = 0.94
+visual_accent_color = Color(0.84, 0.62, 0.3, 1)
+visual_tint_strength = 0.35
+reward_weight_multiplier = 1.0

@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ember_sprayer"
+display_name = "Ember Sprayer"
+description = "Fans short-range embers that can burn enemies after impact."
+rarity = "rare"
+weapon_class = "staff"
+recommended_range = "close"
+drop_weight = 0.62
+content_role = "elemental burn spread"
+damage = 1
+fire_rate = 3.0
+projectile_speed = 620.0
+projectile_range = 520.0
+projectile_count = 5
+spread_angle = 46.0
+fire_mode = "projectile"
+energy_cost = 3
+magazine_size = 8
+reload_duration = 1.35
+knockback = 70.0
+crit_chance = 0.06
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+status_effect = "burn"
+status_chance = 0.42
+status_duration = 3.0
+status_damage_per_tick = 1
+status_tick_interval = 1.0
+status_slow_multiplier = 1.0
+aim_assist_priority = 0.9
+icon_key = "weapon_ember_sprayer"
+fire_sfx_key = "ember_spray"
+projectile_vfx_key = "ember_spark"
+tags = PackedStringArray("elemental", "burn", "spread")

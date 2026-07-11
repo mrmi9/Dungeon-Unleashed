@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EliteModifierData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/EliteModifierData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"blazing"
+display_name = "Blazing"
+name_prefix = "Blazing"
+description = "Aggressive elite that periodically telegraphs a damaging scorch pulse and leaves a small death blast."
+role_tags = PackedStringArray("damage", "death_pressure")
+health_multiplier = 1.45
+damage_multiplier = 1.35
+move_speed_multiplier = 1.05
+attack_cooldown_multiplier = 0.9
+projectile_speed_multiplier = 1.1
+death_explosion_radius = 116.0
+death_explosion_damage = 1
+visual_color = Color(1, 0.42, 0.16, 1)
+visual_pattern = "flame"
+aura_radius = 31.0
+pulse_speed = 3.0
+combat_trait = "scorch_pulse"
+trait_interval = 3.6
+trait_windup = 0.55
+trait_duration = 0.0
+trait_radius = 92.0
+trait_strength = 1.0
+scale_multiplier = 1.16

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ContentIconDefinitionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/ContentIconDefinitionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+icon_key = "relic_stormglass_filament"
+content_type = "relic"
+token = "REL"
+placeholder_color = Color(0.78, 0.56, 1, 1)
+accessibility_label = "Stormglass Filament icon"
+texture_path = "res://art/ui/content_icons/stormglass_filament.svg"
+atlas_region = Rect2i(0, 0, 0, 0)

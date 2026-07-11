@@ -1,0 +1,42 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/RustSkirmisher.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://art/enemies/rift_summoner_action_atlas.svg" id="3"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_rift_caller"]
+radius = 19.0
+
+[node name="RiftCaller" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1")
+display_name = "Rift Caller"
+behavior_type = 4
+max_health = 5
+move_speed = 58.0
+contact_damage = 1
+attack_cooldown = 3.6
+preferred_range = 330.0
+summon_scene = ExtResource("2")
+summon_count = 2
+summon_spacing = 58.0
+max_active_summons = 3
+min_summon_distance_from_player = 170.0
+utility_action_windup = 0.72
+summon_warning_radius = 34.0
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.55, 0.38, 1, 1)
+polygon = PackedVector2Array(0, -25, 19, -10, 14, 18, -14, 18, -19, -10)
+
+[node name="ActionSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+modulate = Color(0.82, 0.72, 1, 1)
+texture = ExtResource("3")
+hframes = 2
+vframes = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_rift_caller")

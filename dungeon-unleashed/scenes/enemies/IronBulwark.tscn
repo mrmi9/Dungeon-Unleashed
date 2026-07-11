@@ -1,0 +1,60 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/BossEnemy.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/ShieldEnemy.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://art/enemies/iron_bulwark_action_atlas.png" id="3_boss_action"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_iron_bulwark"]
+radius = 40.0
+
+[node name="IronBulwark" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1")
+display_name = "Iron Bulwark"
+source_id = &"iron_bulwark"
+max_health = 58
+move_speed = 64.0
+attack_cooldown = 1.68
+attack_windup = 0.42
+phase_transition_warning_radius = 315.0
+preferred_range = 260.0
+projectile_speed = 300.0
+radial_projectile_count = 14
+volley_projectile_count = 3
+volley_spread_degrees = 28.0
+summon_scene = ExtResource("2")
+summon_count = 1
+max_active_summons = 3
+summon_spacing = 92.0
+signature_attack = "bastion_lock"
+signature_windup = 0.62
+signature_projectile_count = 8
+signature_radius = 220.0
+signature_guard_duration = 1.8
+signature_guard_damage_multiplier = 0.45
+phase_two_attack = "iron_quake"
+phase_two_attack_windup = 0.68
+phase_two_attack_projectile_count = 10
+phase_two_attack_radius = 260.0
+phase_two_attack_range = 520.0
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.47, 0.52, 0.58, 1)
+polygon = PackedVector2Array(46, 0, 28, -34, -8, -42, -42, -18, -40, 24, -6, 44, 32, 30)
+
+[node name="Core" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.88, 0.33, 0.18, 1)
+polygon = PackedVector2Array(20, 0, 7, -15, -13, -11, -18, 9, 5, 17)
+
+[node name="ActionSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("3_boss_action")
+hframes = 2
+vframes = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_iron_bulwark")

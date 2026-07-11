@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lantern_swarm"
+display_name = "Lantern Swarm"
+description = "Releases a ring of slow sparks that curve back into nearby threats."
+rarity = "epic"
+weapon_class = "core"
+recommended_range = "all"
+drop_weight = 0.38
+content_role = "high-energy radial homing crowd clear"
+damage = 1
+fire_rate = 0.8
+projectile_speed = 460.0
+projectile_range = 480.0
+projectile_count = 6
+spread_angle = 0.0
+fire_mode = "radial"
+energy_cost = 8
+magazine_size = 4
+reload_duration = 1.8
+knockback = 70.0
+crit_chance = 0.05
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+homing_turn_rate = 180.0
+homing_radius = 340.0
+chain_count = 0
+chain_radius = 0.0
+aim_assist_priority = 0.8
+icon_key = "weapon_lantern_swarm"
+fire_sfx_key = "lantern_swarm_fire"
+projectile_vfx_key = "lantern_spark"
+tags = PackedStringArray("radial", "homing", "crowd")

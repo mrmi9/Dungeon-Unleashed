@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="PlayerCharacterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/PlayerCharacterData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"emberwright"
+display_name = "Emberwright"
+description = "Volatile damage specialist that rewards clean burst windows."
+sort_order = 4
+unlock_condition = "currency"
+meta_currency_unlock_cost = 18
+starting_weapon_ids = PackedStringArray("basic_pistol", "blast_launcher", "coil_carbine")
+passive_id = "volatile_focus"
+passive_description = "Strong burst windows pair well with explosive and precision weapons."
+role_tags = PackedStringArray("damage", "burst", "unlockable")
+hall_summary = "Unlockable burst specialist for players who want short high-damage windows."
+upgrade_slots = 3
+mastery_level_2_xp = 50
+mastery_level_3_xp = 125
+max_health = 5
+max_armor = 5
+max_energy = 135
+move_speed = 250.0
+skill_id = "overdrive"
+skill_name = "Overdrive Spark"
+skill_description = "Briefly increases weapon damage and fire rate."
+skill_cooldown = 10.5
+skill_duration = 3.0
+skill_energy_cost = 18
+skill_power = 0.3

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StatueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/StatueData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cinder_focus"
+display_name = "Cinder Focus"
+description = "Skill-linked statue that briefly increases weapon damage after using a skill."
+rarity = "rare"
+icon_key = "statue_cinder_focus"
+duration_scope = "run"
+trigger_event = "on_skill_used"
+trigger_interval = 1
+effect_type = "temporary_combat_rule"
+effect_value = 0.14
+effect_duration = 5.0
+drop_weight = 0.8
+build_tags = PackedStringArray("damage", "skill", "burst")
+conflict_tags = PackedStringArray()
+rule_text = "Run rule: using a character skill grants +14% weapon damage for 5 seconds."

@@ -15,6 +15,9 @@ func _run() -> void:
 	get_tree().root.add_child(main)
 
 	await get_tree().process_frame
+	if main.has_method("reset_run_records_for_test"):
+		main.call("reset_run_records_for_test")
+		await get_tree().process_frame
 	var hud = main.get_node_or_null("CanvasLayer/HUD")
 	var player := main.get_node_or_null("Player") as Player
 	_expect(hud != null, "HUD should exist")
@@ -90,20 +93,93 @@ func _run() -> void:
 	if hud != null and hud.has_method("is_pause_menu_visible"):
 		_expect(not bool(hud.call("is_pause_menu_visible")), "resume_run should hide pause menu")
 
+	var lethal_source := Node.new()
+	lethal_source.name = "Debug Spike"
+	lethal_source.add_to_group("enemies")
+	main.add_child(lethal_source)
 	if player != null:
 		player.set("_invulnerability_timer", 0.0)
-		player.call("take_damage", 9999, null)
+		player.call("take_damage", 9999, lethal_source)
 	await get_tree().process_frame
 	_expect(str(main.call("get_run_state_name")) == "Defeated", "Player death should enter defeated state")
 	_expect(get_tree().paused, "Player death should pause the tree")
 	var defeat_summary: Dictionary = main.call("get_run_summary")
 	_expect(int(defeat_summary.get("dungeon_seed", 0)) == 24680, "Run summary should include the active dungeon seed")
+	var defeat_position: Dictionary = defeat_summary.get("run_position", {})
+	var last_damage: Dictionary = defeat_summary.get("last_damage", {})
+	var defeat_cause: Dictionary = defeat_summary.get("defeat_cause", {})
+	_expect(str(defeat_summary.get("run_position_text", "")).contains("L1"), "Defeat summary should include the reached layer in the run position")
+	_expect(str(defeat_position.get("room_id", "")).length() > 0, "Defeat summary should record the current room id")
+	_expect(str(defeat_position.get("state", "")) == "Current", "Defeat summary should record the current room state")
+	_expect(str(last_damage.get("source_name", "")) == "Debug Spike", "Defeat summary should record the last damage source name")
+	_expect(str(last_damage.get("source_id", "")) == "debug_spike", "Defeat summary should record a stable last damage source id")
+	_expect(str(last_damage.get("source_room_type", "")).is_empty(), "Plain enemy damage should not invent room context")
+	_expect(str(defeat_summary.get("last_damage_text", "")).contains("Debug Spike"), "Defeat summary should expose readable last damage text")
+	_expect(str(defeat_cause.get("category", "")) == "Enemy", "Defeat cause should classify enemy damage")
+	_expect(str(defeat_cause.get("source_id", "")) == "debug_spike", "Defeat cause should preserve the stable source id")
+	_expect(str(defeat_cause.get("source_name", "")) == "Debug Spike", "Defeat cause should include the last hit source")
+	_expect(str(defeat_cause.get("source_room_type", "")).is_empty(), "Plain enemy defeat cause should not invent room context")
+	_expect(str(defeat_summary.get("defeat_cause_text", "")).contains("Enemy Debug Spike"), "Defeat summary should expose readable defeat cause")
+	var last_defeat: Dictionary = main.call("get_last_defeat_summary")
+	_expect(bool(last_defeat.get("has_record", false)), "Last defeat archive should record the current defeat")
+	_expect(str(last_defeat.get("source_id", "")) == "debug_spike", "Last defeat archive should persist the source id")
+	_expect(str(last_defeat.get("text", "")).contains("Enemy Debug Spike"), "Last defeat archive should persist readable defeat text")
+	_expect(int(last_defeat.get("dungeon_seed", 0)) == 24680, "Last defeat archive should persist the run seed")
+	var defeat_sources: Array = main.call("get_defeat_source_summary")
+	_expect(defeat_sources.size() >= 1, "Defeat source archive should record at least one source")
+	if not defeat_sources.is_empty() and defeat_sources[0] is Dictionary:
+		var source_record := defeat_sources[0] as Dictionary
+		_expect(str(source_record.get("source_id", "")) == "debug_spike", "Defeat source archive should keep the source id")
+		_expect(int(source_record.get("count", 0)) == 1, "Defeat source archive should count the first death source")
+		_expect(str(source_record.get("source_room_type", "")).is_empty(), "Plain enemy source archive should not invent room context")
+	var defeat_source_types: Dictionary = main.call("get_defeat_source_type_summary")
+	_expect(int(defeat_source_types.get("enemy", 0)) == 1, "Defeat source type archive should count enemy deaths")
+	_expect(int(defeat_source_types.get("boss", 0)) == 0, "Defeat source type archive should keep boss deaths separate")
 	if hud != null and hud.has_method("is_result_visible"):
 		_expect(bool(hud.call("is_result_visible")), "Player death should show result panel")
 		_expect(str(hud.call("get_result_title_text")) == "Run Failed", "Death result title should be Run Failed")
+		_expect(str(hud.call("get_result_summary_text")).contains("Defeat Point:"), "Death result summary should show the defeat point")
+		_expect(str(hud.call("get_result_summary_text")).contains("Last Hit: Debug Spike"), "Death result summary should show the last damage source")
+		_expect(str(hud.call("get_result_summary_text")).contains("Defeat Cause: Enemy Debug Spike"), "Death result summary should show the defeat cause")
+		_expect(str(hud.call("get_result_section_text", "Overview")).contains("Defeat Point"), "Death result overview should show the defeat point")
+		_expect(str(hud.call("get_result_section_text", "Overview")).contains(str(defeat_position.get("room_id", ""))), "Death result overview should include the defeat room id")
+		_expect(str(hud.call("get_result_section_text", "Overview")).contains("Last Hit Debug Spike"), "Death result overview should include the last damage source")
+		_expect(str(hud.call("get_result_section_text", "Overview")).contains("Defeat Cause Enemy Debug Spike"), "Death result overview should include the defeat cause")
 
 	get_tree().paused = false
 	main.queue_free()
+	await get_tree().process_frame
+
+	var reloaded_defeat_main := MAIN_SCENE.instantiate()
+	get_tree().root.add_child(reloaded_defeat_main)
+	await get_tree().process_frame
+	var reloaded_defeat_hud = reloaded_defeat_main.get_node_or_null("CanvasLayer/HUD")
+	var reloaded_last_defeat: Dictionary = reloaded_defeat_main.call("get_last_defeat_summary")
+	_expect(str(reloaded_last_defeat.get("source_id", "")) == "debug_spike", "Reloaded main should read the saved last defeat source id")
+	_expect(str(reloaded_last_defeat.get("text", "")).contains("Enemy Debug Spike"), "Reloaded main should read the saved last defeat text")
+	var reloaded_defeat_sources: Array = reloaded_defeat_main.call("get_defeat_source_summary")
+	_expect(reloaded_defeat_sources.size() >= 1, "Reloaded main should read saved defeat source records")
+	if not reloaded_defeat_sources.is_empty() and reloaded_defeat_sources[0] is Dictionary:
+		var reloaded_source_record := reloaded_defeat_sources[0] as Dictionary
+		_expect(str(reloaded_source_record.get("source_id", "")) == "debug_spike", "Reloaded defeat source archive should keep the source id")
+		_expect(int(reloaded_source_record.get("count", 0)) == 1, "Reloaded defeat source archive should keep the source count")
+		_expect(str(reloaded_source_record.get("source_room_type", "")).is_empty(), "Reloaded plain enemy source archive should not invent room context")
+	var reloaded_defeat_source_types: Dictionary = reloaded_defeat_main.call("get_defeat_source_type_summary")
+	_expect(int(reloaded_defeat_source_types.get("enemy", 0)) == 1, "Reloaded defeat source type archive should keep enemy deaths")
+	reloaded_defeat_main.call("open_hall_menu")
+	await get_tree().process_frame
+	if reloaded_defeat_hud != null:
+		var reloaded_hall_text := str(reloaded_defeat_hud.call("get_hall_summary_text"))
+		_expect(reloaded_hall_text.contains("Last Defeat:"), "Hall archive should show the last defeat section")
+		_expect(reloaded_hall_text.contains("Enemy Debug Spike"), "Hall archive should show the last defeat text")
+		_expect(reloaded_hall_text.contains("Source debug_spike"), "Hall archive should show the last defeat source id")
+		_expect(reloaded_hall_text.contains("Seed 24680"), "Hall archive should show the last defeat seed")
+		_expect(reloaded_hall_text.contains("Death Types: Enemy 1"), "Hall archive should show defeat source type counts")
+		_expect(reloaded_hall_text.contains("Death Sources"), "Hall archive should show defeat source rankings")
+		_expect(reloaded_hall_text.contains("debug_spike x1"), "Hall archive should show the defeat source count")
+		_expect(reloaded_hall_text.contains("Type enemy"), "Hall archive should show the defeat source type")
+	get_tree().paused = false
+	reloaded_defeat_main.queue_free()
 	await get_tree().process_frame
 
 	var victory_main := MAIN_SCENE.instantiate()

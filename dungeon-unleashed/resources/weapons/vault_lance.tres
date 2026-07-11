@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"vault_lance"
+display_name = "Vault Lance"
+description = "A deliberate charged beam that punches through long lanes."
+rarity = "legendary"
+weapon_class = "laser"
+recommended_range = "long"
+drop_weight = 0.2
+content_role = "legendary charged lane clear"
+damage = 3
+fire_rate = 1.35
+projectile_speed = 1320.0
+projectile_range = 1100.0
+projectile_count = 1
+spread_angle = 0.0
+fire_mode = "charge"
+energy_cost = 5
+magazine_size = 5
+reload_duration = 1.45
+knockback = 150.0
+crit_chance = 0.14
+crit_multiplier = 2.4
+pierce_count = 4
+bounce_count = 0
+explosion_radius = 0.0
+charge_duration = 1.35
+charge_damage_multiplier = 3.0
+charge_projectile_speed_multiplier = 1.25
+charge_projectile_count_bonus = 0
+aim_assist_priority = 1.45
+icon_key = "weapon_vault_lance"
+fire_sfx_key = "vault_lance_fire"
+projectile_vfx_key = "vault_beam"
+tags = PackedStringArray("charge", "laser", "piercing")

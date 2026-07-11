@@ -2,6 +2,8 @@ extends Node
 
 const MAIN_SCENE := preload("res://scenes/main/Main.tscn")
 const BOSS_SCENE := preload("res://scenes/enemies/BossEnemy.tscn")
+const MIN_ROUTE_ROOMS := 39
+const MAX_ROUTE_ROOMS := 45
 
 var _failures: Array[String] = []
 
@@ -37,8 +39,8 @@ func _run() -> void:
 	await get_tree().create_timer(0.15).timeout
 
 	var rooms := _get_rooms(main)
-	_expect(rooms.size() >= 12 and rooms.size() <= 15, "Balance route should contain a variable 12-15 room route")
-	if rooms.size() < 12:
+	_expect(rooms.size() >= MIN_ROUTE_ROOMS and rooms.size() <= MAX_ROUTE_ROOMS, "Balance route should contain a three-biome 39-45 room route")
+	if rooms.size() < MIN_ROUTE_ROOMS:
 		_finish()
 		return
 
@@ -98,8 +100,10 @@ func _run() -> void:
 
 func _complete_pre_shop_room(room: Node, player: Player, hud: Node) -> void:
 	var room_type := str(room.get("room_type"))
-	if room_type in ["start", "combat", "elite"]:
+	if room_type in ["start", "combat", "elite", "challenge"]:
 		await _complete_combat_room(room, player, hud)
+	elif room_type == "trap":
+		await _complete_trap_room(room, player, hud)
 	elif room_type in ["reward", "armory", "healing"]:
 		await _claim_reward_room(room, player, hud)
 
@@ -116,6 +120,14 @@ func _complete_combat_room(room: Node, player: Player, hud: Node) -> void:
 
 func _claim_reward_room(room: Node, player: Player, hud: Node) -> void:
 	await _enter_room(room, player)
+	await _collect_reward_near((room as Node2D).global_position, player, hud, room)
+
+
+func _complete_trap_room(room: Node, player: Player, hud: Node) -> void:
+	await _enter_room(room, player)
+	player.global_position = (room as Node2D).global_position + Vector2(-520, -285)
+	await get_tree().create_timer(float(room.get("trap_survival_duration")) + 0.4).timeout
+	await get_tree().physics_frame
 	await _collect_reward_near((room as Node2D).global_position, player, hud, room)
 
 

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TalentData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/TalentData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "kinetic_rounds"
+display_name = "Kinetic Rounds"
+description = "Increase weapon damage for the rest of this run."
+rarity = "rare"
+duration_scope = "run"
+trigger_event = "passive"
+effect_type = "damage_multiplier"
+effect_value = 0.14
+drop_weight = 0.9
+build_tags = PackedStringArray("damage", "ranged")
+conflict_tags = PackedStringArray()

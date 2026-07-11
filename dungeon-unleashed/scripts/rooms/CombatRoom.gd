@@ -10,9 +10,18 @@ enum RoomState {
 }
 
 const DANGER_WARNING_SCENE := preload("res://scenes/effects/DangerWarning.tscn")
+const BIOME_SURFACE_VISUAL_SCRIPT := preload("res://scripts/rooms/BiomeSurfaceVisual.gd")
 const SAFE_PLAYER_SPAWN_DISTANCE := 180.0
 const SPAWN_STAGGER_RADIUS := 28.0
 const ROOM_SAFE_SPAWN_EXTENTS := Vector2(540, 300)
+const TRAP_HAZARD_POSITIONS := [
+	Vector2(-330, 0),
+	Vector2(0, -215),
+	Vector2(330, 0),
+	Vector2(0, 215),
+	Vector2(-210, -155),
+	Vector2(210, 155),
+]
 const BOSS_ARENA_HAZARD_POSITIONS := [
 	Vector2(-360, -220),
 	Vector2(360, -220),
@@ -23,7 +32,24 @@ const BOSS_ARENA_HAZARD_POSITIONS := [
 
 @export var enemy_scene: PackedScene = preload("res://scenes/enemies/Enemy.tscn")
 @export var room_type: String = "combat"
-@export_enum("training", "crossfire", "reward_cache", "shrine", "open_cross", "pillars", "market", "boss_arena") var layout_profile: String = "crossfire"
+@export var biome_id: String = "prototype_depths"
+@export var biome_name: String = "Prototype Depths"
+@export var biome_color_key: String = ""
+@export var biome_visual_floor_tint: Color = Color(0.095, 0.105, 0.12, 1.0)
+@export var biome_visual_floor_texture_path: String = ""
+@export var biome_visual_floor_texture_modulate: Color = Color.WHITE
+@export_range(0.0, 1.0, 0.01) var biome_visual_floor_texture_opacity: float = 0.8
+@export var biome_visual_wall_color: Color = Color(0.22, 0.24, 0.27, 1.0)
+@export var biome_visual_obstacle_tint: Color = Color(0.24, 0.26, 0.29, 1.0)
+@export var biome_visual_surface_atlas_path: String = ""
+@export var biome_visual_wall_texture_modulate: Color = Color.WHITE
+@export_range(0.0, 1.0, 0.01) var biome_visual_wall_texture_opacity: float = 0.9
+@export var biome_visual_obstacle_texture_modulate: Color = Color.WHITE
+@export_range(0.0, 1.0, 0.01) var biome_visual_obstacle_texture_opacity: float = 0.9
+@export var biome_visual_accent_color: Color = Color(0.74, 0.82, 0.94, 1.0)
+@export_range(0.0, 1.0, 0.01) var biome_visual_tint_strength: float = 0.0
+@export var biome_reward_weight_multiplier: float = 1.0
+@export_enum("training", "crossfire", "reward_cache", "shrine", "open_cross", "pillars", "market", "boss_arena", "gauntlet", "split_cover", "center_ring", "ambush_corners", "boss_cross", "box_maze", "bunker", "corner_nests", "crescent", "diagonal_blocks", "long_lane", "narrow_gap", "twin_islands", "wide_arena") var layout_profile: String = "crossfire"
 @export var layout_data: Resource
 @export var connected_directions: PackedStringArray = PackedStringArray(["west", "east"])
 @export var enemy_scenes: Array[PackedScene] = [
@@ -34,17 +60,31 @@ const BOSS_ARENA_HAZARD_POSITIONS := [
 @export var time_between_waves: float = 0.8
 @export var lock_doors_during_combat: bool = true
 @export var auto_clear_on_enter: bool = false
+@export_multiline var hazard_review_tip: String = ""
+@export_multiline var hazard_threat_intel: String = ""
+@export var hazard_counter_tags: PackedStringArray = []
+@export_enum("gauntlet", "hazard_rush") var challenge_variant: String = "gauntlet"
+@export var challenge_variant_label: String = "Elite Gauntlet"
 @export var elite_enemies: bool = false
 @export var elite_health_multiplier: float = 1.8
 @export var elite_damage_multiplier: float = 1.35
 @export var elite_death_explosion_radius: float = 120.0
 @export var elite_death_explosion_damage: int = 1
+@export var elite_modifier_profiles: Array[Resource] = []
+@export var trap_hazards_enabled: bool = true
+@export var trap_survival_duration: float = 2.4
+@export var trap_hazard_radius: float = 92.0
+@export var trap_hazard_warning_duration: float = 0.62
+@export var trap_hazard_interval: float = 0.72
+@export var trap_hazard_damage: int = 1
+@export var trap_hazard_cycle_size: int = 2
 @export var boss_arena_hazards_enabled: bool = true
 @export var boss_arena_hazard_radius: float = 104.0
 @export var boss_arena_hazard_warning_duration: float = 0.75
 @export var boss_arena_hazard_interval: float = 1.55
 @export var boss_arena_hazard_damage: int = 1
 @export var boss_arena_hazard_cycle_size: int = 2
+@export var complete_run_on_reward: bool = true
 
 @onready var entry_area: Area2D = $EntryArea
 @onready var enemy_spawns: Node2D = $EnemySpawns
@@ -58,6 +98,13 @@ var _living_enemies: Array[Node] = []
 var _reward_spawned := false
 var _spawned_reward: Node
 var _room_stopped := false
+var _trap_active := false
+var _trap_timer := 0.0
+var _trap_hazard_timer := 0.0
+var _trap_cycle_index := 0
+var _trap_warnings: Array[Node] = []
+var _challenge_hazards_active := false
+var _challenge_hazard_timer := 0.0
 var _boss_arena_active := false
 var _boss_arena_hazard_timer := 0.0
 var _boss_arena_cycle_index := 0
@@ -69,6 +116,8 @@ var _wave_transition_pending := false
 func _ready() -> void:
 	add_to_group("combat_rooms")
 	_apply_layout_profile()
+	_apply_biome_terrain_visual()
+	_apply_biome_wall_visuals()
 	_configure_directional_boundaries()
 	_doors = _get_doors()
 	entry_area.body_entered.connect(_on_entry_area_body_entered)
@@ -84,15 +133,22 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not _boss_arena_active or _room_stopped or state != RoomState.COMBAT:
+	if _room_stopped or state != RoomState.COMBAT:
 		return
 
-	_boss_arena_hazard_timer = maxf(_boss_arena_hazard_timer - delta, 0.0)
-	if _boss_arena_hazard_timer > 0.0:
-		return
+	if _trap_active:
+		_tick_trap_room(delta)
 
-	_spawn_boss_arena_hazard_cycle()
-	_boss_arena_hazard_timer = boss_arena_hazard_interval
+	if _challenge_hazards_active:
+		_tick_challenge_hazards(delta)
+
+	if _boss_arena_active:
+		_boss_arena_hazard_timer = maxf(_boss_arena_hazard_timer - delta, 0.0)
+		if _boss_arena_hazard_timer > 0.0:
+			return
+
+		_spawn_boss_arena_hazard_cycle()
+		_boss_arena_hazard_timer = boss_arena_hazard_interval
 
 
 func _physics_process(_delta: float) -> void:
@@ -115,6 +171,40 @@ func get_state_name() -> String:
 		RoomState.REWARD_CLAIMED:
 			return "Reward Claimed"
 	return "Unknown"
+
+
+func get_biome_visual_summary() -> Dictionary:
+	return {
+		"biome_id": biome_id,
+		"biome_name": biome_name,
+		"color_key": biome_color_key,
+		"floor_tint": biome_visual_floor_tint,
+		"floor_texture_path": biome_visual_floor_texture_path,
+		"floor_texture_modulate": biome_visual_floor_texture_modulate,
+		"floor_texture_opacity": biome_visual_floor_texture_opacity,
+		"terrain_layer": _get_terrain_layer_summary(),
+		"wall_color": biome_visual_wall_color,
+		"obstacle_tint": biome_visual_obstacle_tint,
+		"surface_atlas_path": biome_visual_surface_atlas_path,
+		"wall_texture_modulate": biome_visual_wall_texture_modulate,
+		"wall_texture_opacity": biome_visual_wall_texture_opacity,
+		"obstacle_texture_modulate": biome_visual_obstacle_texture_modulate,
+		"obstacle_texture_opacity": biome_visual_obstacle_texture_opacity,
+		"wall_surface": _get_first_wall_surface_summary(),
+		"obstacle_surface": _get_first_obstacle_surface_summary(),
+		"accent_color": biome_visual_accent_color,
+		"tint_strength": biome_visual_tint_strength,
+		"floor_color": _get_floor_color(),
+		"first_wall_color": _get_first_wall_color(),
+	}
+
+
+func get_biome_reward_summary() -> Dictionary:
+	return {
+		"biome_id": biome_id,
+		"biome_name": biome_name,
+		"reward_weight_multiplier": biome_reward_weight_multiplier,
+	}
 
 
 func get_living_enemy_count() -> int:
@@ -143,6 +233,108 @@ func get_boss_arena_marker_count() -> int:
 func get_boss_arena_warning_count() -> int:
 	_prune_boss_arena_warnings()
 	return _boss_arena_warnings.size()
+
+
+func get_trap_warning_count() -> int:
+	_prune_trap_warnings()
+	return _trap_warnings.size()
+
+
+func is_trap_active() -> bool:
+	return _trap_active
+
+
+func is_challenge_hazard_active() -> bool:
+	return _challenge_hazards_active
+
+
+func get_challenge_summary() -> Dictionary:
+	return {
+		"variant": challenge_variant,
+		"label": challenge_variant_label,
+		"hazards_active": _challenge_hazards_active,
+		"hazard_interval": trap_hazard_interval,
+		"hazard_cycle_size": trap_hazard_cycle_size,
+		"wave_counts": wave_enemy_counts,
+		"elite_enemies": elite_enemies,
+	}
+
+
+func get_damage_source_summary() -> Dictionary:
+	return {
+		"source_id": _get_hazard_source_id(),
+		"source_name": _get_hazard_source_name(),
+		"source_type": "hazard",
+		"source_scene": scene_file_path,
+		"room_type": room_type,
+		"biome_id": biome_id,
+		"biome_name": biome_name,
+		"layout_profile": layout_profile,
+		"source_review_tip": _get_hazard_review_tip(),
+		"source_threat_intel": _get_hazard_threat_intel(),
+		"source_counter_tags": _get_hazard_counter_tags(),
+	}
+
+
+func _get_hazard_source_id() -> String:
+	if _boss_arena_active or _is_boss_room():
+		return "boss_arena_hazard"
+	if _trap_active or _is_trap_room():
+		return "trap_room_hazard"
+	if _challenge_hazards_active or _is_challenge_hazard_variant():
+		return "challenge_room_hazard"
+	return "%s_hazard" % room_type.to_snake_case()
+
+
+func _get_hazard_source_name() -> String:
+	if _boss_arena_active or _is_boss_room():
+		return "Boss Arena Hazard"
+	if _trap_active or _is_trap_room():
+		return "Trap Room Hazard"
+	if _challenge_hazards_active or _is_challenge_hazard_variant():
+		return "Challenge Room Hazard"
+	return "%s Hazard" % room_type.capitalize()
+
+
+func _get_hazard_review_tip() -> String:
+	var configured_tip := hazard_review_tip.strip_edges()
+	if not configured_tip.is_empty():
+		return configured_tip
+	if _boss_arena_active or _is_boss_room():
+		return "Respect arena tells before chasing damage and keep armor for overlapping hazards."
+	if _trap_active or _is_trap_room():
+		return "Treat warning zones as lanes, keep one escape route open, and cross after the pulse."
+	if _challenge_hazards_active or _is_challenge_hazard_variant():
+		return "Clear the reward rule first, then avoid staying inside repeated warning zones."
+	return "Wait for readable hazard tells before committing to close-range damage."
+
+
+func _get_hazard_threat_intel() -> String:
+	var configured_intel := hazard_threat_intel.strip_edges()
+	if not configured_intel.is_empty():
+		return configured_intel
+	if _boss_arena_active or _is_boss_room():
+		return "Arena Hazard / Boss | Tell overlapping floor warnings | Counter save armor recovery | Codex death_source_boss_arena_hazard"
+	if _trap_active or _is_trap_room():
+		return "Room Hazard / Trap | Tell warning lanes | Counter cross after pulse | Codex death_source_trap_room_hazard"
+	if _challenge_hazards_active or _is_challenge_hazard_variant():
+		return "Room Hazard / Challenge | Tell challenge warning zones | Counter finish rule before greed | Codex death_source_challenge_room_hazard"
+	return "Room Hazard | Tell floor warning zones | Counter keep movement lanes open | Codex death_source_%s" % _get_hazard_source_id()
+
+
+func _get_hazard_counter_tags() -> Array:
+	if not hazard_counter_tags.is_empty():
+		var configured: Array = []
+		for tag in hazard_counter_tags:
+			configured.append(str(tag))
+		return configured
+	if _boss_arena_active or _is_boss_room():
+		return ["survival", "armor", "damage"]
+	if _trap_active or _is_trap_room():
+		return ["speed", "survival", "armor"]
+	if _challenge_hazards_active or _is_challenge_hazard_variant():
+		return ["crowd_control", "damage", "survival"]
+	return ["speed", "survival"]
 
 
 func _on_entry_area_body_entered(body: Node) -> void:
@@ -174,6 +366,11 @@ func _begin_combat() -> void:
 		_setup_boss_arena()
 	_emit_state()
 	Events.room_started.emit(self)
+	if _is_trap_room():
+		_begin_trap_room()
+		return
+	if _is_challenge_hazard_variant():
+		_begin_challenge_hazards()
 	_start_next_wave()
 
 
@@ -232,6 +429,8 @@ func _clear_room() -> void:
 		return
 
 	_wave_transition_pending = false
+	_deactivate_trap_room()
+	_deactivate_challenge_hazards()
 	_deactivate_boss_arena()
 	state = RoomState.CLEARED
 	_set_exit_locked(false)
@@ -250,9 +449,27 @@ func _spawn_reward_once() -> void:
 		return
 
 	_spawned_reward = reward
+	_apply_reward_biome_config(reward)
 	get_tree().current_scene.add_child(reward)
 	reward.global_position = reward_spawn.global_position
+	if _is_boss_room():
+		reward.set("complete_run_on_open", complete_run_on_reward)
 	Events.reward_spawned.emit(reward)
+
+
+func _apply_reward_biome_config(reward: Node) -> void:
+	_set_property_if_present(reward, "biome_id", biome_id)
+	_set_property_if_present(reward, "biome_name", biome_name)
+	_set_property_if_present(reward, "biome_reward_weight_multiplier", biome_reward_weight_multiplier)
+
+
+func _set_property_if_present(target: Object, property_name: String, value) -> void:
+	if target == null:
+		return
+	for property in target.get_property_list():
+		if str(property.get("name", "")) == property_name:
+			target.set(property_name, value)
+			return
 
 
 func _on_reward_collected(reward: Node, _collector: Node) -> void:
@@ -275,6 +492,8 @@ func _is_own_reward(reward: Node) -> bool:
 
 func _on_player_died() -> void:
 	_room_stopped = true
+	_deactivate_trap_room()
+	_deactivate_challenge_hazards()
 	_deactivate_boss_arena()
 
 
@@ -290,6 +509,15 @@ func _on_boss_died(boss: Node) -> void:
 	if not _is_boss_room():
 		return
 	_deactivate_boss_arena()
+	if state != RoomState.COMBAT:
+		return
+
+	_living_enemies.erase(boss)
+	for enemy in _living_enemies:
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion():
+			enemy.queue_free()
+	_living_enemies.clear()
+	call_deferred("_clear_room")
 
 
 func _set_exit_locked(locked: bool) -> void:
@@ -484,7 +712,17 @@ func _get_enemy_scene_for_spawn(index: int) -> PackedScene:
 
 
 func _apply_spawn_modifiers(enemy: Node2D) -> void:
-	if elite_enemies and enemy.has_method("apply_elite_modifiers"):
+	if not elite_enemies:
+		return
+
+	if not elite_modifier_profiles.is_empty() and enemy.has_method("apply_elite_profile"):
+		var profile_index := maxi(_current_wave_index, 0) + _living_enemies.size()
+		var profile := elite_modifier_profiles[profile_index % elite_modifier_profiles.size()]
+		if profile is Resource:
+			enemy.call("apply_elite_profile", profile)
+			return
+
+	if enemy.has_method("apply_elite_modifiers"):
 		enemy.call(
 			"apply_elite_modifiers",
 			elite_health_multiplier,
@@ -622,7 +860,135 @@ func _set_floor_color(color: Color) -> void:
 		return
 	var floor := get_parent().get_node_or_null("Arena/Floor") as Polygon2D
 	if floor != null:
-		floor.color = color
+		floor.color = _get_biome_tinted_color(color, biome_visual_floor_tint, biome_visual_tint_strength)
+
+
+func _get_floor_color() -> Color:
+	if get_parent() == null:
+		return Color(0.0, 0.0, 0.0, 0.0)
+	var floor := get_parent().get_node_or_null("Arena/Floor") as Polygon2D
+	if floor == null:
+		return Color(0.0, 0.0, 0.0, 0.0)
+	return floor.color
+
+
+func _apply_biome_wall_visuals() -> void:
+	if get_parent() == null:
+		return
+	var wall_names := [
+		"WallTop",
+		"WallBottom",
+		"WallLeftTop",
+		"WallLeftBottom",
+		"WallRightTop",
+		"WallRightBottom",
+	]
+	for wall_name in wall_names:
+		var wall := get_parent().get_node_or_null("Arena/%s" % wall_name) as StaticBody2D
+		if wall == null:
+			continue
+		var visual := wall.get_node_or_null("Visual") as Polygon2D
+		if visual != null:
+			visual.color = biome_visual_wall_color
+		_configure_surface_visual(
+			wall,
+			0,
+			_get_static_body_size(wall),
+			biome_visual_wall_texture_modulate,
+			biome_visual_wall_texture_opacity
+		)
+
+
+func _apply_biome_terrain_visual() -> void:
+	if get_parent() == null:
+		return
+	var terrain_layer := get_parent().get_node_or_null("Arena/TerrainLayer")
+	if terrain_layer != null and terrain_layer.has_method("configure"):
+		terrain_layer.call(
+			"configure",
+			biome_visual_floor_texture_path,
+			biome_visual_floor_texture_modulate,
+			biome_visual_floor_texture_opacity
+		)
+
+
+func _get_terrain_layer_summary() -> Dictionary:
+	if get_parent() == null:
+		return {}
+	var terrain_layer := get_parent().get_node_or_null("Arena/TerrainLayer")
+	if terrain_layer != null and terrain_layer.has_method("get_terrain_summary"):
+		return terrain_layer.call("get_terrain_summary")
+	return {}
+
+
+func _get_first_wall_color() -> Color:
+	if get_parent() == null:
+		return Color(0.0, 0.0, 0.0, 0.0)
+	var visual := get_parent().get_node_or_null("Arena/WallTop/Visual") as Polygon2D
+	if visual == null:
+		return Color(0.0, 0.0, 0.0, 0.0)
+	return visual.color
+
+
+func _get_first_wall_surface_summary() -> Dictionary:
+	if get_parent() == null:
+		return {}
+	var surface := get_parent().get_node_or_null("Arena/WallTop/SurfaceVisual")
+	return _get_surface_visual_summary(surface)
+
+
+func _get_first_obstacle_surface_summary() -> Dictionary:
+	var obstacles := get_node_or_null("LayoutObstacles")
+	if obstacles == null:
+		return {}
+	for obstacle in obstacles.get_children():
+		var surface := obstacle.get_node_or_null("SurfaceVisual")
+		if surface != null:
+			return _get_surface_visual_summary(surface)
+	return {}
+
+
+func _get_surface_visual_summary(surface: Node) -> Dictionary:
+	if surface != null and surface.has_method("get_surface_summary"):
+		return surface.call("get_surface_summary")
+	return {}
+
+
+func _get_static_body_size(body: StaticBody2D) -> Vector2:
+	var collision := body.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if collision != null and collision.shape is RectangleShape2D:
+		return (collision.shape as RectangleShape2D).size
+	return Vector2.ZERO
+
+
+func _configure_surface_visual(
+	parent: Node2D,
+	surface_kind: int,
+	surface_size: Vector2,
+	color_modulate: Color,
+	opacity: float
+) -> void:
+	var surface := parent.get_node_or_null("SurfaceVisual")
+	if surface == null:
+		surface = BIOME_SURFACE_VISUAL_SCRIPT.new()
+		surface.name = "SurfaceVisual"
+		parent.add_child(surface)
+	if surface.has_method("configure"):
+		surface.call(
+			"configure",
+			biome_visual_surface_atlas_path,
+			surface_kind,
+			surface_size,
+			color_modulate,
+			opacity
+		)
+
+
+func _get_biome_tinted_color(base_color: Color, tint_color: Color, strength: float) -> Color:
+	var tint_amount := clampf(strength, 0.0, 1.0)
+	var color := base_color.lerp(tint_color, tint_amount)
+	color.a = base_color.a
+	return color
 
 
 func _clear_layout_obstacles() -> void:
@@ -648,7 +1014,7 @@ func _add_layout_obstacle(obstacle_name: String, obstacle_position: Vector2, siz
 
 	var visual := Polygon2D.new()
 	visual.name = "Visual"
-	visual.color = color
+	visual.color = _get_biome_tinted_color(color, biome_visual_obstacle_tint, biome_visual_tint_strength)
 	visual.polygon = PackedVector2Array([
 		Vector2(-size.x * 0.5, -size.y * 0.5),
 		Vector2(size.x * 0.5, -size.y * 0.5),
@@ -656,6 +1022,13 @@ func _add_layout_obstacle(obstacle_name: String, obstacle_position: Vector2, siz
 		Vector2(-size.x * 0.5, size.y * 0.5),
 	])
 	body.add_child(visual)
+	_configure_surface_visual(
+		body,
+		1,
+		size,
+		biome_visual_obstacle_texture_modulate,
+		biome_visual_obstacle_texture_opacity
+	)
 
 	var collision := CollisionShape2D.new()
 	collision.name = "CollisionShape2D"
@@ -667,6 +1040,108 @@ func _add_layout_obstacle(obstacle_name: String, obstacle_position: Vector2, siz
 
 func _is_boss_room() -> bool:
 	return room_type == "boss" or room_type == "boss_placeholder"
+
+
+func _is_trap_room() -> bool:
+	return room_type == "trap"
+
+
+func _is_challenge_hazard_variant() -> bool:
+	return room_type == "challenge" and challenge_variant == "hazard_rush" and trap_hazards_enabled
+
+
+func _begin_trap_room() -> void:
+	if not trap_hazards_enabled:
+		_clear_room()
+		return
+
+	_trap_active = true
+	_trap_timer = maxf(trap_survival_duration, trap_hazard_warning_duration + 0.1)
+	_trap_hazard_timer = 0.1
+	_trap_cycle_index = 0
+	_prune_trap_warnings()
+
+
+func _begin_challenge_hazards() -> void:
+	_challenge_hazards_active = true
+	_challenge_hazard_timer = 0.1
+	_trap_cycle_index = 0
+	_prune_trap_warnings()
+
+
+func _tick_challenge_hazards(delta: float) -> void:
+	if not _challenge_hazards_active:
+		return
+
+	_challenge_hazard_timer = maxf(_challenge_hazard_timer - delta, 0.0)
+	if _challenge_hazard_timer > 0.0:
+		return
+
+	_spawn_trap_hazard_cycle()
+	_challenge_hazard_timer = maxf(trap_hazard_interval, trap_hazard_warning_duration * 0.5)
+
+
+func _deactivate_challenge_hazards() -> void:
+	_challenge_hazards_active = false
+	_challenge_hazard_timer = 0.0
+
+
+func _tick_trap_room(delta: float) -> void:
+	if not _trap_active:
+		return
+
+	_trap_timer = maxf(_trap_timer - delta, 0.0)
+	_trap_hazard_timer = maxf(_trap_hazard_timer - delta, 0.0)
+	if _trap_hazard_timer <= 0.0:
+		_spawn_trap_hazard_cycle()
+		_trap_hazard_timer = maxf(trap_hazard_interval, trap_hazard_warning_duration * 0.5)
+
+	if _trap_timer <= 0.0:
+		_clear_room()
+
+
+func _deactivate_trap_room() -> void:
+	_trap_active = false
+	_trap_timer = 0.0
+	_trap_hazard_timer = 0.0
+	for warning in _trap_warnings:
+		if is_instance_valid(warning) and not warning.is_queued_for_deletion():
+			warning.queue_free()
+	_trap_warnings.clear()
+
+
+func _spawn_trap_hazard_cycle() -> void:
+	if DANGER_WARNING_SCENE == null:
+		return
+
+	var count := mini(maxi(trap_hazard_cycle_size, 1), TRAP_HAZARD_POSITIONS.size())
+	for step in range(count):
+		var index := (_trap_cycle_index + step * 2) % TRAP_HAZARD_POSITIONS.size()
+		var warning := DANGER_WARNING_SCENE.instantiate() as Node2D
+		if warning == null:
+			continue
+
+		get_tree().current_scene.add_child(warning)
+		warning.global_position = global_position + TRAP_HAZARD_POSITIONS[index]
+		warning.call(
+			"configure_circle",
+			trap_hazard_radius,
+			trap_hazard_warning_duration,
+			Color(1.0, 0.38, 0.1, 0.34),
+			trap_hazard_damage,
+			self
+		)
+		_trap_warnings.append(warning)
+	_trap_cycle_index = (_trap_cycle_index + 1) % TRAP_HAZARD_POSITIONS.size()
+	_prune_trap_warnings()
+
+
+func _prune_trap_warnings() -> void:
+	var valid_warnings: Array[Node] = []
+	for warning in _trap_warnings:
+		if is_instance_valid(warning) and not warning.is_queued_for_deletion():
+			valid_warnings.append(warning)
+	_trap_warnings = valid_warnings
 
 
 func _setup_boss_arena() -> void:

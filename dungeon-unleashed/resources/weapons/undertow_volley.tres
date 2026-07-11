@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"undertow_volley"
+display_name = "Undertow Volley"
+description = "A wide slow-shot burst whose pellets pull their aim back toward close targets."
+rarity = "rare"
+weapon_class = "shotgun"
+recommended_range = "close"
+drop_weight = 0.64
+content_role = "close-range homing slow shotgun"
+damage = 1
+fire_rate = 1.8
+projectile_speed = 580.0
+projectile_range = 460.0
+projectile_count = 5
+spread_angle = 38.0
+fire_mode = "projectile"
+energy_cost = 4
+magazine_size = 6
+reload_duration = 1.35
+knockback = 150.0
+crit_chance = 0.04
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+homing_turn_rate = 90.0
+homing_radius = 240.0
+status_effect = "slow"
+status_chance = 0.45
+status_duration = 1.2
+status_slow_multiplier = 0.74
+aim_assist_priority = 1.3
+icon_key = "weapon_undertow_volley"
+fire_sfx_key = "undertow_volley_fire"
+projectile_vfx_key = "undertow_pellet"
+tags = PackedStringArray("spread", "homing", "slow")

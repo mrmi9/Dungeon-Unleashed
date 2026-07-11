@@ -1,0 +1,45 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="1"]
+[ext_resource type="Texture2D" path="res://art/enemies/shield_sentinel_action_atlas.svg" id="2"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_aegis_drone"]
+radius = 20.0
+
+[node name="AegisDrone" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1")
+display_name = "Aegis Drone"
+behavior_type = 5
+max_health = 6
+move_speed = 68.0
+contact_damage = 1
+attack_cooldown = 2.5
+shield_front_arc_degrees = 150.0
+shield_front_damage_multiplier = 0.15
+shield_bash_range = 112.0
+shield_bash_speed = 270.0
+shield_bash_windup = 0.5
+shield_bash_duration = 0.28
+shield_bash_recover = 0.56
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.28, 0.62, 0.92, 1)
+polygon = PackedVector2Array(18, 0, 8, -20, -16, -16, -22, 0, -16, 16, 8, 20)
+
+[node name="ShieldVisual" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.66, 0.92, 1, 0.78)
+polygon = PackedVector2Array(8, -24, 34, -15, 36, 15, 8, 24)
+
+[node name="ActionSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+modulate = Color(0.82, 0.96, 1, 1)
+texture = ExtResource("2")
+hframes = 2
+vframes = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_aegis_drone")

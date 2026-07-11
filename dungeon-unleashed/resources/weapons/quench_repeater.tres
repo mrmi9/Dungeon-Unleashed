@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"quench_repeater"
+display_name = "Quench Repeater"
+description = "A steady sidearm that slows targets to keep firing lanes under control."
+rarity = "common"
+weapon_class = "sidearm"
+recommended_range = "mid"
+drop_weight = 0.95
+content_role = "accessible slow precision sidearm"
+damage = 1
+fire_rate = 5.2
+projectile_speed = 760.0
+projectile_range = 780.0
+projectile_count = 1
+spread_angle = 2.0
+fire_mode = "projectile"
+energy_cost = 1
+magazine_size = 13
+reload_duration = 1.0
+knockback = 100.0
+crit_chance = 0.07
+crit_multiplier = 2.0
+pierce_count = 0
+bounce_count = 0
+explosion_radius = 0.0
+status_effect = "slow"
+status_chance = 0.35
+status_duration = 1.4
+status_slow_multiplier = 0.72
+aim_assist_priority = 1.15
+icon_key = "weapon_quench_repeater"
+fire_sfx_key = "quench_repeater_fire"
+projectile_vfx_key = "quench_round"
+tags = PackedStringArray("precise", "slow", "control")

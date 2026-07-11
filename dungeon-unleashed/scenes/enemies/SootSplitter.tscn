@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/RustSkirmisher.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://art/enemies/chaser_stride_atlas.png" id="3_chaser_stride"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_soot_splitter"]
+radius = 18.0
+
+[node name="SootSplitter" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1")
+display_name = "Soot Splitter"
+behavior_type = 0
+max_health = 4
+move_speed = 96.0
+contact_damage = 1
+attack_range = 270.0
+min_summon_distance_from_player = 150.0
+death_spawn_scene = ExtResource("2")
+death_spawn_count = 2
+death_spawn_spacing = 56.0
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.34, 0.32, 0.29, 1)
+polygon = PackedVector2Array(20, -4, 12, -18, -10, -18, -21, -2, -16, 15, 8, 18, 22, 6)
+
+[node name="ActionSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+modulate = Color(0.65, 0.62, 0.58, 1)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("3_chaser_stride")
+hframes = 2
+vframes = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_soot_splitter")

@@ -20,6 +20,41 @@ const RARITY_WEIGHTS := {
 	preload("res://resources/relics/lucky_primer.tres"),
 	preload("res://resources/relics/swift_loader.tres"),
 	preload("res://resources/relics/heart_core.tres"),
+	preload("res://resources/relics/keen_sights.tres"),
+	preload("res://resources/relics/hollow_needle.tres"),
+	preload("res://resources/relics/scatter_lens.tres"),
+	preload("res://resources/relics/field_rations.tres"),
+	preload("res://resources/relics/bulwark_plate.tres"),
+	preload("res://resources/relics/redline_boots.tres"),
+	preload("res://resources/relics/breach_powder.tres"),
+	preload("res://resources/relics/momentum_coil.tres"),
+	preload("res://resources/relics/steady_capacitor.tres"),
+	preload("res://resources/relics/gilded_tip.tres"),
+	preload("res://resources/relics/echo_chamber.tres"),
+	preload("res://resources/relics/breakwater_guard.tres"),
+	preload("res://resources/relics/siphon_clasp.tres"),
+	preload("res://resources/relics/kinetic_ram.tres"),
+	preload("res://resources/relics/volatile_oil.tres"),
+	preload("res://resources/relics/ember_catalyst.tres"),
+	preload("res://resources/relics/lingering_ash.tres"),
+	preload("res://resources/relics/parry_grip.tres"),
+	preload("res://resources/relics/warding_hinge.tres"),
+	preload("res://resources/relics/counterweight_core.tres"),
+	preload("res://resources/relics/draw_weight.tres"),
+	preload("res://resources/relics/quick_windup.tres"),
+	preload("res://resources/relics/stored_spark.tres"),
+	preload("res://resources/relics/tripwire_amplifier.tres"),
+	preload("res://resources/relics/anchor_spool.tres"),
+	preload("res://resources/relics/ricochet_gyro.tres"),
+	preload("res://resources/relics/blast_radius_gauge.tres"),
+	preload("res://resources/relics/kinetic_bridle.tres"),
+	preload("res://resources/relics/reserve_drum.tres"),
+	preload("res://resources/relics/flux_reservoir.tres"),
+	preload("res://resources/relics/tracking_vane.tres"),
+	preload("res://resources/relics/longview_array.tres"),
+	preload("res://resources/relics/forked_bus.tres"),
+	preload("res://resources/relics/conduction_mesh.tres"),
+	preload("res://resources/relics/stormglass_filament.tres"),
 ]
 @export var drop_tables: Array[Resource] = [
 	preload("res://resources/relic_drop_tables/reward.tres"),
@@ -45,15 +80,15 @@ func _ready() -> void:
 	call_deferred("_resolve_player")
 
 
-func choose_reward_relic(source: String = "reward") -> Resource:
-	return _pick_weighted_relic(_get_obtainable_relics(source), source)
+func choose_reward_relic(source: String = "reward", weight_multiplier: float = 1.0) -> Resource:
+	return _pick_weighted_relic(_get_obtainable_relics(source), source, weight_multiplier)
 
 
-func get_reward_choices(choice_count: int = 3, source: String = "reward") -> Array:
+func get_reward_choices(choice_count: int = 3, source: String = "reward", weight_multiplier: float = 1.0) -> Array:
 	var choices: Array = []
 	var candidates := _get_obtainable_relics(source)
 	while choices.size() < choice_count and not candidates.is_empty():
-		var relic := _pick_weighted_relic(candidates, source)
+		var relic := _pick_weighted_relic(candidates, source, weight_multiplier)
 		if relic == null:
 			break
 		choices.append(relic)
@@ -84,6 +119,10 @@ func get_source_pool_ids(source: String = "reward") -> Array[String]:
 	return ids
 
 
+func get_weighted_relic_score_for_test(relic_data: Resource, source: String = "reward", weight_multiplier: float = 1.0) -> float:
+	return _get_relic_weight(relic_data, source, weight_multiplier)
+
+
 func get_configured_drop_source_ids() -> Array[String]:
 	var ids: Array[String] = []
 	for table in drop_tables:
@@ -110,30 +149,46 @@ func _get_obtainable_relics(source: String = "reward") -> Array[Resource]:
 	return candidates
 
 
-func _pick_weighted_relic(candidates: Array[Resource], source: String = "reward") -> Resource:
+func _pick_weighted_relic(candidates: Array[Resource], source: String = "reward", weight_multiplier: float = 1.0) -> Resource:
 	if candidates.is_empty():
 		return null
 
 	var total_weight := 0.0
 	for relic in candidates:
-		total_weight += maxf(_get_relic_weight(relic, source), 0.0)
+		total_weight += maxf(_get_relic_weight(relic, source, weight_multiplier), 0.0)
 
 	if total_weight <= 0.0:
 		return candidates[_rng.randi_range(0, candidates.size() - 1)]
 
 	var roll := _rng.randf_range(0.0, total_weight)
 	for relic in candidates:
-		roll -= maxf(_get_relic_weight(relic, source), 0.0)
+		roll -= maxf(_get_relic_weight(relic, source, weight_multiplier), 0.0)
 		if roll <= 0.0:
 			return relic
 
 	return candidates[candidates.size() - 1]
 
 
-func _get_relic_weight(relic_data: Resource, source: String = "reward") -> float:
+func _get_relic_weight(relic_data: Resource, source: String = "reward", weight_multiplier: float = 1.0) -> float:
 	if relic_data == null:
 		return 0.0
-	return get_source_rarity_weight(source, str(relic_data.get("rarity")))
+	var drop_weight := 1.0
+	var drop_weight_value = relic_data.get("drop_weight")
+	if drop_weight_value != null:
+		drop_weight = float(drop_weight_value)
+	return get_source_rarity_weight(source, str(relic_data.get("rarity"))) * maxf(drop_weight, 0.0) * _get_rarity_multiplier(str(relic_data.get("rarity")), weight_multiplier)
+
+
+func _get_rarity_multiplier(rarity: String, weight_multiplier: float) -> float:
+	var multiplier := maxf(weight_multiplier, 0.0)
+	match rarity:
+		"rare":
+			return multiplier
+		"epic":
+			return multiplier * multiplier
+		"legendary":
+			return multiplier * multiplier * multiplier
+	return 1.0
 
 
 func _get_relic_pool_for_source(source: String) -> Array[Resource]:
@@ -202,6 +257,9 @@ func get_relic_summaries() -> Array:
 			"display_name": str(relic.get("display_name")),
 			"description": str(relic.get("description")),
 			"rarity": str(relic.get("rarity")),
+			"build_tags": relic.get("build_tags"),
+			"conflict_tags": relic.get("conflict_tags"),
+			"tags": relic.get("tags"),
 			"stacks": int(_stacks_by_id.get(relic_id, 0)),
 		})
 	return summaries
@@ -264,9 +322,30 @@ func _is_passive_effect(effect_type: String) -> bool:
 		"fire_rate_multiplier",
 		"projectile_count",
 		"pierce",
+		"bounce_count_bonus",
+		"homing_turn_rate_bonus",
+		"homing_radius_bonus",
+		"chain_count_bonus",
+		"chain_radius_bonus",
+		"chain_damage_multiplier",
+		"explosion_radius_bonus",
+		"knockback_multiplier",
+		"magazine_size_bonus",
 		"crit_chance_bonus",
 		"reload_speed_multiplier",
 		"max_health",
+		"max_energy",
+		"status_chance_bonus",
+		"status_damage_multiplier",
+		"status_duration_multiplier",
+		"projectile_block_radius_bonus",
+		"projectile_block_arc_bonus",
+		"projectile_block_damage_bonus",
+		"charge_damage_multiplier",
+		"charge_speed_multiplier",
+		"charge_projectile_count_bonus",
+		"deployable_damage_multiplier",
+		"deployable_duration_multiplier",
 	]
 
 

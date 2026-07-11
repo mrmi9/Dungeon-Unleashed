@@ -9,3 +9,7 @@ display_name = "Training Yard"
 floor_color = Color(0.095, 0.105, 0.12, 1)
 spawn_positions = PackedVector2Array(250, -105, -250, -85, 285, 145, -225, 165)
 reward_position = Vector2(0, -80)
+obstacle_names = PackedStringArray("Left Safety Post", "Right Safety Post", "Close Lane Marker", "Far Lane Marker")
+obstacle_positions = PackedVector2Array(-120, -190, -120, 190, 145, -220, 385, 220)
+obstacle_sizes = PackedVector2Array(26, 96, 26, 96, 150, 22, 150, 22)
+obstacle_colors = PackedColorArray(0.28, 0.32, 0.38, 1, 0.28, 0.32, 0.38, 1, 0.35, 0.28, 0.12, 1, 0.35, 0.28, 0.12, 1)

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"halo_kernel"
+display_name = "Halo Kernel"
+description = "Releases a full halo of controlled shots for emergency space control."
+rarity = "legendary"
+weapon_class = "core"
+recommended_range = "all"
+drop_weight = 0.25
+content_role = "legendary radial panic clear"
+damage = 1
+fire_rate = 0.85
+projectile_speed = 520.0
+projectile_range = 620.0
+projectile_count = 16
+spread_angle = 360.0
+fire_mode = "radial"
+energy_cost = 6
+magazine_size = 3
+reload_duration = 2.0
+knockback = 115.0
+crit_chance = 0.04
+crit_multiplier = 2.0
+pierce_count = 1
+bounce_count = 1
+explosion_radius = 0.0
+aim_assist_priority = 0.7
+icon_key = "weapon_halo_kernel"
+fire_sfx_key = "halo_fire"
+projectile_vfx_key = "halo_seed"
+tags = PackedStringArray("radial", "crowd_control", "legendary")

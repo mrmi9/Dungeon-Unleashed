@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ContentIconDefinitionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/content/ContentIconDefinitionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+icon_key = "character_rift_runner"
+content_type = "character"
+token = "CHR"
+placeholder_color = Color(0.43, 0.91, 0.85, 1)
+accessibility_label = "Rift Runner character icon"
+texture_path = "res://art/ui/content_icons/rift_runner.svg"
+atlas_region = Rect2i(0, 0, 0, 0)
