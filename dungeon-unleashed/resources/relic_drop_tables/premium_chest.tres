@@ -46,3 +46,4 @@ common_weight = 65.0
 rare_weight = 70.0
 epic_weight = 32.0
 legendary_weight = 8.0
+minimum_rarity = "rare"

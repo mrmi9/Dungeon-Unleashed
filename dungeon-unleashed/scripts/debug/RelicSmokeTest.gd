@@ -267,6 +267,7 @@ func _verify_source_drop_pools(relic_system: Node) -> void:
 	_expect(relic_system.has_method("get_source_rarity_weight"), "RelicSystem should expose source rarity weights")
 	_expect(relic_system.has_method("get_configured_drop_source_ids"), "RelicSystem should expose configured drop source ids")
 	_expect(relic_system.has_method("get_drop_table_resource_path"), "RelicSystem should expose drop table resource paths")
+	_expect(relic_system.has_method("get_source_reward_pacing_summary"), "RelicSystem should expose source reward pacing summaries")
 	if not relic_system.has_method("get_source_pool_ids") or not relic_system.has_method("get_source_rarity_weight"):
 		return
 
@@ -305,6 +306,18 @@ func _verify_source_drop_pools(relic_system: Node) -> void:
 	_expect(float(relic_system.call("get_source_rarity_weight", "normal_chest", "common")) > float(relic_system.call("get_source_rarity_weight", "normal_chest", "rare")), "Normal chest should favor common relics")
 	_expect(float(relic_system.call("get_source_rarity_weight", "premium_chest", "rare")) > float(relic_system.call("get_source_rarity_weight", "premium_chest", "common")), "Premium chest should favor rare relics over common relics")
 	_expect(float(relic_system.call("get_source_rarity_weight", "boss_chest", "epic")) > float(relic_system.call("get_source_rarity_weight", "boss_chest", "common")), "Boss chest should favor high-impact rarities over common relics")
+	if relic_system.has_method("get_source_reward_pacing_summary"):
+		var reward_pacing: Dictionary = relic_system.call("get_source_reward_pacing_summary", "reward")
+		var normal_pacing: Dictionary = relic_system.call("get_source_reward_pacing_summary", "normal_chest")
+		var premium_pacing: Dictionary = relic_system.call("get_source_reward_pacing_summary", "premium_chest")
+		var boss_pacing: Dictionary = relic_system.call("get_source_reward_pacing_summary", "boss_chest")
+		var shop_pacing: Dictionary = relic_system.call("get_source_reward_pacing_summary", "shop")
+		_expect(str(reward_pacing.get("pity_group", "")) == "relic_reward", "Reward room should participate in shared relic pity")
+		_expect(str(normal_pacing.get("pity_group", "")) == "relic_reward", "Normal chest should participate in shared relic pity")
+		_expect(int(reward_pacing.get("pity_misses_before_guarantee", 0)) == 3, "Reward room should guarantee rare-or-better after three misses")
+		_expect(str(premium_pacing.get("minimum_rarity", "")) == "rare", "Premium chest should enforce a rare-or-better floor")
+		_expect(str(boss_pacing.get("minimum_rarity", "")) == "rare", "Boss chest should enforce a rare-or-better floor")
+		_expect(str(shop_pacing.get("pity_group", "")).is_empty(), "Shop should not consume shared reward pity")
 
 
 func _verify_triggered_relics(player: Player) -> void:

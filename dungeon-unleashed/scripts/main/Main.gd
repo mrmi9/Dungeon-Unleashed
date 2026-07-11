@@ -2404,6 +2404,8 @@ func _reset_run_stats() -> void:
 	_pending_statue_choices.clear()
 	_pending_statue_source = null
 	_pending_statue_collector = null
+	if relic_system != null and relic_system.has_method("reset_run"):
+		relic_system.call("reset_run")
 	if talent_system != null and talent_system.has_method("reset_run"):
 		talent_system.call("reset_run")
 	if blessing_system != null and blessing_system.has_method("reset_run"):

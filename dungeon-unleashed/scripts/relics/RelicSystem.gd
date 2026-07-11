@@ -69,6 +69,9 @@ var _owned_relics: Array[Resource] = []
 var _stacks_by_id: Dictionary = {}
 var _kill_count := 0
 var _rng := RandomNumberGenerator.new()
+var _pity_misses_by_group: Dictionary = {}
+var _reward_offer_count_by_source: Dictionary = {}
+var _last_reward_offer: Dictionary = {}
 
 
 func _ready() -> void:
@@ -81,19 +84,77 @@ func _ready() -> void:
 
 
 func choose_reward_relic(source: String = "reward", weight_multiplier: float = 1.0) -> Resource:
-	return _pick_weighted_relic(_get_obtainable_relics(source), source, weight_multiplier)
+	var candidates := _get_obtainable_relics(source)
+	var minimum_rarity := _get_offer_minimum_rarity(source)
+	var eligible_candidates := _filter_candidates_by_minimum_rarity(candidates, minimum_rarity)
+	if eligible_candidates.is_empty():
+		eligible_candidates = candidates
+	var relic := _pick_weighted_relic(eligible_candidates, source, weight_multiplier)
+	if relic != null:
+		_record_reward_offer(source, [relic])
+	return relic
 
 
 func get_reward_choices(choice_count: int = 3, source: String = "reward", weight_multiplier: float = 1.0) -> Array:
 	var choices: Array = []
+	if choice_count <= 0:
+		return choices
 	var candidates := _get_obtainable_relics(source)
+	var hard_minimum_rarity := _get_source_minimum_rarity(source)
+	var pity_minimum_rarity := _get_due_pity_minimum_rarity(source)
+	if not pity_minimum_rarity.is_empty():
+		var guarantee_minimum := _higher_rarity(hard_minimum_rarity, pity_minimum_rarity)
+		var guarantee_candidates := _filter_candidates_by_minimum_rarity(candidates, guarantee_minimum)
+		if not guarantee_candidates.is_empty():
+			var guaranteed_relic := _pick_weighted_relic(guarantee_candidates, source, weight_multiplier)
+			if guaranteed_relic != null:
+				choices.append(guaranteed_relic)
+				candidates.erase(guaranteed_relic)
 	while choices.size() < choice_count and not candidates.is_empty():
-		var relic := _pick_weighted_relic(candidates, source, weight_multiplier)
+		var eligible_candidates := _filter_candidates_by_minimum_rarity(candidates, hard_minimum_rarity)
+		if eligible_candidates.is_empty():
+			eligible_candidates = candidates
+		var relic := _pick_weighted_relic(eligible_candidates, source, weight_multiplier)
 		if relic == null:
 			break
 		choices.append(relic)
 		candidates.erase(relic)
+	if not choices.is_empty():
+		_record_reward_offer(source, choices)
 	return choices
+
+
+func reset_run() -> void:
+	_pity_misses_by_group.clear()
+	_reward_offer_count_by_source.clear()
+	_last_reward_offer.clear()
+
+
+func get_source_reward_pacing_summary(source: String) -> Dictionary:
+	var table := _get_drop_table_for_source(source)
+	if table == null:
+		return {}
+	var summary := _get_table_reward_pacing_summary(table)
+	var pity_group := str(summary.get("pity_group", ""))
+	var pity_misses := int(_pity_misses_by_group.get(pity_group, 0)) if not pity_group.is_empty() else 0
+	var misses_before_guarantee := int(summary.get("pity_misses_before_guarantee", 0))
+	summary["source"] = _canonical_source(source)
+	summary["pity_misses"] = pity_misses
+	summary["pity_due"] = not pity_group.is_empty() and misses_before_guarantee > 0 and pity_misses >= misses_before_guarantee
+	summary["offers_generated"] = int(_reward_offer_count_by_source.get(_canonical_source(source), 0))
+	return summary
+
+
+func get_reward_pacing_summary() -> Dictionary:
+	var sources: Array = []
+	for source in get_configured_drop_source_ids():
+		sources.append(get_source_reward_pacing_summary(source))
+	return {
+		"pity_misses_by_group": _pity_misses_by_group.duplicate(),
+		"offer_count_by_source": _reward_offer_count_by_source.duplicate(),
+		"last_offer": _last_reward_offer.duplicate(true),
+		"sources": sources,
+	}
 
 
 func set_random_seed(seed: int) -> void:
@@ -189,6 +250,115 @@ func _get_rarity_multiplier(rarity: String, weight_multiplier: float) -> float:
 		"legendary":
 			return multiplier * multiplier * multiplier
 	return 1.0
+
+
+func _get_offer_minimum_rarity(source: String) -> String:
+	return _higher_rarity(_get_source_minimum_rarity(source), _get_due_pity_minimum_rarity(source))
+
+
+func _get_source_minimum_rarity(source: String) -> String:
+	var table := _get_drop_table_for_source(source)
+	if table == null:
+		return ""
+	return str(table.get("minimum_rarity")).strip_edges().to_lower()
+
+
+func _get_due_pity_minimum_rarity(source: String) -> String:
+	var pacing := get_source_reward_pacing_summary(source)
+	if pacing.is_empty() or not bool(pacing.get("pity_due", false)):
+		return ""
+	return str(pacing.get("pity_minimum_rarity", "rare")).strip_edges().to_lower()
+
+
+func _record_reward_offer(source: String, offered_relics: Array) -> void:
+	var canonical_source := _canonical_source(source)
+	_reward_offer_count_by_source[canonical_source] = int(_reward_offer_count_by_source.get(canonical_source, 0)) + 1
+	var pacing := get_source_reward_pacing_summary(source)
+	var pity_group := str(pacing.get("pity_group", ""))
+	var pity_minimum_rarity := str(pacing.get("pity_minimum_rarity", "rare"))
+	var hit_pity_floor := _offer_contains_minimum_rarity(offered_relics, pity_minimum_rarity)
+	if not pity_group.is_empty() and int(pacing.get("pity_misses_before_guarantee", 0)) > 0:
+		if hit_pity_floor:
+			_pity_misses_by_group[pity_group] = 0
+		else:
+			_pity_misses_by_group[pity_group] = int(_pity_misses_by_group.get(pity_group, 0)) + 1
+	_last_reward_offer = {
+		"source": canonical_source,
+		"relic_ids": _get_relic_ids(offered_relics),
+		"rarities": _get_relic_rarities(offered_relics),
+		"minimum_rarity": str(pacing.get("minimum_rarity", "")),
+		"pity_group": pity_group,
+		"pity_minimum_rarity": pity_minimum_rarity,
+		"pity_hit": hit_pity_floor,
+		"pity_misses_after_offer": int(_pity_misses_by_group.get(pity_group, 0)) if not pity_group.is_empty() else 0,
+	}
+
+
+func _get_table_reward_pacing_summary(table: Resource) -> Dictionary:
+	if table != null and table.has_method("get_reward_pacing_summary"):
+		return table.call("get_reward_pacing_summary")
+	return {
+		"minimum_rarity": "",
+		"pity_group": "",
+		"pity_misses_before_guarantee": 0,
+		"pity_minimum_rarity": "rare",
+	}
+
+
+func _filter_candidates_by_minimum_rarity(candidates: Array[Resource], minimum_rarity: String) -> Array[Resource]:
+	if minimum_rarity.is_empty():
+		return candidates.duplicate()
+	var filtered: Array[Resource] = []
+	var minimum_rank := _rarity_rank(minimum_rarity)
+	for relic in candidates:
+		if relic != null and _rarity_rank(str(relic.get("rarity"))) >= minimum_rank:
+			filtered.append(relic)
+	return filtered
+
+
+func _offer_contains_minimum_rarity(offered_relics: Array, minimum_rarity: String) -> bool:
+	var minimum_rank := _rarity_rank(minimum_rarity)
+	for relic in offered_relics:
+		if relic is Resource and _rarity_rank(str(relic.get("rarity"))) >= minimum_rank:
+			return true
+	return false
+
+
+func _higher_rarity(first: String, second: String) -> String:
+	if first.is_empty():
+		return second
+	if second.is_empty():
+		return first
+	return first if _rarity_rank(first) >= _rarity_rank(second) else second
+
+
+func _rarity_rank(rarity: String) -> int:
+	match rarity.strip_edges().to_lower():
+		"common":
+			return 0
+		"rare":
+			return 1
+		"epic":
+			return 2
+		"legendary":
+			return 3
+	return -1
+
+
+func _get_relic_ids(relics: Array) -> Array[String]:
+	var ids: Array[String] = []
+	for relic in relics:
+		if relic is Resource:
+			ids.append(_get_relic_id(relic))
+	return ids
+
+
+func _get_relic_rarities(relics: Array) -> Array[String]:
+	var rarities: Array[String] = []
+	for relic in relics:
+		if relic is Resource:
+			rarities.append(str(relic.get("rarity")))
+	return rarities
 
 
 func _get_relic_pool_for_source(source: String) -> Array[Resource]:

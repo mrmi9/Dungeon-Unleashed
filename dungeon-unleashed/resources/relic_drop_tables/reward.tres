@@ -56,3 +56,6 @@ common_weight = 100.0
 rare_weight = 45.0
 epic_weight = 18.0
 legendary_weight = 6.0
+pity_group = &"relic_reward"
+pity_misses_before_guarantee = 3
+pity_minimum_rarity = "rare"

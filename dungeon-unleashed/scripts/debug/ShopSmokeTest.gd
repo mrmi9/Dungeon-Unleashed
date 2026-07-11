@@ -95,6 +95,9 @@ func _run() -> void:
 	_expect(bool(weapon_item.call("purchase_for_player", player)), "Interact purchase should buy weapon")
 	await get_tree().process_frame
 	_expect(player.get_weapon_display_name() == weapon_name, "Buying weapon should equip purchased weapon")
+	var purchased_weapon_data = weapon_item.get("weapon_data")
+	if purchased_weapon_data != null:
+		await _wait_for_active_loadout_ammo(hud, int(purchased_weapon_data.get("magazine_size")))
 	if hud != null and hud.has_method("get_weapon_slot_loadout_summary_for_test"):
 		var loadout_summary: Dictionary = hud.call("get_weapon_slot_loadout_summary_for_test")
 		var loadout_names: Array = loadout_summary.get("names", [])
@@ -108,7 +111,6 @@ func _run() -> void:
 		var loadout_energy_states: Array = loadout_summary.get("energy_states", [])
 		_expect(loadout_names.has(weapon_name), "Buying weapon should update the HUD weapon loadout preview")
 		_expect(int(loadout_summary.get("active_slot", 0)) == player.current_weapon_index + 1, "HUD weapon loadout preview should keep the purchased weapon slot active")
-		var purchased_weapon_data = weapon_item.get("weapon_data")
 		if purchased_weapon_data != null:
 			var expected_weapon_icon_key := _resolve_weapon_icon_key(purchased_weapon_data)
 			var purchased_slot_index := int(loadout_summary.get("active_slot", 1)) - 1
@@ -169,6 +171,19 @@ func _touch_item_without_purchase(item: Node, player: Player) -> void:
 	player.global_position = item_node.global_position
 	for index in range(5):
 		await get_tree().physics_frame
+		await get_tree().process_frame
+
+
+func _wait_for_active_loadout_ammo(hud: Node, expected_magazine_size: int) -> void:
+	if hud == null or not hud.has_method("get_weapon_slot_loadout_summary_for_test"):
+		return
+	var expected := "%d/%d" % [expected_magazine_size, expected_magazine_size]
+	for index in range(20):
+		var summary: Dictionary = hud.call("get_weapon_slot_loadout_summary_for_test")
+		var active_slot := int(summary.get("active_slot", 0)) - 1
+		var ammo_summaries: Array = summary.get("ammo_summaries", [])
+		if active_slot >= 0 and active_slot < ammo_summaries.size() and str(ammo_summaries[active_slot]) == expected:
+			return
 		await get_tree().process_frame
 
 
