@@ -139,6 +139,7 @@ func _ready() -> void:
 	Events.boss_died.connect(_on_boss_died)
 	_set_exit_locked(false)
 	_emit_state()
+	set_physics_process(false)
 	get_tree().create_timer(0.05).timeout.connect(_check_initial_overlap)
 
 

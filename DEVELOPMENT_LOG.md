@@ -17054,3 +17054,42 @@ ContentPipelineSmokeTest passed.
 ### 仍需人工复核
 - 在 Windows 构建中分别用手枪、霰弹枪和高射速武器持续射击，确认首发、连射、换弹完成和切枪后均无可感知停顿。
 - 在敌人密集房间开启高强度辅助瞄准，确认同帧目标复用没有改变锁定方向与蓄力释放落点。
+
+## 2026-07-12 中后程运行时卡顿第二轮修复
+
+### 分段定位
+- 新增 `RuntimePerformanceSmokeTest`，在完整 42 房间地牢上分别测量常驻 HUD、稳定拓扑小地图更新、未进入房间轮询和密集战斗文字生成。
+- 角色被动 HUD 原本每帧重建 50 余字段摘要，并重复解析角色图标注册表与提示文本，headless 单次平均约 `54.715 ms`。
+- 每次房间进入、开战、清理或领奖都会销毁并重建全部 42 个小地图标记及其容器、图标、Label 和 StyleBox，单次平均约 `1166.925 ms`。
+- 64 个密集战斗文字同步创建约需 `10 ms`；42 个未进入房间的重叠轮询仅约 `0.022 ms/轮`，不是主尖峰，但属于无必要常驻物理工作。
+
+### 优化实现
+- 被动 HUD 的图标说明按图标/角色/提示内容缓存，动态剩余时间以 10 Hz 更新；护甲恢复状态保留逐帧刷新，避免“恢复中”提示延迟。
+- 小地图仅在 dungeon 拓扑签名变化时重建；普通房间状态变化复用现有标记，只更新状态真正改变的旧/新当前房和目标房标记。
+- 战斗文字预热 24 个节点、最多扩展至 48 个；达到上限时循环复用最早条目，结束后返回池中，不再持续创建和释放 Label 场景。
+- `CombatRoom` 依赖 `body_entered` 与一次延迟初始重叠检查，关闭 42 个房间的常驻 `_physics_process` 轮询。
+
+### 性能与回归
+```text
+RuntimePerformanceSmokeTest passed headless.
+  passive HUD: 54.715 ms -> 0.033 ms
+  minimap stable update: 1166.925 ms -> 0.119 ms
+  combat text: 0.161 ms/item -> 0.080 ms/item, steady pool 0.047 ms/item
+RuntimePerformanceSmokeTest passed Windows/OpenGL.
+  passive HUD 0.044 ms, minimap 0.137 ms, steady combat text 0.043 ms/item
+DungeonGenerationSmokeTest passed.
+CombatFeedbackSmokeTest passed.
+CharacterSmokeTest passed after preserving immediate Armor status refresh.
+WeaponSmokeTest passed.
+ContentPipelineSmokeTest passed.
+MenuFlowSmokeTest passed. (12.6s)
+RoomFlowSmokeTest passed. (65.6s; prior recorded run about 247s)
+FullRunSmokeTest passed. (68.8s; prior recorded run 265.6s)
+```
+
+部分综合测试退出时仍可能输出项目既有 RID/ObjectDB 释放告警，但以上通过项退出码均为 0。
+
+### 仍需人工复核
+- 在 Windows 构建中连续完成多个房间，重点观察进入房间、开战、清房、奖励生成和领奖时的小地图更新是否仍有停顿。
+- 使用范围伤害、连锁、霰弹和高射速武器制造密集命中，确认最多 48 条战斗文字的循环复用不会造成不可读的残影或过早替换。
+- 进入三层不同 Biome 与 Boss 房，确认信号驱动入口不会漏触发初始波次、陷阱、挑战或 Boss 机制。

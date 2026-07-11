@@ -1,6 +1,8 @@
 extends Node2D
 class_name FloatingText
 
+signal recycle_requested(floating_text: Node2D)
+
 @export var duration: float = 0.72
 @export var rise_distance: float = 46.0
 @export var side_drift: float = 0.0
@@ -21,13 +23,28 @@ func _ready() -> void:
 
 
 func setup(new_text: String, new_color: Color, new_font_size: int = 20, new_rise_distance: float = 46.0, new_side_drift: float = 0.0) -> void:
+	_elapsed = 0.0
 	text = new_text
 	text_color = new_color
 	font_size = new_font_size
 	rise_distance = new_rise_distance
 	side_drift = new_side_drift
 	_start_position = position
+	scale = Vector2.ONE * 1.16
+	modulate = Color.WHITE
+	visible = true
+	set_process(true)
+	if not is_in_group("floating_text"):
+		add_to_group("floating_text")
 	_apply_label_style()
+
+
+func prepare_for_pool() -> void:
+	_elapsed = 0.0
+	visible = false
+	set_process(false)
+	if is_in_group("floating_text"):
+		remove_from_group("floating_text")
 
 
 func get_text() -> String:
@@ -47,7 +64,10 @@ func _process(delta: float) -> void:
 	modulate.a = 1.0 - progress
 
 	if _elapsed >= duration:
-		queue_free()
+		if recycle_requested.has_connections():
+			recycle_requested.emit(self)
+		else:
+			queue_free()
 
 
 func _apply_label_style() -> void:

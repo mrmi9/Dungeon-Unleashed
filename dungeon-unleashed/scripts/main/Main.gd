@@ -26,11 +26,14 @@ const DEFAULT_AIM_ASSIST_STRENGTH := 0.35
 const DEFAULT_SCREEN_SHAKE_INTENSITY := 1.0
 const DEFAULT_DAMAGE_FLASH_INTENSITY := 1.0
 const DEFAULT_COMBAT_TEXT_INTENSITY := 1.0
+const HUD_STATUS_REFRESH_INTERVAL := 0.1
 const LOW_HEALTH_FEEDBACK := preload("res://scripts/core/LowHealthFeedback.gd")
 const CONTROLLER_LAYOUT := preload("res://scripts/input/ControllerLayout.gd")
 const FLOATING_TEXT_SCENE := preload("res://scenes/effects/FloatingText.tscn")
 const PROJECTILE_BLOCK_SPARK_SCENE := preload("res://scenes/effects/ProjectileBlockSpark.tscn")
 const TRAINING_DUMMY_SCENE := preload("res://scenes/training/TrainingDummy.tscn")
+const FLOATING_TEXT_POOL_SIZE := 24
+const FLOATING_TEXT_POOL_MAX_SIZE := 48
 const TRAINING_PLAYER_POSITION := Vector2(-300.0, 0.0)
 const TRAINING_DRILLS := [
 	{
@@ -186,7 +189,12 @@ enum RunState {
 var run_state: RunState = RunState.MAIN_MENU
 var _shake_strength := 0.0
 var _shake_decay := 56.0
+var _hud_status_refresh_timer := 0.0
 var _rng := RandomNumberGenerator.new()
+var _floating_text_pool: Array[Node2D] = []
+var _available_floating_text: Array[Node2D] = []
+var _active_floating_text: Array[Node2D] = []
+var _floating_text_creation_count := 0
 var _pending_relic_choices: Array = []
 var _pending_relic_pickup: Node
 var _pending_relic_collector: Node
@@ -333,6 +341,7 @@ func _ready() -> void:
 	hud.set_flow_receiver(self)
 	hud.update_settings_controls(_settings_master_volume, _settings_sfx_volume, _settings_music_volume, _settings_fullscreen, _settings_resolution_index, _settings_aim_assist_enabled, _settings_aim_assist_strength, _settings_low_health_feedback_intensity, _settings_screen_shake_intensity, _settings_damage_flash_intensity, _settings_combat_text_intensity, _settings_controller_aim_deadzone, _settings_controller_input_switch_threshold)
 	hud.refresh_input_bindings()
+	_prewarm_floating_text_pool()
 	_enter_main_menu()
 	if _has_user_argument(RUNTIME_ROOM_CHECK_ARG):
 		call_deferred("_run_runtime_room_spawn_check")
@@ -342,7 +351,10 @@ func _process(delta: float) -> void:
 	if is_instance_valid(player):
 		camera.global_position = player.global_position
 		_refresh_armor_hud()
-		_refresh_passive_status_hud()
+		_hud_status_refresh_timer = maxf(_hud_status_refresh_timer - delta, 0.0)
+		if _hud_status_refresh_timer <= 0.0:
+			_refresh_passive_status_hud()
+			_hud_status_refresh_timer = HUD_STATUS_REFRESH_INTERVAL
 
 	if _shake_strength > 0.0:
 		camera.offset = Vector2(
@@ -1628,17 +1640,71 @@ func _spawn_floating_text(world_position: Vector2, text: String, color: Color, f
 	if text_intensity <= 0.0:
 		return null
 
-	var floating_text := FLOATING_TEXT_SCENE.instantiate() as Node2D
+	var floating_text := _acquire_floating_text()
 	if floating_text == null:
 		return null
 
 	var text_color := color
 	text_color.a = clampf(text_color.a, 0.0, 1.0) * text_intensity
-	add_child(floating_text)
 	floating_text.global_position = world_position + Vector2(_rng.randf_range(-10.0, 10.0), _rng.randf_range(-8.0, 4.0))
 	if floating_text.has_method("setup"):
 		floating_text.call("setup", text, text_color, font_size, rise_distance, _rng.randf_range(-12.0, 12.0))
+	_active_floating_text.append(floating_text)
 	return floating_text
+
+
+func _prewarm_floating_text_pool() -> void:
+	while _floating_text_pool.size() < FLOATING_TEXT_POOL_SIZE:
+		_create_pooled_floating_text()
+
+
+func _create_pooled_floating_text() -> Node2D:
+	var floating_text := FLOATING_TEXT_SCENE.instantiate() as Node2D
+	if floating_text == null:
+		return null
+	add_child(floating_text)
+	if floating_text.has_signal("recycle_requested"):
+		floating_text.connect("recycle_requested", _on_floating_text_recycle_requested)
+	if floating_text.has_method("prepare_for_pool"):
+		floating_text.call("prepare_for_pool")
+	_floating_text_pool.append(floating_text)
+	_available_floating_text.append(floating_text)
+	_floating_text_creation_count += 1
+	return floating_text
+
+
+func _acquire_floating_text() -> Node2D:
+	if not _available_floating_text.is_empty():
+		return _available_floating_text.pop_back()
+	if _floating_text_pool.size() < FLOATING_TEXT_POOL_MAX_SIZE:
+		var created := _create_pooled_floating_text()
+		if created != null:
+			_available_floating_text.erase(created)
+		return created
+	if _active_floating_text.is_empty():
+		return null
+	var recycled: Node2D = _active_floating_text.pop_front()
+	if recycled.has_method("prepare_for_pool"):
+		recycled.call("prepare_for_pool")
+	return recycled
+
+
+func _on_floating_text_recycle_requested(floating_text: Node2D) -> void:
+	if floating_text == null or not is_instance_valid(floating_text):
+		return
+	_active_floating_text.erase(floating_text)
+	if floating_text.has_method("prepare_for_pool"):
+		floating_text.call("prepare_for_pool")
+	if not _available_floating_text.has(floating_text):
+		_available_floating_text.append(floating_text)
+
+
+func get_floating_text_pool_size_for_test() -> int:
+	return _floating_text_pool.size()
+
+
+func get_floating_text_creation_count_for_test() -> int:
+	return _floating_text_creation_count
 
 
 func _spawn_projectile_block_spark(world_position: Vector2, blocked_count: int) -> Node:

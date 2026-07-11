@@ -205,6 +205,8 @@ const LOBBY_SCREEN_SCENE := preload("res://scenes/ui/LobbyScreen.tscn")
 
 var _minimap_current_room_id := ""
 var _minimap_debug_text := ""
+var _minimap_structure_signature := ""
+var _minimap_markers_by_room_id: Dictionary = {}
 var _active_relic_choices: Array = []
 var _active_choice_kind := "relic"
 var relic_choice_receiver: Node
@@ -300,6 +302,7 @@ var _passive_trigger_pulse_duration := PASSIVE_TRIGGER_PULSE_DURATION
 var _passive_status_is_active := false
 var _passive_status_icon_key := ""
 var _passive_status_icon_texture_path := ""
+var _passive_status_tooltip_cache_key := ""
 var _rule_feedback_timer := 0.0
 var _rule_feedback_duration := RULE_FEEDBACK_DURATION
 var _rule_feedback_active_color := RULE_FEEDBACK_BASE_COLOR
@@ -901,6 +904,10 @@ func _refresh_passive_status_icon(summary: Dictionary, display_name: String) -> 
 	var base_tooltip := display_name
 	if passive_status_label != null:
 		base_tooltip = passive_status_label.tooltip_text
+	var tooltip_cache_key := "%s|%s|%s" % [_passive_status_icon_key, display_name, base_tooltip]
+	if tooltip_cache_key == _passive_status_tooltip_cache_key:
+		return
+	_passive_status_tooltip_cache_key = tooltip_cache_key
 	var tooltip := "%s\n%s" % [
 		base_tooltip,
 		CONTENT_ICON_REGISTRY.get_placeholder_tooltip(_passive_status_icon_key, display_name, "characters"),
@@ -2233,9 +2240,29 @@ func _refresh_training_reward_toast() -> void:
 
 func update_minimap(room_records: Array, current_room_id: String = "") -> void:
 	_minimap_current_room_id = current_room_id
+	var structure_signature := _get_minimap_structure_signature(room_records)
+	if structure_signature != _minimap_structure_signature:
+		_rebuild_minimap(room_records, current_room_id, structure_signature)
+	else:
+		for record in room_records:
+			if not record is Dictionary:
+				continue
+			var room_id := str(record.get("id", ""))
+			var marker := _minimap_markers_by_room_id.get(room_id) as PanelContainer
+			if marker != null:
+				_update_minimap_marker(marker, record, current_room_id)
+
+	if current_room_id.is_empty():
+		minimap_current_label.text = "Current: --"
+	else:
+		minimap_current_label.text = "Current: %s" % current_room_id
+
+
+func _rebuild_minimap(room_records: Array, current_room_id: String, structure_signature: String) -> void:
 	for child in minimap_row.get_children():
 		minimap_row.remove_child(child)
 		child.free()
+	_minimap_markers_by_room_id.clear()
 
 	var layer_by_biome := {}
 	for record in room_records:
@@ -2248,12 +2275,24 @@ func update_minimap(room_records: Array, current_room_id: String = "") -> void:
 			var layer_node := layer_by_biome[biome_index] as Control
 			var marker_row := layer_node.get_node_or_null("MinimapLayerMarkers") as HBoxContainer
 			if marker_row != null:
-				marker_row.add_child(_make_minimap_marker(record, current_room_id))
+				var marker := _make_minimap_marker(record, current_room_id)
+				marker_row.add_child(marker)
+				_minimap_markers_by_room_id[str(record.get("id", ""))] = marker
+	_minimap_structure_signature = structure_signature
 
-	if current_room_id.is_empty():
-		minimap_current_label.text = "Current: --"
-	else:
-		minimap_current_label.text = "Current: %s" % current_room_id
+
+func _get_minimap_structure_signature(room_records: Array) -> String:
+	var parts := PackedStringArray()
+	for record in room_records:
+		if not record is Dictionary:
+			continue
+		parts.append("%s:%s:%d:%s" % [
+			str(record.get("id", "")),
+			str(record.get("room_type", "combat")),
+			int(record.get("biome_index", 1)),
+			str(record.get("biome_name", "")),
+		])
+	return "|".join(parts)
 
 
 func update_dungeon_debug_info(seed: int, debug_map_text: String = "") -> void:
@@ -3520,6 +3559,7 @@ func _make_minimap_marker(record: Dictionary, current_room_id: String) -> Contro
 	var marker_texture := _load_texture_2d(marker_icon_texture_path)
 	var marker_color := _get_minimap_marker_color(room_type, visited, cleared, is_current)
 	var marker_tooltip := "L%d %s\n%s | %s | %s" % [biome_index, biome_name, room_id, marker_label, marker_state]
+	marker.set_meta("room_id", room_id)
 	marker.set_meta("biome_index", biome_index)
 	marker.set_meta("biome_name", biome_name)
 	marker.set_meta("room_type", room_type)
@@ -3529,6 +3569,7 @@ func _make_minimap_marker(record: Dictionary, current_room_id: String) -> Contro
 	marker.set_meta("room_icon_texture_visible", marker_texture != null)
 	marker.set_meta("room_label", marker_label)
 	marker.set_meta("room_state", marker_state)
+	marker.set_meta("room_state_key", "%s|%s|%s" % [visited, cleared, is_current])
 	marker.custom_minimum_size = Vector2(24, 22)
 	marker.tooltip_text = marker_tooltip
 	marker.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -3562,6 +3603,37 @@ func _make_minimap_marker(record: Dictionary, current_room_id: String) -> Contro
 	center.add_child(fallback_label)
 
 	return marker
+
+
+func _update_minimap_marker(marker: PanelContainer, record: Dictionary, current_room_id: String) -> void:
+	var room_id := str(record.get("id", ""))
+	var visited := bool(record.get("visited", false))
+	var cleared := bool(record.get("cleared", false))
+	var is_current := room_id == current_room_id
+	var state_key := "%s|%s|%s" % [visited, cleared, is_current]
+	if str(marker.get_meta("room_state_key", "")) == state_key:
+		return
+
+	var room_type := str(record.get("room_type", marker.get_meta("room_type", "combat")))
+	var biome_index := int(record.get("biome_index", marker.get_meta("biome_index", 1)))
+	var biome_name := str(record.get("biome_name", marker.get_meta("biome_name", "Layer %d" % biome_index)))
+	var marker_label := str(marker.get_meta("room_label", _get_room_marker_label(room_type)))
+	var marker_state := _get_room_marker_state_text(visited, cleared, is_current)
+	var marker_color := _get_minimap_marker_color(room_type, visited, cleared, is_current)
+	var marker_tooltip := "L%d %s\n%s | %s | %s" % [biome_index, biome_name, room_id, marker_label, marker_state]
+	marker.set_meta("room_state", marker_state)
+	marker.set_meta("room_state_key", state_key)
+	marker.tooltip_text = marker_tooltip
+	_apply_minimap_marker_style(marker, marker_color, visited, cleared, is_current)
+
+	var icon_texture := marker.get_node_or_null("MinimapMarkerCenter/MinimapMarkerTexture") as TextureRect
+	if icon_texture != null:
+		icon_texture.tooltip_text = marker_tooltip
+		icon_texture.modulate = _get_minimap_marker_icon_modulate(visited, cleared, is_current)
+	var fallback_label := marker.get_node_or_null("MinimapMarkerCenter/MinimapMarkerFallback") as Label
+	if fallback_label != null:
+		fallback_label.tooltip_text = marker_tooltip
+		fallback_label.add_theme_color_override("font_color", marker_color)
 
 
 func _make_minimap_biome_layer(record: Dictionary) -> VBoxContainer:
@@ -4035,6 +4107,8 @@ func _get_minimap_marker_for_type(room_type: String) -> Control:
 
 
 func _get_minimap_markers() -> Array:
+	if not _minimap_markers_by_room_id.is_empty():
+		return _minimap_markers_by_room_id.values()
 	return _collect_minimap_markers(minimap_row)
 
 
