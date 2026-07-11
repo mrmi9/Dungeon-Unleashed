@@ -30,6 +30,8 @@ Rate from 1 to 5.
 - New run starts:
 - Fixed seed / Replay Seed works:
 - Same-seed reward/shop replay works:
+- First shot and sustained fire are hitch-free:
+- Reload completion and weapon switching are hitch-free:
 - First combat room can be cleared:
 - Shop can be reached:
 - Boss can be fought:

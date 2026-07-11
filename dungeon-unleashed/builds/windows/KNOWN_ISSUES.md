@@ -14,4 +14,4 @@ Last updated: 2026-07-12
 - The build is unsigned and may trigger a Windows security warning.
 - Fixed seed replay assumes the same interaction order; it is deterministic replay, not recorded input playback.
 
-Export generation and the packaged executable's fixed-seed first-room runtime check passed. The current running window still requires human playtest validation.
+Export generation and the packaged executable's fixed-seed first-room runtime check passed. The current running window still requires human validation of high-rate fire, shotgun volleys, reload completion, and weapon switching.
