@@ -29,6 +29,7 @@ Run `Dungeon Unleashed.exe`.
 - Original authored combat SFX and seven music tracks.
 - Shooting hot path uses local ammo HUD updates, cached weapon icons, pooled SFX voices, and one aim-assist query per physics frame.
 - Room-state minimap updates reuse existing markers, passive HUD work is cached/throttled, and combat text uses a bounded 48-entry pool.
+- The top-left combat HUD is capped at 190 x 190 px: vitals use icons and values, passive/rule details move to tooltips, and the minimap shows only the active biome layer.
 - Reward-room and normal-chest Rare+ exposure pity; premium and Boss chests have Rare+ floors.
 - Three legendary relics now support multi-shot, energy-sustain, and chain builds; full-run rarity rates are covered by deterministic simulation.
 - Armory, shop, Boss, and cursed-event weapons use separate rarity tables with deterministic full-run rarity and weapon-form coverage.
@@ -46,6 +47,7 @@ Run `Dungeon Unleashed.exe`.
 - Check Music/SFX balance with headphones or speakers.
 - Hold fire with the pistol, shotgun, and a high-rate weapon; note any hitch on first shot, sustained fire, reload completion, or weapon switching.
 - Watch for stalls when entering combat, starting a wave, clearing a room, spawning a reward, or claiming it; verify the minimap current-room marker remains correct.
+- Check that the compact top-left HUD remains readable without covering combat, and that the top-right minimap switches biome layers instead of expanding across the screen.
 - Create dense simultaneous hits with shotgun, chain, explosion, or rapid-fire weapons; check that combat text remains readable while capped at 48 entries.
 - Test death, victory, restart, pause, settings persistence, keyboard/mouse, and controller input where available.
 

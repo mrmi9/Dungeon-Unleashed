@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="1"]
+[ext_resource type="Texture2D" path="res://art/ui/content_icons/heart_core.svg" id="2_health"]
+[ext_resource type="Texture2D" path="res://art/ui/content_icons/bulwark_plate.svg" id="3_armor"]
+[ext_resource type="Texture2D" path="res://art/ui/content_icons/deep_cell.svg" id="4_energy"]
 
 [node name="HUD" type="Control"]
 process_mode = 3
@@ -17,49 +20,77 @@ script = ExtResource("1")
 layout_mode = 1
 offset_left = 16.0
 offset_top = 14.0
-offset_right = 236.0
-offset_bottom = 250.0
+offset_right = 198.0
+offset_bottom = 184.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 1
 
 [node name="VitalsRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 4
+
+[node name="HealthIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/VitalsRow"]
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+texture = ExtResource("2_health")
+expand_mode = 1
+stretch_mode = 5
+tooltip_text = "生命"
 
 [node name="HealthLabel" type="Label" parent="MarginContainer/VBoxContainer/VitalsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.9, 0.97, 1, 1)
 theme_override_font_sizes/font_size = 11
-text = "HP: 6 / 6"
+text = "6/6"
 clip_text = true
+tooltip_text = "生命 6/6"
+
+[node name="ShieldIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/VitalsRow"]
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+texture = ExtResource("3_armor")
+expand_mode = 1
+stretch_mode = 5
+tooltip_text = "护甲"
 
 [node name="ShieldLabel" type="Label" parent="MarginContainer/VBoxContainer/VitalsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.55, 0.86, 1, 1)
 theme_override_font_sizes/font_size = 11
-text = "Armor: 6 / 6"
+text = "6/6"
 horizontal_alignment = 1
 clip_text = true
+tooltip_text = "护甲 6/6"
+
+[node name="EnergyIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/VitalsRow"]
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+texture = ExtResource("4_energy")
+expand_mode = 1
+stretch_mode = 5
+tooltip_text = "能量"
 
 [node name="EnergyLabel" type="Label" parent="MarginContainer/VBoxContainer/VitalsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.42, 0.72, 1, 1)
 theme_override_font_sizes/font_size = 11
-text = "Energy: 120 / 120"
+text = "120/120"
 horizontal_alignment = 2
 clip_text = true
+tooltip_text = "能量 120/120"
 
 [node name="SkillLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 1, 0.88, 1)
 theme_override_font_sizes/font_size = 11
-text = "Skill: Phase Dash Ready"
+text = "技能  就绪"
 clip_text = true
+tooltip_text = "技能状态"
 
 [node name="PassiveStatusRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -80,6 +111,7 @@ text = "CHR"
 horizontal_alignment = 1
 
 [node name="PassiveStatusLabel" type="Label" parent="MarginContainer/VBoxContainer/PassiveStatusRow"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.7, 0.78, 0.88, 1)
@@ -88,6 +120,7 @@ text = "Passive: Steady Hands"
 clip_text = true
 
 [node name="RuleFeedbackRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 4
 
@@ -126,7 +159,7 @@ theme_override_colors/font_color = Color(0.82, 0.9, 1, 1)
 text = "Ammo: 12 / 12"
 
 [node name="WeaponSlotPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 92)
+custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
 mouse_filter = 2
 
@@ -351,6 +384,7 @@ horizontal_alignment = 2
 clip_text = true
 
 [node name="RoomStateLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 1, 0.75, 1)
 theme_override_font_sizes/font_size = 11
@@ -399,8 +433,9 @@ anchor_right = 1.0
 offset_left = -224.0
 offset_top = 14.0
 offset_right = -16.0
-offset_bottom = 106.0
+offset_bottom = 88.0
 mouse_filter = 2
+clip_contents = true
 
 [node name="MarginContainer" type="MarginContainer" parent="MinimapPanel"]
 layout_mode = 2
@@ -423,6 +458,7 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_constants/separation = 4
 alignment = 1
+clip_contents = true
 
 [node name="MinimapCurrentLabel" type="Label" parent="MinimapPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2

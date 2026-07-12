@@ -73,8 +73,9 @@ func _run() -> void:
 	_verify_source_drop_pools(relic_system)
 	_expect(bool(relic_system.call("obtain_relic", SHARP_ROUNDS)), "Should obtain Sharp Rounds")
 	_expect(player.get_damage_multiplier() > 1.0, "Sharp Rounds should increase player damage multiplier")
-	if hud != null and hud.has_method("get_relic_label_text"):
-		_expect(str(hud.call("get_relic_label_text")).contains("Sharp Rounds"), "HUD should show collected relic")
+	if hud != null and hud.has_method("get_relic_label_tooltip_text"):
+		_expect(str(hud.call("get_relic_label_text")).contains("1"), "Compact HUD should show the collected relic count")
+		_expect(str(hud.call("get_relic_label_tooltip_text")).contains(Localization.text("Sharp Rounds")), "Compact HUD relic tooltip should identify the collected relic")
 
 	_expect(bool(relic_system.call("obtain_relic", QUICK_TRIGGER)), "Should obtain Quick Trigger")
 	_expect(player.get_fire_rate_multiplier() > 1.0, "Quick Trigger should increase fire rate multiplier")

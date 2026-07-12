@@ -79,7 +79,11 @@ func _verify_ui_scenes() -> void:
 	viewport.add_child(lobby)
 	lobby.call("update_character_selection", "Wanderer", "Balanced shooter with stable health, armor, and energy.", "Phase Dash", "Brief speed burst with short invulnerability.", 0, 6)
 	await get_tree().create_timer(0.25).timeout
-	_expect(_node_text(hud, "MarginContainer/VBoxContainer/VitalsRow/HealthLabel").contains("生命"), "HUD health label should be Chinese")
+	var health_label := hud.get_node_or_null("MarginContainer/VBoxContainer/VitalsRow/HealthLabel") as Label
+	var health_icon := hud.get_node_or_null("MarginContainer/VBoxContainer/VitalsRow/HealthIcon") as TextureRect
+	_expect(health_label != null and health_label.text == "6/6", "Compact HUD health label should keep only the numeric value")
+	_expect(health_label != null and health_label.tooltip_text.contains("生命"), "Compact HUD health tooltip should be Chinese")
+	_expect(health_icon != null and health_icon.texture != null, "Compact HUD health should use an icon instead of a text prefix")
 	_expect(_node_text(hud, "MainMenuPanel/MarginContainer/VBoxContainer/TitleLabel") == "地牢觉醒", "Main menu title should be Chinese")
 	_expect(str(hud.call("get_weapon_label_text")).contains("基础手枪"), "Dynamic weapon label should translate the weapon name")
 	_expect(_find_text(lobby, "前哨大厅"), "Lobby title should be Chinese")

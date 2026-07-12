@@ -142,6 +142,7 @@ const LOBBY_SCREEN_SCENE := preload("res://scenes/ui/LobbyScreen.tscn")
 @onready var passive_status_icon_texture: TextureRect = $MarginContainer/VBoxContainer/PassiveStatusRow/PassiveStatusIconTexture
 @onready var passive_status_token_label: Label = $MarginContainer/VBoxContainer/PassiveStatusRow/PassiveStatusTokenLabel
 @onready var passive_status_label: Label = $MarginContainer/VBoxContainer/PassiveStatusRow/PassiveStatusLabel
+@onready var rule_feedback_row: HBoxContainer = $MarginContainer/VBoxContainer/RuleFeedbackRow
 @onready var rule_feedback_icon_texture: TextureRect = $MarginContainer/VBoxContainer/RuleFeedbackRow/RuleFeedbackIconTexture
 @onready var rule_feedback_token_label: Label = $MarginContainer/VBoxContainer/RuleFeedbackRow/RuleFeedbackTokenLabel
 @onready var rule_feedback_label: Label = $MarginContainer/VBoxContainer/RuleFeedbackRow/RuleFeedbackLabel
@@ -555,9 +556,11 @@ func update_health(current_hp: int, max_hp: int) -> void:
 	_low_health_ratio = health_ratio
 	var was_low_health := _is_low_health
 	_is_low_health = LOW_HEALTH_FEEDBACK.is_low_health(current_hp, safe_max_hp)
-	health_label.text = Localization.format("HP: %d / %d", [current_hp, max_hp])
+	health_label.text = "%d/%d" % [current_hp, max_hp]
+	health_label.tooltip_text = Localization.format("生命 %d/%d", [current_hp, max_hp])
 	if _is_low_health:
-		health_label.text += " | %s" % Localization.text("LOW")
+		health_label.text += " !"
+		health_label.tooltip_text += Localization.text(" · 低生命")
 		health_label.add_theme_color_override("font_color", HEALTH_LOW_COLOR)
 	else:
 		health_label.add_theme_color_override("font_color", HEALTH_NORMAL_COLOR)
@@ -590,11 +593,12 @@ func update_shield(current_shield: int, max_shield: int = -1, recharge_summary: 
 	var status_text := _format_shield_recharge_status(recharge_summary)
 	var previous_shield := _last_shield_value
 	if max_shield > 0:
-		shield_label.text = Localization.format("Armor: %d / %d", [current_shield, max_shield])
+		shield_label.text = "%d/%d" % [current_shield, max_shield]
 	else:
-		shield_label.text = Localization.format("Armor: %d", current_shield)
+		shield_label.text = str(current_shield)
+	shield_label.tooltip_text = Localization.format("护甲 %s", shield_label.text)
 	if not status_text.is_empty():
-		shield_label.text += " | %s" % status_text
+		shield_label.tooltip_text += " · %s" % status_text
 	if previous_shield >= 0 and current_shield > previous_shield:
 		show_armor_recovery_pulse()
 	elif previous_shield >= 0 and current_shield < previous_shield:
@@ -691,21 +695,25 @@ func show_rule_trigger_feedback(kind: String, display_name: String, trigger_even
 	if clean_icon_key.is_empty():
 		clean_icon_key = _get_rule_feedback_fallback_icon_key(clean_kind)
 
-	rule_feedback_label.text = "%s: %s" % [clean_kind, clean_name]
+	rule_feedback_label.text = Localization.text(clean_name)
 	rule_feedback_label.tooltip_text = _format_rule_feedback_tooltip(clean_kind, clean_name, trigger_event)
 	_rule_feedback_icon_key = clean_icon_key
 	_rule_feedback_icon_texture_path = CONTENT_ICON_REGISTRY.get_texture_path(_rule_feedback_icon_key, icon_page)
 	_rule_feedback_active_color = _get_rule_feedback_color(clean_kind)
 	_rule_feedback_duration = maxf(duration, 0.05)
 	_rule_feedback_timer = _rule_feedback_duration
+	if rule_feedback_row != null:
+		rule_feedback_row.visible = true
 	_refresh_rule_feedback_icon(clean_kind, clean_name)
 	_refresh_rule_feedback_color()
 
 
 func _refresh_energy_label() -> void:
-	energy_label.text = Localization.format("Energy: %d / %d", [_energy_current, _energy_max])
+	energy_label.text = "%d/%d" % [_energy_current, _energy_max]
+	energy_label.tooltip_text = Localization.format("能量 %d/%d", [_energy_current, _energy_max])
 	if _energy_warning_timer > 0.0 and _energy_warning_required > _energy_current:
-		energy_label.text += " | Need %d" % _energy_warning_required
+		energy_label.text = "%d!" % _energy_current
+		energy_label.tooltip_text += Localization.format(" · 需要 %d", _energy_warning_required)
 		var progress := clampf(_energy_warning_timer / _energy_warning_duration, 0.0, 1.0)
 		energy_label.add_theme_color_override("font_color", ENERGY_NORMAL_COLOR.lerp(ENERGY_WARNING_COLOR, progress))
 	else:
@@ -784,27 +792,33 @@ func _refresh_rule_feedback_color() -> void:
 func _reset_rule_feedback_label() -> void:
 	if rule_feedback_label == null:
 		return
-	rule_feedback_label.text = "Rule: --"
-	rule_feedback_label.tooltip_text = "Last rule trigger"
+	rule_feedback_label.text = "--"
+	rule_feedback_label.tooltip_text = "最近规则触发"
 	rule_feedback_label.add_theme_color_override("font_color", RULE_FEEDBACK_BASE_COLOR)
 	_rule_feedback_icon_key = ""
 	_rule_feedback_icon_texture_path = ""
 	if rule_feedback_icon_texture != null:
 		rule_feedback_icon_texture.texture = null
 		rule_feedback_icon_texture.visible = false
-		rule_feedback_icon_texture.tooltip_text = "Last rule trigger"
+		rule_feedback_icon_texture.tooltip_text = "最近规则触发"
 	if rule_feedback_token_label != null:
 		rule_feedback_token_label.text = "--"
-		rule_feedback_token_label.tooltip_text = "Last rule trigger"
+		rule_feedback_token_label.tooltip_text = "最近规则触发"
 		rule_feedback_token_label.visible = true
 		rule_feedback_token_label.add_theme_color_override("font_color", RULE_FEEDBACK_BASE_COLOR)
+	if rule_feedback_row != null:
+		rule_feedback_row.visible = false
 
 
 func _format_rule_feedback_tooltip(kind: String, display_name: String, trigger_event: String) -> String:
 	var clean_event := trigger_event.strip_edges()
 	if clean_event.is_empty():
-		return "%s triggered: %s" % [kind, display_name]
-	return "%s triggered: %s (%s)" % [kind, display_name, clean_event.replace("_", " ")]
+		return Localization.format("%s触发：%s", [Localization.text(kind), Localization.text(display_name)])
+	return Localization.format("%s触发：%s（%s）", [
+		Localization.text(kind),
+		Localization.text(display_name),
+		Localization.text(clean_event.replace("_", " ")),
+	])
 
 
 func _get_rule_feedback_color(kind: String) -> Color:
@@ -860,13 +874,17 @@ func update_skill_status(skill_name: String, cooldown_remaining: float, cooldown
 	var skill_changed := skill_name != _last_skill_name
 	var localized_skill_name := Localization.text(skill_name)
 	if active_remaining > 0.0:
-		skill_label.text = Localization.format("Skill: %s Active %.1fs", [localized_skill_name, active_remaining])
+		skill_label.text = Localization.format("技能  生效 %.1fs", active_remaining)
 	elif cooldown_remaining > 0.0:
-		skill_label.text = Localization.format("Skill: %s CD %.1fs", [localized_skill_name, cooldown_remaining])
+		skill_label.text = Localization.format("技能  %.1fs", cooldown_remaining)
 	elif cooldown_duration > 0.0:
-		skill_label.text = Localization.format("Skill: %s Ready", localized_skill_name)
+		skill_label.text = Localization.text("技能  就绪")
 	else:
-		skill_label.text = Localization.text("Skill: Ready")
+		skill_label.text = Localization.text("技能  --")
+	skill_label.tooltip_text = Localization.format("技能：%s · %s", [
+		localized_skill_name,
+		skill_label.text.trim_prefix("技能  "),
+	])
 	if skill_changed:
 		_last_skill_name = skill_name
 		_skill_ready_state_known = true
@@ -1963,13 +1981,14 @@ func _format_weapon_slot_index() -> String:
 
 
 func update_gold(current_gold: int) -> void:
-	gold_label.text = Localization.format("Gold: %d", current_gold)
+	gold_label.text = Localization.format("金币 %d", current_gold)
+	gold_label.tooltip_text = gold_label.text
 
 
 func update_relics(relic_summaries: Array) -> void:
 	if relic_summaries.is_empty():
-		relic_label.text = Localization.text("Relics: None")
-		relic_label.tooltip_text = relic_label.text
+		relic_label.text = Localization.text("遗物 0")
+		relic_label.tooltip_text = Localization.text("暂无遗物")
 		return
 
 	var parts: PackedStringArray = []
@@ -1983,12 +2002,13 @@ func update_relics(relic_summaries: Array) -> void:
 		else:
 			parts.append(name)
 
-	relic_label.text = Localization.format("Relics: %s", "、".join(parts))
-	relic_label.tooltip_text = relic_label.text
+	relic_label.text = Localization.format("遗物 %d", parts.size())
+	relic_label.tooltip_text = "、".join(parts)
 
 
 func update_enemy_count(count: int) -> void:
-	enemy_label.text = Localization.format("Enemies: %d", count)
+	enemy_label.text = Localization.format("敌 %d", count)
+	enemy_label.tooltip_text = Localization.format("剩余敌人 %d", count)
 
 
 func update_room_state(state_name: String) -> void:
@@ -2285,11 +2305,19 @@ func update_minimap(room_records: Array, current_room_id: String = "") -> void:
 			var marker := _minimap_markers_by_room_id.get(room_id) as PanelContainer
 			if marker != null:
 				_update_minimap_marker(marker, record, current_room_id)
+		_update_minimap_layer_visibility(current_room_id)
 
 	if current_room_id.is_empty():
-		minimap_current_label.text = "Current: --"
+		minimap_current_label.text = "--"
 	else:
-		minimap_current_label.text = "Current: %s" % current_room_id
+		var current_marker := _minimap_markers_by_room_id.get(current_room_id) as PanelContainer
+		if current_marker != null:
+			minimap_current_label.text = "L%d · %s" % [
+				int(current_marker.get_meta("biome_index", 1)),
+				Localization.text(str(current_marker.get_meta("room_label", current_room_id))),
+			]
+		else:
+			minimap_current_label.text = current_room_id
 
 
 func _rebuild_minimap(room_records: Array, current_room_id: String, structure_signature: String) -> void:
@@ -2313,6 +2341,17 @@ func _rebuild_minimap(room_records: Array, current_room_id: String, structure_si
 				marker_row.add_child(marker)
 				_minimap_markers_by_room_id[str(record.get("id", ""))] = marker
 	_minimap_structure_signature = structure_signature
+	_update_minimap_layer_visibility(current_room_id)
+
+
+func _update_minimap_layer_visibility(current_room_id: String) -> void:
+	var active_biome := 1
+	var current_marker := _minimap_markers_by_room_id.get(current_room_id) as PanelContainer
+	if current_marker != null:
+		active_biome = int(current_marker.get_meta("biome_index", 1))
+	for child in minimap_row.get_children():
+		if child is Control and bool(child.get_meta("biome_layer", false)):
+			(child as Control).visible = int(child.get_meta("biome_index", 1)) == active_biome
 
 
 func _get_minimap_structure_signature(room_records: Array) -> String:
@@ -2487,6 +2526,21 @@ func get_minimap_biome_layer_count() -> int:
 	return count
 
 
+func get_visible_minimap_biome_layer_count() -> int:
+	var count := 0
+	for child in minimap_row.get_children():
+		if child.has_meta("biome_layer") and bool(child.get_meta("biome_layer")) and child.visible:
+			count += 1
+	return count
+
+
+func get_visible_minimap_biome_index() -> int:
+	for child in minimap_row.get_children():
+		if child.has_meta("biome_layer") and bool(child.get_meta("biome_layer")) and child.visible:
+			return int(child.get_meta("biome_index", 0))
+	return 0
+
+
 func get_minimap_marker_count_for_biome(biome_index: int) -> int:
 	var count := 0
 	for marker in _get_minimap_markers():
@@ -2612,6 +2666,10 @@ func get_health_label_text() -> String:
 	return health_label.text
 
 
+func get_health_label_tooltip_text() -> String:
+	return health_label.tooltip_text
+
+
 func is_low_health_active() -> bool:
 	return _is_low_health
 
@@ -2644,8 +2702,16 @@ func get_relic_label_text() -> String:
 	return relic_label.text
 
 
+func get_relic_label_tooltip_text() -> String:
+	return relic_label.tooltip_text
+
+
 func get_shield_label_text() -> String:
 	return shield_label.text
+
+
+func get_shield_label_tooltip_text() -> String:
+	return shield_label.tooltip_text
 
 
 func is_armor_recovery_pulse_active() -> bool:
@@ -2664,6 +2730,10 @@ func get_energy_label_text() -> String:
 	return energy_label.text
 
 
+func get_energy_label_tooltip_text() -> String:
+	return energy_label.tooltip_text
+
+
 func is_energy_warning_active() -> bool:
 	return _energy_warning_timer > 0.0 and _energy_warning_required > _energy_current
 
@@ -2674,6 +2744,10 @@ func get_energy_label_color_for_test() -> Color:
 
 func get_skill_label_text() -> String:
 	return skill_label.text
+
+
+func get_skill_label_tooltip_text() -> String:
+	return skill_label.tooltip_text
 
 
 func get_weapon_label_text() -> String:
@@ -2984,6 +3058,14 @@ func get_passive_status_token_text_for_test() -> String:
 
 func get_rule_feedback_text() -> String:
 	return rule_feedback_label.text
+
+
+func get_rule_feedback_tooltip_text() -> String:
+	return rule_feedback_label.tooltip_text
+
+
+func is_rule_feedback_row_visible_for_test() -> bool:
+	return rule_feedback_row != null and rule_feedback_row.visible
 
 
 func is_rule_feedback_active() -> bool:
@@ -3644,7 +3726,7 @@ func _make_minimap_marker(record: Dictionary, current_room_id: String) -> Contro
 	marker.set_meta("room_label", marker_label)
 	marker.set_meta("room_state", marker_state)
 	marker.set_meta("room_state_key", "%s|%s|%s" % [visited, cleared, is_current])
-	marker.custom_minimum_size = Vector2(24, 22)
+	marker.custom_minimum_size = Vector2(18, 18)
 	marker.tooltip_text = marker_tooltip
 	marker.mouse_filter = Control.MOUSE_FILTER_PASS
 	_apply_minimap_marker_style(marker, marker_color, visited, cleared, is_current)
@@ -3656,7 +3738,7 @@ func _make_minimap_marker(record: Dictionary, current_room_id: String) -> Contro
 
 	var icon_texture := TextureRect.new()
 	icon_texture.name = "MinimapMarkerTexture"
-	icon_texture.custom_minimum_size = Vector2(18, 18)
+	icon_texture.custom_minimum_size = Vector2(14, 14)
 	icon_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon_texture.texture = marker_texture
@@ -3672,7 +3754,7 @@ func _make_minimap_marker(record: Dictionary, current_room_id: String) -> Contro
 	fallback_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	fallback_label.visible = marker_texture == null
 	fallback_label.tooltip_text = marker_tooltip
-	fallback_label.add_theme_font_size_override("font_size", 12 if marker_icon.length() > 1 else 13)
+	fallback_label.add_theme_font_size_override("font_size", 9 if marker_icon.length() > 1 else 10)
 	fallback_label.add_theme_color_override("font_color", marker_color)
 	center.add_child(fallback_label)
 
@@ -3719,7 +3801,7 @@ func _make_minimap_biome_layer(record: Dictionary) -> VBoxContainer:
 	layer.set_meta("biome_index", biome_index)
 	layer.set_meta("biome_name", biome_name)
 	layer.set_meta("biome_layer_text", "L%d %s" % [biome_index, biome_name])
-	layer.custom_minimum_size = Vector2(84, 44)
+	layer.custom_minimum_size = Vector2(0, 36)
 	layer.tooltip_text = "Layer %d\n%s" % [biome_index, biome_name]
 	layer.add_theme_constant_override("separation", 1)
 
@@ -3741,11 +3823,11 @@ func _make_minimap_biome_label(record: Dictionary) -> Label:
 	var label := Label.new()
 	label.text = "L%d %s" % [biome_index, biome_name]
 	label.tooltip_text = biome_name
-	label.custom_minimum_size = Vector2(84, 18)
+	label.custom_minimum_size = Vector2(0, 14)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.clip_text = true
-	label.add_theme_font_size_override("font_size", 10)
+	label.add_theme_font_size_override("font_size", 9)
 	label.add_theme_color_override("font_color", Color(0.74, 0.78, 0.86, 1.0))
 	return label
 

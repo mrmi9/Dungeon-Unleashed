@@ -114,7 +114,7 @@ func _run() -> void:
 		player.current_health = low_health_entry_hp
 		player.health_changed.emit(player.current_health, player.max_health)
 		await get_tree().process_frame
-		_expect(str(hud.call("get_health_label_text")).contains("LOW"), "HUD should flag low HP while player is near defeat")
+		_expect(str(hud.call("get_health_label_text")).contains("!"), "Compact HUD should flag low HP while player is near defeat")
 		if hud.has_method("is_low_health_vignette_visible"):
 			_expect(bool(hud.call("is_low_health_vignette_visible")), "HUD should show low-health vignette while HP is low")
 		if hud.has_method("get_low_health_vignette_alpha_for_test"):
@@ -149,7 +149,7 @@ func _run() -> void:
 		player.current_health = player.max_health
 		player.health_changed.emit(player.current_health, player.max_health)
 		await get_tree().process_frame
-		_expect(not str(hud.call("get_health_label_text")).contains("LOW"), "HUD should clear low HP text after recovery")
+		_expect(not str(hud.call("get_health_label_text")).contains("!"), "Compact HUD should clear the low HP marker after recovery")
 		if audio_feedback != null and audio_feedback.has_method("get_sfx_play_count") and low_health_recover_sfx_count_before >= 0:
 			_expect(int(audio_feedback.call("get_sfx_play_count")) > low_health_recover_sfx_count_before, "Leaving low HP should trigger low-health recovery SFX")
 		if audio_feedback != null and audio_feedback.has_method("get_sfx_play_count_for_id_for_test") and low_health_recover_id_count_before >= 0:

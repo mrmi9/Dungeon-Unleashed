@@ -17227,3 +17227,30 @@ Exported runtime room check passed. (seed 424242, exit code 0)
 Windows EXE SHA256: 85094A352F4087A22467582B51BFCF8F24940164401CC6F28DC07460F7B8BC2B
 Windows ZIP SHA256: 2C6BC05C1076E1AE4B40C581D24533EE5D025DA6549674FFE73B693D71BFE929
 ```
+
+## 2026-07-12 战斗 HUD 二次精简与当前层小地图
+
+### 界面调整
+- 左上战斗 HUD 从 `220×236` 再收紧到 `190×190` 自动化上限，实际导出画面约 `182×184`。
+- 生命、护甲、能量使用已有内容 SVG 图标加数值，移除 `生命/护甲/能量` 常驻文字前缀；完整含义和恢复/不足状态保留在中文悬停提示。
+- 被动状态只保留角色图标；规则反馈默认不占行高，仅在祝福或雕像触发后短暂显示图标和名称。
+- 遗物列表改为 `遗物 N` 数量摘要，完整名称列表移入悬停提示；房间状态由中心提示和小地图表达，不再在左侧重复显示。
+- 右上小地图只显示当前生态区，仍保留全部三层 marker 数据和状态复用逻辑；房间图标收紧为 `18×18`，不再横跨顶部画面。
+
+### 回归与导出
+```text
+UILayoutSmokeTest passed. (combat HUD <= 190×190)
+ChineseLocalizationSmokeTest passed. (localization scan avg 0.693 ms)
+WeaponSmokeTest passed.
+CharacterSmokeTest passed.
+CombatFeedbackSmokeTest passed.
+RelicSmokeTest passed.
+EventRoomSmokeTest passed.
+DungeonGenerationSmokeTest passed. (only active biome visible)
+FullRunSmokeTest passed.
+RuntimePerformanceSmokeTest passed. (passive HUD 0.038 ms, minimap 0.114 ms)
+Windows release export passed.
+Exported runtime room check passed. (exit code 0)
+Windows EXE SHA256: 28C7500A3B7CDAD04AAA10FCCA318AB75E4709293AFBDB50C8117359E9F225CB
+Windows ZIP SHA256: 1396500A3402046723BA984C8152A3666115105C22034D7D6E61DA6151A484E4
+```

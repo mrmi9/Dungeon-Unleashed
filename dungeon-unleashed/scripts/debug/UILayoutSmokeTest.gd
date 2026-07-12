@@ -87,8 +87,14 @@ func _check_gameplay_overlay(hud: Node, resolution: Vector2i) -> void:
 	var combat_stats := hud.get_node_or_null("MarginContainer") as Control
 	_check_rect_inside(combat_stats, resolution, "combat stats")
 	if combat_stats != null:
-		_expect(combat_stats.size.x <= 220.0, "Compact combat stats should stay at or below 220 px wide")
-		_expect(combat_stats.size.y <= 236.0, "Compact combat stats should stay at or below 236 px tall")
+		_expect(combat_stats.size.x <= 190.0, "Compact combat stats should stay at or below 190 px wide")
+		_expect(combat_stats.size.y <= 190.0, "Compact combat stats should stay at or below 190 px tall, got %.1f" % combat_stats.size.y)
+	for icon_name in ["HealthIcon", "ShieldIcon", "EnergyIcon"]:
+		var status_icon := hud.get_node_or_null("MarginContainer/VBoxContainer/VitalsRow/%s" % icon_name) as TextureRect
+		_expect(status_icon != null and status_icon.texture != null, "Compact HUD should render the %s texture" % icon_name)
+	_expect(not _is_control_visible(hud, "MarginContainer/VBoxContainer/PassiveStatusRow/PassiveStatusLabel"), "Compact HUD should move passive details into the icon tooltip")
+	_expect(not _is_control_visible(hud, "MarginContainer/VBoxContainer/RuleFeedbackRow"), "Compact HUD should hide inactive rule feedback")
+	_expect(not _is_control_visible(hud, "MarginContainer/VBoxContainer/RoomStateLabel"), "Compact HUD should avoid duplicating room state beside the minimap")
 	_expect(not _is_control_visible(hud, "MarginContainer/VBoxContainer/WeaponLabel"), "Compact HUD should hide the duplicate weapon line")
 	_expect(not _is_control_visible(hud, "MarginContainer/VBoxContainer/AmmoLabel"), "Compact HUD should hide the duplicate ammo line")
 	_expect(not _is_control_visible(hud, "MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotMetaLabel"), "Compact HUD should move weapon metadata into tooltips")

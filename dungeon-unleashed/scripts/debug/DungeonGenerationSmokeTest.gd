@@ -105,6 +105,11 @@ func _run() -> void:
 	else:
 		_expect(false, "HUD should expose minimap marker count for smoke tests")
 	_verify_minimap_marker_contract(hud, records)
+	if hud != null and hud.has_method("get_visible_minimap_biome_layer_count") and hud.has_method("get_visible_minimap_biome_index"):
+		_expect(int(hud.call("get_visible_minimap_biome_layer_count")) == 1, "Compact minimap should show exactly one biome layer")
+		_expect(int(hud.call("get_visible_minimap_biome_index")) == 1, "Compact minimap should start on the active first biome")
+	else:
+		_expect(false, "HUD should expose compact minimap visibility accessors")
 	if hud != null and hud.has_method("get_minimap_seed_text") and hud.has_method("get_minimap_debug_text"):
 		_expect(str(hud.call("get_minimap_seed_text")).contains("424242"), "HUD minimap should expose the active dungeon seed")
 		_expect(str(hud.call("get_minimap_debug_text")).contains(last_room_id), "HUD debug tooltip should include dungeon map details")

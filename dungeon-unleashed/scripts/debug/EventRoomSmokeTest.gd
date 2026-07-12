@@ -580,9 +580,12 @@ func _expect_rule_feedback(hud: Node, kind: String, display_name: String, color_
 		return
 
 	var feedback_text := str(hud.call("get_rule_feedback_text"))
-	_expect(feedback_text.contains("%s:" % kind), "HUD rule feedback should show %s trigger kind" % kind)
 	if not display_name.strip_edges().is_empty():
-		_expect(feedback_text.contains(display_name), "HUD rule feedback should show %s" % display_name)
+		_expect(feedback_text.contains(Localization.text(display_name)), "Compact HUD rule feedback should show %s" % display_name)
+	if hud.has_method("get_rule_feedback_tooltip_text"):
+		_expect(str(hud.call("get_rule_feedback_tooltip_text")).contains(Localization.text(kind)), "Compact HUD rule tooltip should identify the %s trigger kind" % kind)
+	if hud.has_method("is_rule_feedback_row_visible_for_test"):
+		_expect(bool(hud.call("is_rule_feedback_row_visible_for_test")), "Compact HUD rule row should appear only while feedback is active")
 	if hud.has_method("is_rule_feedback_active"):
 		_expect(bool(hud.call("is_rule_feedback_active")), "HUD rule feedback should stay active briefly after trigger")
 	if not hud.has_method("get_rule_feedback_color_for_test"):
@@ -617,7 +620,9 @@ func _expect_rule_feedback_fades(hud: Node) -> void:
 		hud.call("_process", 1.5)
 		_expect(not bool(hud.call("is_rule_feedback_active")), "HUD rule feedback should fade after its duration")
 	if hud.has_method("get_rule_feedback_text"):
-		_expect(str(hud.call("get_rule_feedback_text")) == "Rule: --", "HUD rule feedback should return to idle text after fading")
+		_expect(str(hud.call("get_rule_feedback_text")) == "--", "HUD rule feedback should return to compact idle text after fading")
+	if hud.has_method("is_rule_feedback_row_visible_for_test"):
+		_expect(not bool(hud.call("is_rule_feedback_row_visible_for_test")), "Compact HUD rule row should hide after fading")
 	if hud.has_method("is_rule_feedback_icon_visible_for_test"):
 		_expect(not bool(hud.call("is_rule_feedback_icon_visible_for_test")), "HUD rule feedback icon should hide after fading")
 	if hud.has_method("get_rule_feedback_token_text_for_test"):

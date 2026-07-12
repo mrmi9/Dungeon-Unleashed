@@ -332,7 +332,7 @@ func _verify_energy_weapon_gate(player: Player, main: Node) -> void:
 	_expect(weapon.get_current_ammo() == ammo_before, "Failed energy-gated fire should not consume ammo")
 	_expect(_projectile_count() == 0, "Failed energy-gated fire should not spawn projectiles")
 	if hud != null and hud.has_method("get_energy_label_text"):
-		_expect(str(hud.call("get_energy_label_text")).contains("Need"), "Failed energy-gated fire should mark the HUD energy need")
+		_expect(str(hud.call("get_energy_label_text")).ends_with("!"), "Failed energy-gated fire should mark the compact HUD energy warning")
 	if hud != null and hud.has_method("is_energy_warning_active"):
 		_expect(bool(hud.call("is_energy_warning_active")), "Failed energy-gated fire should activate the HUD energy warning")
 	if hud != null and hud.has_method("get_energy_label_color_for_test"):

@@ -36,7 +36,7 @@ func _run() -> void:
 	_expect(str(initial_summary.get("display_name", "")) == "Wanderer", "Default character should be Wanderer")
 	_expect(int(initial_summary.get("total", 0)) == 6, "Main menu should expose six selectable characters")
 	_expect(str(hud.call("get_character_name_text")).contains("Wanderer"), "HUD should show default character")
-	_expect(str(hud.call("get_skill_label_text")).contains("Phase Dash"), "HUD should show default skill")
+	_expect(str(hud.call("get_skill_label_tooltip_text")).contains(Localization.text("Phase Dash")), "Compact HUD skill tooltip should identify the default skill")
 	_expect(_loadout_ids_match(player, ["basic_pistol", "shotgun", "energy_staff"]), "Wanderer should apply its configured starting weapons")
 	_expect(_hud_loadout_contains(hud, "Shotgun"), "HUD should show Wanderer starting loadout")
 	_expect(_passive_id_matches(player, "steady_hands"), "Wanderer should apply the Steady Hands passive")
@@ -90,7 +90,7 @@ func _run() -> void:
 	await get_tree().process_frame
 	_expect(player.current_health == base_health, "Armor should absorb small hits before HP")
 	_expect(player.current_shield == base_shield - 2, "Armor should drop by absorbed damage")
-	_expect(str(hud.call("get_shield_label_text")).contains("Delay"), "HUD should show Armor recharge delay after damage")
+	_expect(str(hud.call("get_shield_label_tooltip_text")).contains(Localization.text("Delay")), "Compact HUD armor tooltip should show recharge delay after damage")
 	if audio_feedback != null and audio_feedback.has_method("get_sfx_play_count") and armor_block_sfx_count_before >= 0:
 		_expect(int(audio_feedback.call("get_sfx_play_count")) > armor_block_sfx_count_before, "Armor absorption should trigger armor-block SFX")
 	if audio_feedback != null and audio_feedback.has_method("get_last_sfx_id_for_test"):
@@ -98,15 +98,15 @@ func _run() -> void:
 	player.call("_tick_timers", player.shield_recharge_delay - 0.2)
 	await get_tree().process_frame
 	_expect(player.current_shield == base_shield - 2, "Armor should not recover before the safe-delay window")
-	_expect(str(hud.call("get_shield_label_text")).contains("Delay"), "HUD should keep Armor delay text before recovery starts")
+	_expect(str(hud.call("get_shield_label_tooltip_text")).contains(Localization.text("Delay")), "Compact HUD armor tooltip should keep the delay before recovery starts")
 	player.call("_tick_timers", 0.3)
 	await get_tree().process_frame
-	_expect(str(hud.call("get_shield_label_text")).contains("Recovering"), "HUD should show Armor recovering after the safe-delay window")
+	_expect(str(hud.call("get_shield_label_tooltip_text")).contains(Localization.text("Recovering")), "Compact HUD armor tooltip should show recovery after the safe-delay window")
 	var armor_gain_sfx_count_before := int(audio_feedback.call("get_sfx_play_count")) if audio_feedback != null and audio_feedback.has_method("get_sfx_play_count") else -1
 	player.call("_tick_timers", 0.7)
 	await get_tree().process_frame
 	_expect(player.current_shield == base_shield - 1, "Armor should recover one point after the safe-delay window")
-	_expect(str(hud.call("get_shield_label_text")).contains("Recovering"), "HUD should keep Armor recovering text while armor is not full")
+	_expect(str(hud.call("get_shield_label_tooltip_text")).contains(Localization.text("Recovering")), "Compact HUD armor tooltip should keep recovery status while armor is not full")
 	if audio_feedback != null and audio_feedback.has_method("get_sfx_play_count") and armor_gain_sfx_count_before >= 0:
 		_expect(int(audio_feedback.call("get_sfx_play_count")) > armor_gain_sfx_count_before, "Armor recovery tick should trigger armor-gain SFX")
 	if audio_feedback != null and audio_feedback.has_method("get_last_sfx_id_for_test"):
@@ -123,7 +123,7 @@ func _run() -> void:
 	await get_tree().process_frame
 	_expect(player.current_shield == base_shield, "Armor should continue recovering up to max armor")
 	_expect(player.current_health == base_health, "Armor recovery should not change HP")
-	_expect(not str(hud.call("get_shield_label_text")).contains("Recovering"), "HUD should hide Armor recovering text at full armor")
+	_expect(not str(hud.call("get_shield_label_tooltip_text")).contains(Localization.text("Recovering")), "Compact HUD armor tooltip should hide recovery status at full armor")
 
 	_expect(bool(main.call("select_next_character")), "Selecting next character in main menu should succeed")
 	await get_tree().process_frame
@@ -194,11 +194,11 @@ func _run() -> void:
 	if hud.has_method("is_skill_warning_active"):
 		hud.call("_process", 0.5)
 		_expect(not bool(hud.call("is_skill_warning_active")), "HUD skill warning should fade after its duration")
-	_expect(str(hud.call("get_skill_label_text")).contains("Guard Pulse"), "HUD should show Warden skill status")
+	_expect(str(hud.call("get_skill_label_tooltip_text")).contains(Localization.text("Guard Pulse")), "Compact HUD skill tooltip should identify the Warden skill")
 	var skill_ready_sfx_count_before := int(audio_feedback.call("get_sfx_play_count")) if audio_feedback != null and audio_feedback.has_method("get_sfx_play_count") else -1
 	player.call("_tick_timers", 9.1)
 	await get_tree().process_frame
-	_expect(str(hud.call("get_skill_label_text")).contains("Ready"), "HUD should show Warden skill ready after cooldown")
+	_expect(str(hud.call("get_skill_label_text")).contains("就绪"), "Compact HUD should show Warden skill ready after cooldown")
 	if hud.has_method("is_skill_ready_pulse_active"):
 		_expect(bool(hud.call("is_skill_ready_pulse_active")), "HUD should pulse Skill when cooldown finishes")
 	if hud.has_method("get_skill_label_color_for_test"):
