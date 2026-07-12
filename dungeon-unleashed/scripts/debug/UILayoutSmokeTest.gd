@@ -82,8 +82,24 @@ func _check_gameplay_overlay(hud: Node, resolution: Vector2i) -> void:
 		_expect(input_hint_panel.visible, "Input hint should be visible during gameplay at %s" % _format_resolution(resolution))
 		_check_rect_inside(input_hint_panel, resolution, "gameplay input hint")
 
-	_check_rect_inside(hud.get_node_or_null("MarginContainer") as Control, resolution, "combat stats")
+	var combat_stats := hud.get_node_or_null("MarginContainer") as Control
+	_check_rect_inside(combat_stats, resolution, "combat stats")
+	if combat_stats != null:
+		_expect(combat_stats.size.x <= 220.0, "Compact combat stats should stay at or below 220 px wide")
+		_expect(combat_stats.size.y <= 236.0, "Compact combat stats should stay at or below 236 px tall")
+	_expect(not _is_control_visible(hud, "MarginContainer/VBoxContainer/WeaponLabel"), "Compact HUD should hide the duplicate weapon line")
+	_expect(not _is_control_visible(hud, "MarginContainer/VBoxContainer/AmmoLabel"), "Compact HUD should hide the duplicate ammo line")
+	_expect(not _is_control_visible(hud, "MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotMetaLabel"), "Compact HUD should move weapon metadata into tooltips")
+	for slot_index in range(1, 4):
+		var slot_base := "MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow/LoadoutSlot%d/LoadoutSlotMargin/LoadoutSlotContent" % slot_index
+		_expect(_is_control_visible(hud, "%s/LoadoutSlotIcon" % slot_base), "Compact HUD weapon slot %d should keep its icon visible" % slot_index)
+		_expect(not _is_control_visible(hud, "%s/LoadoutSlotLabel" % slot_base), "Compact HUD weapon slot %d should hide its long text label" % slot_index)
 	_check_rect_inside(hud.get_node_or_null("MinimapPanel") as Control, resolution, "minimap")
+
+
+func _is_control_visible(root: Node, path: String) -> bool:
+	var control := root.get_node_or_null(path) as Control
+	return control != null and control.visible
 
 
 func _check_modal_panel(hud: Node, panel_path: String, label: String, resolution: Vector2i) -> void:

@@ -17,45 +17,62 @@ script = ExtResource("1")
 layout_mode = 1
 offset_left = 16.0
 offset_top = 14.0
-offset_right = 284.0
-offset_bottom = 366.0
+offset_right = 236.0
+offset_bottom = 250.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 2
 
-[node name="HealthLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="VitalsRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HealthLabel" type="Label" parent="MarginContainer/VBoxContainer/VitalsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.9, 0.97, 1, 1)
+theme_override_font_sizes/font_size = 11
 text = "HP: 6 / 6"
+clip_text = true
 
-[node name="ShieldLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="ShieldLabel" type="Label" parent="MarginContainer/VBoxContainer/VitalsRow"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.55, 0.86, 1, 1)
+theme_override_font_sizes/font_size = 11
 text = "Armor: 6 / 6"
+horizontal_alignment = 1
+clip_text = true
 
-[node name="EnergyLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="EnergyLabel" type="Label" parent="MarginContainer/VBoxContainer/VitalsRow"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.42, 0.72, 1, 1)
+theme_override_font_sizes/font_size = 11
 text = "Energy: 120 / 120"
+horizontal_alignment = 2
+clip_text = true
 
 [node name="SkillLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 1, 0.88, 1)
+theme_override_font_sizes/font_size = 11
 text = "Skill: Phase Dash Ready"
+clip_text = true
 
 [node name="PassiveStatusRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="PassiveStatusIconTexture" type="TextureRect" parent="MarginContainer/VBoxContainer/PassiveStatusRow"]
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(16, 16)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
 [node name="PassiveStatusTokenLabel" type="Label" parent="MarginContainer/VBoxContainer/PassiveStatusRow"]
-custom_minimum_size = Vector2(28, 0)
+custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.78, 0.88, 1)
 theme_override_font_sizes/font_size = 10
@@ -66,7 +83,7 @@ horizontal_alignment = 1
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.7, 0.78, 0.88, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 11
 text = "Passive: Steady Hands"
 clip_text = true
 
@@ -75,13 +92,13 @@ layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="RuleFeedbackIconTexture" type="TextureRect" parent="MarginContainer/VBoxContainer/RuleFeedbackRow"]
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(16, 16)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
 [node name="RuleFeedbackTokenLabel" type="Label" parent="MarginContainer/VBoxContainer/RuleFeedbackRow"]
-custom_minimum_size = Vector2(28, 0)
+custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.58, 0.64, 0.72, 1)
 theme_override_font_sizes/font_size = 10
@@ -92,54 +109,56 @@ horizontal_alignment = 1
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.58, 0.64, 0.72, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 11
 text = "Rule: --"
 clip_text = true
 
 [node name="WeaponLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.97, 1, 1)
 text = "Weapon 1/3: Basic Pistol"
 
 [node name="AmmoLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.82, 0.9, 1, 1)
 text = "Ammo: 12 / 12"
 
 [node name="WeaponSlotPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 116)
+custom_minimum_size = Vector2(0, 92)
 layout_mode = 2
 mouse_filter = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/WeaponSlotPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 5
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 1
 
 [node name="WeaponSlotIdentityRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 24)
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="WeaponSlotRarityStrip" type="ColorRect" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotIdentityRow"]
-custom_minimum_size = Vector2(5, 22)
+custom_minimum_size = Vector2(4, 20)
 layout_mode = 2
 color = Color(0.66, 1, 0.76, 1)
 
 [node name="WeaponSlotIconTexture" type="TextureRect" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotIdentityRow"]
-custom_minimum_size = Vector2(22, 22)
+custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
 [node name="WeaponSlotIconLabel" type="Label" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotIdentityRow"]
-custom_minimum_size = Vector2(34, 22)
+custom_minimum_size = Vector2(28, 20)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.66, 1, 0.76, 1)
 theme_override_font_sizes/font_size = 11
@@ -158,7 +177,7 @@ vertical_alignment = 1
 clip_text = true
 
 [node name="WeaponSlotEnergySymbolLabel" type="Label" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotIdentityRow"]
-custom_minimum_size = Vector2(36, 22)
+custom_minimum_size = Vector2(30, 20)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.42, 0.72, 1, 1)
 theme_override_font_sizes/font_size = 11
@@ -170,11 +189,12 @@ clip_text = true
 [node name="WeaponSlotNameLabel" type="Label" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 11
 text = "Slot 1/3  Basic Pistol"
 clip_text = true
 
 [node name="WeaponSlotMetaLabel" type="Label" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.66, 1, 0.76, 1)
 theme_override_font_sizes/font_size = 10
@@ -182,12 +202,12 @@ text = "Starter Sidearm | Mid | E0"
 clip_text = true
 
 [node name="WeaponSlotLoadoutRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 16)
+custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
 theme_override_constants/separation = 3
 
 [node name="LoadoutSlot1" type="PanelContainer" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow"]
-custom_minimum_size = Vector2(0, 16)
+custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -201,14 +221,16 @@ theme_override_constants/margin_bottom = 1
 [node name="LoadoutSlotContent" type="HBoxContainer" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow/LoadoutSlot1/LoadoutSlotMargin"]
 layout_mode = 2
 theme_override_constants/separation = 2
+alignment = 1
 
 [node name="LoadoutSlotIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow/LoadoutSlot1/LoadoutSlotMargin/LoadoutSlotContent"]
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
 [node name="LoadoutSlotLabel" type="Label" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow/LoadoutSlot1/LoadoutSlotMargin/LoadoutSlotContent"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.66, 1, 0.76, 1)
@@ -218,7 +240,7 @@ horizontal_alignment = 1
 clip_text = true
 
 [node name="LoadoutSlot2" type="PanelContainer" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow"]
-custom_minimum_size = Vector2(0, 16)
+custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -232,14 +254,16 @@ theme_override_constants/margin_bottom = 1
 [node name="LoadoutSlotContent" type="HBoxContainer" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow/LoadoutSlot2/LoadoutSlotMargin"]
 layout_mode = 2
 theme_override_constants/separation = 2
+alignment = 1
 
 [node name="LoadoutSlotIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow/LoadoutSlot2/LoadoutSlotMargin/LoadoutSlotContent"]
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
 [node name="LoadoutSlotLabel" type="Label" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow/LoadoutSlot2/LoadoutSlotMargin/LoadoutSlotContent"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.58, 0.68, 0.78, 1)
@@ -249,7 +273,7 @@ horizontal_alignment = 1
 clip_text = true
 
 [node name="LoadoutSlot3" type="PanelContainer" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow"]
-custom_minimum_size = Vector2(0, 16)
+custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -263,14 +287,16 @@ theme_override_constants/margin_bottom = 1
 [node name="LoadoutSlotContent" type="HBoxContainer" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow/LoadoutSlot3/LoadoutSlotMargin"]
 layout_mode = 2
 theme_override_constants/separation = 2
+alignment = 1
 
 [node name="LoadoutSlotIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow/LoadoutSlot3/LoadoutSlotMargin/LoadoutSlotContent"]
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
 [node name="LoadoutSlotLabel" type="Label" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotLoadoutRow/LoadoutSlot3/LoadoutSlotMargin/LoadoutSlotContent"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.58, 0.68, 0.78, 1)
@@ -282,39 +308,54 @@ clip_text = true
 [node name="WeaponSlotAmmoLabel" type="Label" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.82, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "12 / 12 Ready"
 clip_text = true
 
 [node name="WeaponSlotMagazineRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 6)
+custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 theme_override_constants/separation = 2
 
 [node name="WeaponSlotStatusBar" type="ColorRect" parent="MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 4)
+custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
 color = Color(0.36, 0.56, 0.78, 1)
 
-[node name="GoldLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="RunSummaryRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="GoldLabel" type="Label" parent="MarginContainer/VBoxContainer/RunSummaryRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.86, 0.34, 1)
+theme_override_font_sizes/font_size = 11
 text = "Gold: 0"
+clip_text = true
 
 [node name="RelicLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.94, 1, 1)
+theme_override_font_sizes/font_size = 11
 text = "Relics: None"
+clip_text = true
 
-[node name="EnemyLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="EnemyLabel" type="Label" parent="MarginContainer/VBoxContainer/RunSummaryRow"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.9, 0.97, 1, 1)
+theme_override_font_sizes/font_size = 11
 text = "Enemies: 0"
+horizontal_alignment = 2
+clip_text = true
 
 [node name="RoomStateLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 1, 0.75, 1)
+theme_override_font_sizes/font_size = 11
 text = "Room: Unentered"
+clip_text = true
 
 [node name="BossPanel" type="PanelContainer" parent="."]
 visible = false

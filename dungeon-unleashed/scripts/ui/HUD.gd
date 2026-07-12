@@ -116,9 +116,9 @@ const WEAPON_SLOT_PANEL_EMPTY_BORDER_COLOR := Color(0.96, 0.36, 0.28, 1.0)
 const WEAPON_SLOT_PANEL_FALLBACK_BORDER_COLOR := Color(0.36, 0.44, 0.54, 1.0)
 const LOBBY_SCREEN_SCENE := preload("res://scenes/ui/LobbyScreen.tscn")
 
-@onready var health_label: Label = $MarginContainer/VBoxContainer/HealthLabel
-@onready var shield_label: Label = $MarginContainer/VBoxContainer/ShieldLabel
-@onready var energy_label: Label = $MarginContainer/VBoxContainer/EnergyLabel
+@onready var health_label: Label = $MarginContainer/VBoxContainer/VitalsRow/HealthLabel
+@onready var shield_label: Label = $MarginContainer/VBoxContainer/VitalsRow/ShieldLabel
+@onready var energy_label: Label = $MarginContainer/VBoxContainer/VitalsRow/EnergyLabel
 @onready var skill_label: Label = $MarginContainer/VBoxContainer/SkillLabel
 @onready var passive_status_icon_texture: TextureRect = $MarginContainer/VBoxContainer/PassiveStatusRow/PassiveStatusIconTexture
 @onready var passive_status_token_label: Label = $MarginContainer/VBoxContainer/PassiveStatusRow/PassiveStatusTokenLabel
@@ -140,9 +140,9 @@ const LOBBY_SCREEN_SCENE := preload("res://scenes/ui/LobbyScreen.tscn")
 @onready var weapon_slot_ammo_label: Label = $MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotAmmoLabel
 @onready var weapon_slot_magazine_row: HBoxContainer = $MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotMagazineRow
 @onready var weapon_slot_status_bar: ColorRect = $MarginContainer/VBoxContainer/WeaponSlotPanel/MarginContainer/VBoxContainer/WeaponSlotStatusBar
-@onready var gold_label: Label = $MarginContainer/VBoxContainer/GoldLabel
+@onready var gold_label: Label = $MarginContainer/VBoxContainer/RunSummaryRow/GoldLabel
 @onready var relic_label: Label = $MarginContainer/VBoxContainer/RelicLabel
-@onready var enemy_label: Label = $MarginContainer/VBoxContainer/EnemyLabel
+@onready var enemy_label: Label = $MarginContainer/VBoxContainer/RunSummaryRow/EnemyLabel
 @onready var room_state_label: Label = $MarginContainer/VBoxContainer/RoomStateLabel
 @onready var boss_panel: PanelContainer = $BossPanel
 @onready var boss_name_label: Label = $BossPanel/MarginContainer/VBoxContainer/BossNameLabel
@@ -1516,7 +1516,7 @@ func _cache_weapon_slot_loadout_controls() -> void:
 func _create_weapon_slot_loadout_control(index: int) -> PanelContainer:
 	var slot := PanelContainer.new()
 	slot.name = "LoadoutSlot%d" % [index + 1]
-	slot.custom_minimum_size = Vector2(0.0, 16.0)
+	slot.custom_minimum_size = Vector2(0.0, 22.0)
 	slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var margin := MarginContainer.new()
@@ -1530,17 +1530,19 @@ func _create_weapon_slot_loadout_control(index: int) -> PanelContainer:
 	var content := HBoxContainer.new()
 	content.name = "LoadoutSlotContent"
 	content.add_theme_constant_override("separation", 2)
+	content.alignment = BoxContainer.ALIGNMENT_CENTER
 	margin.add_child(content)
 
 	var icon := TextureRect.new()
 	icon.name = "LoadoutSlotIcon"
-	icon.custom_minimum_size = Vector2(14.0, 14.0)
+	icon.custom_minimum_size = Vector2(18.0, 18.0)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	content.add_child(icon)
 
 	var label := Label.new()
 	label.name = "LoadoutSlotLabel"
+	label.visible = false
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.clip_text = true
@@ -1942,6 +1944,7 @@ func update_gold(current_gold: int) -> void:
 func update_relics(relic_summaries: Array) -> void:
 	if relic_summaries.is_empty():
 		relic_label.text = Localization.text("Relics: None")
+		relic_label.tooltip_text = relic_label.text
 		return
 
 	var parts: PackedStringArray = []
@@ -1956,6 +1959,7 @@ func update_relics(relic_summaries: Array) -> void:
 			parts.append(name)
 
 	relic_label.text = Localization.format("Relics: %s", "、".join(parts))
+	relic_label.tooltip_text = relic_label.text
 
 
 func update_enemy_count(count: int) -> void:

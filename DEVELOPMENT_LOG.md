@@ -17116,3 +17116,19 @@ MenuFlowSmokeTest passed.
 UILayoutSmokeTest passed.
 RuntimePerformanceSmokeTest passed.
 ```
+
+## 2026-07-12 紧凑战斗 HUD 第一版
+
+### 布局调整
+- 左侧常驻 HUD 从 `268×352` 收紧为 `220×236`，占用面积减少约 45%，同时保留生命、护甲、能量、技能、被动、规则反馈、当前武器、弹药、金币、遗物、敌人数和房间状态。
+- 生命/护甲/能量改为同一行，金币/敌人数改为同一行；删除当前武器与弹药的重复文字行，并隐藏武器元数据的常驻长文本。
+- 三个武器槽改为图标优先显示，槽位名称、稀有度、类型、射程、能量消耗和弹药详情继续保留在悬停提示及测试诊断数据中。
+- 遗物列表保持单行截断，完整内容同步写入悬停提示，避免遗物数量增加后继续撑宽左侧区域。
+
+### 回归验证
+```text
+UILayoutSmokeTest passed. (compact HUD <= 220×236 at 1280×720 / 1600×900 / 1920×1080)
+WeaponSmokeTest passed.
+ChineseLocalizationSmokeTest passed. (localization scan avg 0.645 ms)
+RuntimePerformanceSmokeTest passed. (passive HUD 0.036 ms, minimap 0.114 ms)
+```
