@@ -81,6 +81,8 @@ func _check_gameplay_overlay(hud: Node, resolution: Vector2i) -> void:
 	if input_hint_panel != null:
 		_expect(input_hint_panel.visible, "Input hint should be visible during gameplay at %s" % _format_resolution(resolution))
 		_check_rect_inside(input_hint_panel, resolution, "gameplay input hint")
+	_expect(bool(hud.call("is_gameplay_stats_visible_for_test")), "Combat stats should be visible during gameplay")
+	_expect(bool(hud.call("is_minimap_visible_for_test")), "Minimap should be visible during gameplay")
 
 	var combat_stats := hud.get_node_or_null("MarginContainer") as Control
 	_check_rect_inside(combat_stats, resolution, "combat stats")
@@ -115,6 +117,8 @@ func _check_modal_panel(hud: Node, panel_path: String, label: String, resolution
 	var input_hint_panel := hud.get_node_or_null("InputHintPanel") as Control
 	if input_hint_panel != null:
 		_expect(not input_hint_panel.visible, "%s should hide gameplay input hint at %s" % [label, _format_resolution(resolution)])
+	_expect(not bool(hud.call("is_gameplay_stats_visible_for_test")), "%s should hide combat stats" % label)
+	_expect(not bool(hud.call("is_minimap_visible_for_test")), "%s should hide the minimap" % label)
 
 
 func _check_visible_children_inside(node: Node, resolution: Vector2i, context: String) -> void:

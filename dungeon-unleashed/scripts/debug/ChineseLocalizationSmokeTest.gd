@@ -83,6 +83,21 @@ func _verify_ui_scenes() -> void:
 	_expect(str(hud.call("get_weapon_label_text")).contains("基础手枪"), "Dynamic weapon label should translate the weapon name")
 	_expect(_find_text(lobby, "前哨大厅"), "Lobby title should be Chinese")
 	_expect(_find_text(lobby, "流浪者"), "Dynamic lobby character text should translate the character name")
+	hud.call("show_run_result", true, {
+		"result": "Victory",
+		"dungeon_seed": 24680,
+		"rooms_cleared": 12,
+		"kills": 36,
+		"elapsed_seconds": 615,
+		"bosses_defeated": 3,
+		"reached_biome_name": "Void Foundry",
+		"run_position_text": "Final Cleared",
+	})
+	await get_tree().create_timer(0.25).timeout
+	_expect(str(hud.call("get_result_subtitle_text")).contains("种子 24680"), "Result headline should use a Chinese seed summary")
+	_expect(str(hud.call("get_result_quick_stat_text", "rooms")) == "房间 12", "Result room quick stat should be Chinese")
+	_expect(str(hud.call("get_result_quick_stat_text", "bosses")) == "首领 3", "Result boss quick stat should be Chinese")
+	_expect(str(hud.call("get_result_outcome_icon_texture_path")).ends_with("room_boss.svg"), "Chinese result should retain its outcome icon")
 	_audit_control_tree(hud)
 	_audit_control_tree(lobby)
 	var scan_started := Time.get_ticks_usec()

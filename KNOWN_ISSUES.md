@@ -19,14 +19,14 @@ Last updated: 2026-07-12
 - Key rebinding supports movement, reload, interact, and pause; mouse shoot and weapon number slots are still fixed.
 - Relic rewards now have per-source `.tres` drop tables, shared Rare+ exposure pity for reward rooms/normal chests, and Rare+ floors for premium/Boss chests. Full-run rarity distribution and selection-rate tuning still require simulation plus manual playtests.
 - Chest and shop presentation is functional but still visually plain.
-- Result screen now uses grouped text sections, but still needs icons, stronger visual hierarchy, and final layout polish.
+- Result screen now uses a victory/defeat icon, a compact four-metric strip, six icon-labelled detail sections, and one horizontal action row. Final art styling and broader manual readability review are still required.
 
 ## Low Priority
 
 - The Windows build is unsigned and may trigger Windows security warnings.
 - There is no installer or auto-update flow.
 - No external analytics or crash reporting is integrated.
-- No localization pass has been done.
+- Simplified Chinese is the default player-facing language and is covered by a dedicated residue/performance smoke test. Additional locales are not planned for v1.
 
 ## Already Verified
 
@@ -38,5 +38,6 @@ Last updated: 2026-07-12
 - Windows release `.exe` export completed.
 - Exported `.exe` startup and first-room enemy spawning are verified through the OpenGL/Compatibility runtime room-spawn check.
 - Full smoke test suite passes.
+- Complete Chinese result formatting, result summary icons, compact/expanded result modes, and 1280x720 result layout are covered by automated smoke tests.
 - Resource reference and scene `load_steps` checks pass.
 - Windows prototype zip is generated.

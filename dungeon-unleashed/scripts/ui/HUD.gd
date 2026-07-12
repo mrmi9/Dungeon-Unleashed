@@ -25,12 +25,30 @@ const UI_SAFE_MARGIN := 18.0
 const MAIN_MENU_PANEL_SIZE := Vector2(440.0, 648.0)
 const PAUSE_PANEL_SIZE := Vector2(340.0, 252.0)
 const SETTINGS_PANEL_SIZE := Vector2(460.0, 660.0)
-const RESULT_PANEL_SIZE := Vector2(580.0, 588.0)
+const RESULT_PANEL_SIZE := Vector2(680.0, 588.0)
 const RELIC_CHOICE_PANEL_SIZE := Vector2(720.0, 356.0)
 const DEBUG_MAP_PANEL_SIZE := Vector2(760.0, 560.0)
 const HALL_PANEL_SIZE := Vector2(760.0, 560.0)
 const RESULT_SECTION_NAMES := ["Overview", "Build", "Survival", "Combat", "Loot", "Record"]
 const RESULT_COMPACT_SECTION_KEYS := ["overview", "build", "loot"]
+const RESULT_OUTCOME_ICON_PATHS := {
+	"victory": "res://art/ui/content_icons/room_boss.svg",
+	"defeat": "res://art/ui/content_icons/heart_core.svg",
+}
+const RESULT_QUICK_STATS := [
+	{"key": "rooms", "label": "房间", "icon": "res://art/ui/content_icons/room_combat.svg", "tooltip": "本局清理的房间数"},
+	{"key": "kills", "label": "击杀", "icon": "res://art/ui/content_icons/default_weapon.svg", "tooltip": "本局击败的敌人数"},
+	{"key": "time", "label": "用时", "icon": "res://art/ui/content_icons/room_start.svg", "tooltip": "本局持续时间"},
+	{"key": "bosses", "label": "首领", "icon": "res://art/ui/content_icons/room_boss.svg", "tooltip": "本局击败的首领数"},
+]
+const RESULT_SECTION_ICON_PATHS := {
+	"overview": "res://art/ui/content_icons/default_room.svg",
+	"build": "res://art/ui/content_icons/default_weapon.svg",
+	"survival": "res://art/ui/content_icons/heart_core.svg",
+	"combat": "res://art/ui/content_icons/room_combat.svg",
+	"loot": "res://art/ui/content_icons/default_relic.svg",
+	"record": "res://art/ui/content_icons/default_talent.svg",
+}
 const ENERGY_WARNING_DURATION := 0.9
 const DAMAGE_FLASH_DURATION := 0.22
 const LOW_HEALTH_VIGNETTE_ALPHA := 0.22
@@ -116,6 +134,7 @@ const WEAPON_SLOT_PANEL_EMPTY_BORDER_COLOR := Color(0.96, 0.36, 0.28, 1.0)
 const WEAPON_SLOT_PANEL_FALLBACK_BORDER_COLOR := Color(0.36, 0.44, 0.54, 1.0)
 const LOBBY_SCREEN_SCENE := preload("res://scenes/ui/LobbyScreen.tscn")
 
+@onready var gameplay_stats_panel: MarginContainer = $MarginContainer
 @onready var health_label: Label = $MarginContainer/VBoxContainer/VitalsRow/HealthLabel
 @onready var shield_label: Label = $MarginContainer/VBoxContainer/VitalsRow/ShieldLabel
 @onready var energy_label: Label = $MarginContainer/VBoxContainer/VitalsRow/EnergyLabel
@@ -147,6 +166,7 @@ const LOBBY_SCREEN_SCENE := preload("res://scenes/ui/LobbyScreen.tscn")
 @onready var boss_panel: PanelContainer = $BossPanel
 @onready var boss_name_label: Label = $BossPanel/MarginContainer/VBoxContainer/BossNameLabel
 @onready var boss_health_bar: ProgressBar = $BossPanel/MarginContainer/VBoxContainer/BossHealthBar
+@onready var minimap_panel: PanelContainer = $MinimapPanel
 @onready var minimap_row: HBoxContainer = $MinimapPanel/MarginContainer/VBoxContainer/MinimapRow
 @onready var minimap_current_label: Label = $MinimapPanel/MarginContainer/VBoxContainer/MinimapCurrentLabel
 @onready var minimap_seed_label: Label = $MinimapPanel/MarginContainer/VBoxContainer/MinimapSeedLabel
@@ -193,11 +213,15 @@ const LOBBY_SCREEN_SCENE := preload("res://scenes/ui/LobbyScreen.tscn")
 @onready var settings_back_button: Button = $SettingsPanel/MarginContainer/VBoxContainer/BackButton
 @onready var result_panel: PanelContainer = $ResultPanel
 @onready var result_vbox: VBoxContainer = $ResultPanel/MarginContainer/VBoxContainer
-@onready var result_title_label: Label = $ResultPanel/MarginContainer/VBoxContainer/ResultTitleLabel
+@onready var result_outcome_icon: TextureRect = $ResultPanel/MarginContainer/VBoxContainer/ResultHeadlineRow/ResultOutcomeIcon
+@onready var result_title_label: Label = $ResultPanel/MarginContainer/VBoxContainer/ResultHeadlineRow/HeadlineText/ResultTitleLabel
+@onready var result_subtitle_label: Label = $ResultPanel/MarginContainer/VBoxContainer/ResultHeadlineRow/HeadlineText/ResultSubtitleLabel
+@onready var result_quick_stats_row: HBoxContainer = $ResultPanel/MarginContainer/VBoxContainer/ResultQuickStatsRow
 @onready var result_summary_label: Label = $ResultPanel/MarginContainer/VBoxContainer/ResultSummaryLabel
-@onready var result_replay_seed_button: Button = $ResultPanel/MarginContainer/VBoxContainer/ReplaySeedButton
-@onready var result_restart_button: Button = $ResultPanel/MarginContainer/VBoxContainer/RestartButton
-@onready var result_menu_button: Button = $ResultPanel/MarginContainer/VBoxContainer/MainMenuButton
+@onready var result_action_row: HBoxContainer = $ResultPanel/MarginContainer/VBoxContainer/ResultActionRow
+@onready var result_replay_seed_button: Button = $ResultPanel/MarginContainer/VBoxContainer/ResultActionRow/ReplaySeedButton
+@onready var result_restart_button: Button = $ResultPanel/MarginContainer/VBoxContainer/ResultActionRow/RestartButton
+@onready var result_menu_button: Button = $ResultPanel/MarginContainer/VBoxContainer/ResultActionRow/MainMenuButton
 @onready var debug_map_panel: PanelContainer = $DebugMapPanel
 @onready var debug_map_text: TextEdit = $DebugMapPanel/MarginContainer/VBoxContainer/DebugMapText
 @onready var debug_map_copy_button: Button = $DebugMapPanel/MarginContainer/VBoxContainer/ButtonRow/CopyButton
@@ -261,6 +285,7 @@ var _rarity_colors := {
 }
 var _result_section_labels: Dictionary = {}
 var _result_section_title_labels: Dictionary = {}
+var _result_quick_stat_labels: Dictionary = {}
 var result_scroll: ScrollContainer
 var result_sections_grid: GridContainer
 var result_detail_toggle_button: Button
@@ -2100,8 +2125,12 @@ func show_run_result(victory: bool, summary: Dictionary, receiver: Node = null) 
 		flow_receiver = receiver
 	hide_flow_panels()
 	hide_training_panel()
+	death_label.visible = false
+	completion_label.visible = false
+	boss_panel.visible = false
 	result_panel.visible = true
 	result_title_label.text = "Run Complete" if victory else "Run Failed"
+	_refresh_result_visual_summary(victory, summary)
 	result_summary_label.text = _format_run_summary(summary)
 	_update_result_sections(summary)
 	_result_details_expanded = true
@@ -2303,7 +2332,7 @@ func _get_minimap_structure_signature(room_records: Array) -> String:
 func update_dungeon_debug_info(seed: int, debug_map_text: String = "") -> void:
 	minimap_seed_label.text = "Seed: %d" % seed
 	_minimap_debug_text = debug_map_text
-	minimap_seed_label.tooltip_text = debug_map_text
+	minimap_seed_label.tooltip_text = "种子 %d，按 F3 查看地图详情" % seed if _is_chinese_runtime() else debug_map_text
 	if debug_map_panel.visible:
 		_refresh_debug_map_panel_text()
 
@@ -3278,6 +3307,43 @@ func get_result_title_text() -> String:
 	return result_title_label.text
 
 
+func get_result_subtitle_text() -> String:
+	return result_subtitle_label.text if result_subtitle_label != null else ""
+
+
+func get_result_quick_stat_text(stat_name: String) -> String:
+	var label = _result_quick_stat_labels.get(stat_name.to_lower())
+	return (label as Label).text if label is Label else ""
+
+
+func get_result_outcome_icon_texture_path() -> String:
+	if result_outcome_icon == null or result_outcome_icon.texture == null:
+		return ""
+	return result_outcome_icon.texture.resource_path
+
+
+func get_result_section_icon_texture_path(section_name: String) -> String:
+	var title_control = _result_section_title_labels.get(section_name.to_lower()) as Control
+	if title_control == null:
+		return ""
+	var icon := title_control.get_node_or_null("SectionIcon") as TextureRect
+	if icon == null or icon.texture == null:
+		return ""
+	return icon.texture.resource_path
+
+
+func get_result_action_count() -> int:
+	return result_action_row.get_child_count() if result_action_row != null else 0
+
+
+func is_gameplay_stats_visible_for_test() -> bool:
+	return gameplay_stats_panel != null and gameplay_stats_panel.visible
+
+
+func is_minimap_visible_for_test() -> bool:
+	return minimap_panel != null and minimap_panel.visible
+
+
 func get_result_summary_text() -> String:
 	return result_summary_label.text
 
@@ -3533,7 +3599,7 @@ func _fit_input_hint_panel(viewport_size: Vector2) -> void:
 func _refresh_input_hint_panel_visibility() -> void:
 	if not is_node_ready():
 		return
-	input_hint_panel.visible = not (
+	var flow_panel_visible := (
 		main_menu_panel.visible
 		or pause_panel.visible
 		or settings_panel.visible
@@ -3543,6 +3609,9 @@ func _refresh_input_hint_panel_visibility() -> void:
 		or (lobby_screen != null and bool(lobby_screen.get("visible")))
 		or (lobby_screen == null and hall_panel != null and hall_panel.visible)
 	)
+	input_hint_panel.visible = not flow_panel_visible
+	gameplay_stats_panel.visible = not flow_panel_visible
+	minimap_panel.visible = not flow_panel_visible
 
 
 func _make_minimap_marker(record: Dictionary, current_room_id: String) -> Control:
@@ -4197,6 +4266,17 @@ func _get_minimap_marker_color(room_type: String, visited: bool, cleared: bool, 
 
 
 func _format_run_summary(summary: Dictionary) -> String:
+	if _is_chinese_runtime():
+		var chinese_sections := _build_chinese_result_sections(summary)
+		return "概览\n%s\n\n构筑\n%s\n\n生存\n%s\n\n战斗\n%s\n\n战利品\n%s\n\n记录\n%s" % [
+			str(chinese_sections.get("overview", "")),
+			str(chinese_sections.get("build", "")),
+			str(chinese_sections.get("survival", "")),
+			str(chinese_sections.get("combat", "")),
+			str(chinese_sections.get("loot", "")),
+			str(chinese_sections.get("record", "")),
+		]
+
 	var history: Dictionary = summary.get("history", {})
 	var meta: Dictionary = summary.get("meta_progression", {})
 	var relic_names: Array = summary.get("relic_names", [])
@@ -4503,6 +4583,7 @@ func _setup_training_reward_panel() -> void:
 
 func _setup_result_sections() -> void:
 	result_summary_label.visible = false
+	_setup_result_visual_summary()
 	if result_detail_toggle_button == null:
 		result_detail_toggle_button = result_vbox.get_node_or_null("ResultDetailToggleButton") as Button
 	if result_detail_toggle_button == null:
@@ -4522,7 +4603,7 @@ func _setup_result_sections() -> void:
 	result_scroll.name = "ResultScroll"
 	result_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	result_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	result_scroll.custom_minimum_size = Vector2(0, 320)
+	result_scroll.custom_minimum_size = Vector2(0, 300)
 	result_scroll.follow_focus = true
 	result_vbox.add_child(result_scroll)
 	result_vbox.move_child(result_scroll, result_detail_toggle_button.get_index() + 1)
@@ -4538,6 +4619,64 @@ func _setup_result_sections() -> void:
 	for section_name in RESULT_SECTION_NAMES:
 		_add_result_section_row(result_sections_grid, section_name)
 	_refresh_result_detail_mode()
+
+
+func _setup_result_visual_summary() -> void:
+	if result_quick_stats_row == null or not _result_quick_stat_labels.is_empty():
+		return
+	for stat in RESULT_QUICK_STATS:
+		var key := str(stat.get("key", ""))
+		var item := HBoxContainer.new()
+		item.name = "%sQuickStat" % key.capitalize()
+		item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		item.alignment = BoxContainer.ALIGNMENT_CENTER
+		item.add_theme_constant_override("separation", 5)
+		item.tooltip_text = str(stat.get("tooltip", ""))
+
+		var icon := TextureRect.new()
+		icon.name = "QuickStatIcon"
+		icon.custom_minimum_size = Vector2(18.0, 18.0)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture = _load_texture_2d(str(stat.get("icon", "")))
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		item.add_child(icon)
+
+		var label := Label.new()
+		label.name = "QuickStatLabel"
+		label.text = "%s 0" % str(stat.get("label", ""))
+		label.add_theme_color_override("font_color", Color(0.86, 0.94, 1.0, 1.0))
+		label.add_theme_font_size_override("font_size", 12)
+		item.add_child(label)
+		result_quick_stats_row.add_child(item)
+		_result_quick_stat_labels[key] = label
+
+
+func _refresh_result_visual_summary(victory: bool, summary: Dictionary) -> void:
+	_setup_result_visual_summary()
+	var outcome_key := "victory" if victory else "defeat"
+	var outcome_path := str(RESULT_OUTCOME_ICON_PATHS.get(outcome_key, ""))
+	result_outcome_icon.texture = _load_texture_2d(outcome_path)
+	result_outcome_icon.modulate = Color(1.0, 0.84, 0.32, 1.0) if victory else Color(1.0, 0.38, 0.3, 1.0)
+	result_outcome_icon.tooltip_text = "远征完成" if victory else "远征失败"
+	var reached_biome_name := str(summary.get("reached_biome_name", "第一层"))
+	if _is_chinese_runtime():
+		reached_biome_name = Localization.text(reached_biome_name)
+	result_subtitle_label.text = "种子 %d · %s · %s" % [
+		int(summary.get("dungeon_seed", 0)),
+		reached_biome_name,
+		"完成远征" if victory else _format_run_position_chinese(summary),
+	]
+	_set_result_quick_stat("rooms", "房间 %d" % int(summary.get("rooms_cleared", 0)))
+	_set_result_quick_stat("kills", "击杀 %d" % int(summary.get("kills", 0)))
+	_set_result_quick_stat("time", "用时 %s" % _format_seconds(int(summary.get("elapsed_seconds", 0))))
+	_set_result_quick_stat("bosses", "首领 %d" % int(summary.get("bosses_defeated", 0)))
+
+
+func _set_result_quick_stat(key: String, text: String) -> void:
+	var label = _result_quick_stat_labels.get(key)
+	if label is Label:
+		(label as Label).text = text
 
 
 func _setup_damage_flash_overlay() -> void:
@@ -4650,16 +4789,32 @@ func _has_visible_low_health_vignette_edge() -> bool:
 
 
 func _add_result_section_row(parent: GridContainer, section_name: String) -> void:
+	var section_key := section_name.to_lower()
+	var title_row := HBoxContainer.new()
+	title_row.name = "%sTitleRow" % section_name
+	title_row.custom_minimum_size = Vector2(104, 0)
+	title_row.add_theme_constant_override("separation", 6)
+	title_row.alignment = BoxContainer.ALIGNMENT_BEGIN
+	parent.add_child(title_row)
+
+	var icon := TextureRect.new()
+	icon.name = "SectionIcon"
+	icon.custom_minimum_size = Vector2(18.0, 18.0)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.texture = _load_texture_2d(str(RESULT_SECTION_ICON_PATHS.get(section_key, "")))
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title_row.add_child(icon)
+
 	var title := Label.new()
 	title.name = "%sTitle" % section_name
-	title.custom_minimum_size = Vector2(82, 0)
 	title.theme_type_variation = "HeaderSmall"
 	title.add_theme_color_override("font_color", Color(1.0, 0.82, 0.28, 1.0))
 	title.add_theme_font_size_override("font_size", 13)
 	title.text = section_name
 	title.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	parent.add_child(title)
-	_result_section_title_labels[section_name.to_lower()] = title
+	title_row.add_child(title)
+	_result_section_title_labels[section_key] = title_row
 
 	var value := Label.new()
 	value.name = "%sValue" % section_name
@@ -4669,10 +4824,16 @@ func _add_result_section_row(parent: GridContainer, section_name: String) -> voi
 	value.add_theme_font_size_override("font_size", 13)
 	value.text = "--"
 	parent.add_child(value)
-	_result_section_labels[section_name.to_lower()] = value
+	_result_section_labels[section_key] = value
 
 
 func _update_result_sections(summary: Dictionary) -> void:
+	if _is_chinese_runtime():
+		var chinese_sections := _build_chinese_result_sections(summary)
+		for section_key in chinese_sections:
+			_set_result_section(str(section_key), str(chinese_sections[section_key]))
+		return
+
 	var history: Dictionary = summary.get("history", {})
 	var meta: Dictionary = summary.get("meta_progression", {})
 	var relic_names: Array = summary.get("relic_names", [])
@@ -4785,14 +4946,238 @@ func _set_result_section(section_name: String, text: String) -> void:
 		(label as Label).text = text
 
 
+func _build_chinese_result_sections(summary: Dictionary) -> Dictionary:
+	var history: Dictionary = summary.get("history", {})
+	var meta: Dictionary = summary.get("meta_progression", {})
+	var relic_names: Array = summary.get("relic_names", [])
+	var talent_names: Array = summary.get("talent_names", [])
+	var blessing_names: Array = summary.get("blessing_names", [])
+	var statue_names: Array = summary.get("statue_names", [])
+	var event_names: Array = summary.get("event_names", [])
+	var loadout_names: Array = summary.get("loadout", [])
+	var primary_build_routes: Array = summary.get("primary_build_routes", [])
+	var defeated_boss_names: Array = summary.get("defeated_boss_names", [])
+	var result_name := _format_result_name_chinese(str(summary.get("result", "In Progress")))
+	var reached_biome_name := Localization.text(str(summary.get("reached_biome_name", "Layer 1")))
+	var position_label := "失败位置" if str(summary.get("result", "")) == "Defeat" else "远征位置"
+	var route_text := _format_route_progress_chinese(summary)
+	var boss_route_text := _format_boss_route_chinese(summary.get("boss_route", []))
+	var special_rooms_text := _format_special_room_counts_chinese(summary.get("special_room_counts", {}))
+	var last_damage_text := _format_last_damage_chinese(summary)
+	var defeat_cause_text := _format_defeat_cause_chinese(summary)
+	var boss_defeated_text := "是" if summary.get("boss_defeated", false) == true else "否"
+	var currency_name := Localization.text(str(meta.get("currency_name", "Data Shards")))
+
+	return {
+		"overview": "结果：%s\n种子：%d\n房间 %d｜击杀 %d｜用时 %s\n层级 %d/%d（%s）｜击败首领 %d\n路线：%s\n首领路线：%s\n%s：%s\n最近受击：%s\n失败原因：%s\n特殊房间：%s" % [
+			result_name,
+			int(summary.get("dungeon_seed", 0)),
+			int(summary.get("rooms_cleared", 0)),
+			int(summary.get("kills", 0)),
+			_format_seconds_chinese(int(summary.get("elapsed_seconds", 0))),
+			int(summary.get("biomes_reached", 1)),
+			int(summary.get("total_biomes", 1)),
+			reached_biome_name,
+			int(summary.get("bosses_defeated", 0)),
+			route_text,
+			boss_route_text,
+			position_label,
+			_format_run_position_chinese(summary),
+			last_damage_text,
+			defeat_cause_text,
+			special_rooms_text,
+		],
+		"build": "角色：%s\n武器：%s\n武器栏：%s\n构筑路线：%s\n遗物：%s\n天赋：%s\n祝福：%s\n祝福触发：%d\n雕像：%s\n雕像触发：%d｜调谐：%d\n遗物层数：%d" % [
+			_format_result_display_name_chinese(str(summary.get("character", "Adventurer"))),
+			_format_result_display_name_chinese(str(summary.get("weapon", "Unarmed"))),
+			_format_name_list_chinese(loadout_names),
+			_format_build_route_list_chinese(primary_build_routes),
+			_format_name_list_chinese(relic_names),
+			_format_name_list_chinese(talent_names),
+			_format_name_list_chinese(blessing_names),
+			int(summary.get("blessing_trigger_count", 0)),
+			_format_name_list_chinese(statue_names),
+			int(summary.get("statue_trigger_count", 0)),
+			int(summary.get("statue_attunement_count", 0)),
+			int(summary.get("relic_stacks", relic_names.size())),
+		],
+		"survival": "生命 %d/%d｜护甲 %d｜承受生命伤害 %d" % [
+			int(summary.get("current_hp", 0)),
+			int(summary.get("max_hp", 0)),
+			int(summary.get("shield", 0)),
+			int(summary.get("damage_taken", 0)),
+		],
+		"combat": "暴击 %d｜治疗 %d｜护甲吸收 %d｜挡下弹丸 %d" % [
+			int(summary.get("critical_hits", 0)),
+			int(summary.get("healing_received", 0)),
+			int(summary.get("shield_absorbed", 0)),
+			int(summary.get("projectiles_blocked", 0)),
+		],
+		"loot": "金币 %d（获得 %d｜花费 %d）\n奖励 %d｜宝箱 %d｜商店购买 %d｜事件 %d｜击败首领 %s\n事件结果：%s\n已击败首领：%s" % [
+			int(summary.get("gold", 0)),
+			int(summary.get("gold_earned", 0)),
+			int(summary.get("gold_spent", 0)),
+			int(summary.get("rewards_collected", 0)),
+			int(summary.get("chests_opened", 0)),
+			int(summary.get("shop_purchases", 0)),
+			int(summary.get("events_resolved", 0)),
+			boss_defeated_text,
+			_format_name_list_chinese(event_names),
+			_format_name_list_chinese(defeated_boss_names),
+		],
+		"record": "远征 %d｜胜利 %d｜最佳层级 %d｜最多房间 %d｜最多击杀 %d｜最多金币 %d｜最多挡弹 %d\n%s +%d｜总计 %d｜熟练度 +%d XP" % [
+			int(history.get("runs", 0)),
+			int(history.get("victories", 0)),
+			int(history.get("best_biome", 0)),
+			int(history.get("best_rooms", 0)),
+			int(history.get("best_kills", 0)),
+			int(history.get("best_gold", 0)),
+			int(history.get("best_projectiles_blocked", 0)),
+			currency_name,
+			int(summary.get("meta_currency_awarded", 0)),
+			int(meta.get("currency", 0)),
+			int(summary.get("character_mastery_xp_awarded", 0)),
+		],
+	}
+
+
+func _format_route_progress_chinese(summary: Dictionary) -> String:
+	var route_nodes: Array = summary.get("route_nodes", [])
+	if route_nodes.is_empty():
+		return "未访问"
+	var visited_count := 0
+	for node in route_nodes:
+		if node is Dictionary and (bool(node.get("visited", false)) or bool(node.get("cleared", false)) or bool(node.get("current", false))):
+			visited_count += 1
+	return "已访问 %d/%d 个房间" % [visited_count, route_nodes.size()]
+
+
+func _format_run_position_chinese(summary: Dictionary) -> String:
+	var position: Dictionary = summary.get("run_position", {})
+	if position.is_empty():
+		return "终局已清理" if str(summary.get("result", "")) == "Victory" else "未知"
+	var room_id := str(position.get("room_id", ""))
+	if room_id.begins_with("Room"):
+		room_id = room_id.substr(4)
+	var room_text := "房间%s" % room_id if not room_id.is_empty() else "未知房间"
+	return "第%d层 %s，%s，%s（%s）" % [
+		int(position.get("biome_index", 1)),
+		Localization.text(str(position.get("biome_name", "Layer 1"))),
+		room_text,
+		Localization.text(str(position.get("room_label", "Unknown"))),
+		Localization.text(str(position.get("state", "Unknown"))),
+	]
+
+
+func _format_boss_route_chinese(values: Array) -> String:
+	var parts: PackedStringArray = []
+	for value in values:
+		if not value is Dictionary:
+			continue
+		var record := value as Dictionary
+		var state := "已击败" if bool(record.get("cleared", false)) else "已发现" if bool(record.get("visited", false)) else "未抵达"
+		parts.append("第%d层 %s：%s" % [
+			int(record.get("biome_index", parts.size() + 1)),
+			Localization.text(str(record.get("boss_name", "Boss"))),
+			state,
+		])
+	return "｜".join(parts) if not parts.is_empty() else "无"
+
+
+func _format_special_room_counts_chinese(counts: Dictionary) -> String:
+	var labels := {
+		"event": "事件", "challenge": "挑战", "trap": "陷阱", "reward": "奖励",
+		"armory": "武器库", "healing": "治疗", "elite": "精英", "shop": "商店",
+	}
+	var parts: PackedStringArray = []
+	for key in labels:
+		var count := int(counts.get(key, 0))
+		if count > 0:
+			parts.append("%s %d" % [str(labels[key]), count])
+	return "｜".join(parts) if not parts.is_empty() else "无"
+
+
+func _format_last_damage_chinese(summary: Dictionary) -> String:
+	var damage: Dictionary = summary.get("last_damage", {})
+	if damage.is_empty() or int(damage.get("amount", 0)) <= 0:
+		return "无"
+	return "%s，%d 点伤害" % [
+		Localization.text(str(damage.get("source_name", "Unknown"))),
+		int(damage.get("amount", 0)),
+	]
+
+
+func _format_defeat_cause_chinese(summary: Dictionary) -> String:
+	if str(summary.get("result", "")) != "Defeat":
+		return "无"
+	var cause: Dictionary = summary.get("defeat_cause", {})
+	if cause.is_empty():
+		return "未知"
+	var type_labels := {"boss": "首领", "enemy": "敌人", "hazard": "危险区域", "unknown": "未知"}
+	var source_type := str(cause.get("source_type", "unknown"))
+	var source_name := Localization.text(str(cause.get("source_name", "Unknown")))
+	var amount := int(cause.get("amount", 0))
+	return "%s %s，%d 点伤害" % [str(type_labels.get(source_type, "未知")), source_name, amount]
+
+
+func _format_name_list_chinese(values: Array) -> String:
+	if values.is_empty():
+		return "无"
+	var names: PackedStringArray = []
+	for value in values:
+		names.append(Localization.visible_text(str(value)))
+	return "、".join(names)
+
+
+func _format_build_route_list_chinese(values: Array) -> String:
+	if values.is_empty():
+		return "无"
+	var labels := {
+		"damage": "伤害", "projectile": "弹丸", "critical": "暴击", "energy": "能量",
+		"armor": "护甲", "defense": "防御", "melee": "近战", "explosive": "爆炸",
+		"gold": "金币", "low_health": "低生命", "summon": "召唤", "elemental": "元素",
+		"status": "状态", "healing": "治疗", "attack_speed": "攻速", "reload": "换弹",
+		"pierce": "穿透", "bounce": "弹跳", "homing": "追踪", "chain": "连锁",
+		"deployable": "部署物", "charge": "蓄力", "area": "范围",
+	}
+	var parts: PackedStringArray = []
+	for value in values:
+		var key := str(value).to_lower()
+		parts.append(str(labels.get(key, Localization.visible_text(str(value)))))
+	return "、".join(parts)
+
+
+func _format_seconds_chinese(total_seconds: int) -> String:
+	var seconds := maxi(total_seconds, 0)
+	var minutes := seconds / 60
+	var remainder := seconds % 60
+	if minutes <= 0:
+		return "%d秒" % remainder
+	return "%d分%02d秒" % [minutes, remainder]
+
+
+func _format_result_name_chinese(value: String) -> String:
+	var labels := {"Victory": "胜利", "Defeat": "失败", "In Progress": "进行中"}
+	return str(labels.get(value, Localization.visible_text(value)))
+
+
+func _format_result_display_name_chinese(value: String) -> String:
+	var fallbacks := {"Adventurer": "冒险者", "Unarmed": "徒手", "Unknown": "未知", "None": "无"}
+	return str(fallbacks.get(value, Localization.visible_text(value)))
+
+
+func _is_chinese_runtime() -> bool:
+	return TranslationServer.get_locale().begins_with("zh")
+
+
 func _refresh_result_detail_mode() -> void:
 	if result_detail_toggle_button != null:
 		result_detail_toggle_button.text = "Compact" if _result_details_expanded else "Details"
 	for key in _result_section_labels.keys():
 		var visible := _result_details_expanded or RESULT_COMPACT_SECTION_KEYS.has(str(key))
 		var title = _result_section_title_labels.get(key)
-		if title is Label:
-			(title as Label).visible = visible
+		if title is Control:
+			(title as Control).visible = visible
 		var label = _result_section_labels.get(key)
 		if label is Label:
 			(label as Label).visible = visible

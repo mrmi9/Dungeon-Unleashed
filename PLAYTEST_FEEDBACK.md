@@ -4,8 +4,8 @@ Use this document as the first external feedback entry point for the Windows pro
 
 ## Build
 
-- Build: `dungeon-unleashed/builds/Dungeon_Unleashed_Windows_Prototype.zip`
-- Date: 2026-06-30
+- Build: `dungeon-unleashed/builds/windows/Dungeon Unleashed.exe`
+- Date: 2026-07-12
 - Engine: Godot 4.7 stable
 
 ## Tester Info
@@ -68,4 +68,4 @@ For each bug, include:
 
 ## Notes
 
-This prototype still uses placeholder visuals and procedural placeholder audio. Feedback should focus first on core loop clarity, controls, combat readability, rewards, and whether the run is worth replaying.
+This build includes original authored combat/music audio, three biome visual sets, enemy/Boss action atlases, content icons, and a Simplified Chinese interface. Some fallback geometry and mixed pixel density remain; feedback should focus on full-run pacing, combat readability, result-screen clarity, audio balance, and whether the run is worth replaying.

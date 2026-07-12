@@ -17132,3 +17132,24 @@ WeaponSmokeTest passed.
 ChineseLocalizationSmokeTest passed. (localization scan avg 0.645 ms)
 RuntimePerformanceSmokeTest passed. (passive HUD 0.036 ms, minimap 0.114 ms)
 ```
+
+## 2026-07-12 图标化中文结算战报第一版
+
+### 结算体验
+- 结算页顶部新增胜负图标、种子/抵达层摘要和房间、击杀、用时、首领四项图标指标，玩家无需先阅读长段文字即可判断本局结果。
+- 概览、构筑、生存、战斗、战利品和记录六个分区加入对应图标；完整数据、紧凑/详情切换及兼容测试接口保持不变。
+- 重开种子、重新开始和返回主菜单三个操作合并为同一横向动作行，释放纵向空间并保持 1280×720 可读。
+- 中文运行时改为从结构化 `summary` 数据直接生成完整中文战报，修复旧逐词替换造成的 `Bosses`、`Special Rooms`、`spent` 等中英混排。
+- 种子标签悬停提示不再暴露开发者布局 ID；详细调试地图继续通过 `F3` 入口查看。
+- 主菜单、设置、暂停、奖励选择、调试地图和结算状态现在统一隐藏战斗 HUD 与小地图；结算同时关闭旧胜负横幅和 Boss 血条，避免战报后方出现重叠信息。
+
+### 回归验证
+```text
+RunSummarySmokeTest passed.
+ChineseLocalizationSmokeTest passed. (localization scan avg 0.696 ms)
+UILayoutSmokeTest passed.
+MenuFlowSmokeTest passed.
+FullRunSmokeTest passed.
+RuntimePerformanceSmokeTest passed. (passive HUD 0.035 ms, minimap 0.114 ms)
+Windows release actual-death result visual check passed. (no combat HUD/minimap/legacy banner overlap)
+```
