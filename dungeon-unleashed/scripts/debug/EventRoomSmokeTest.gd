@@ -32,6 +32,13 @@ func _ready() -> void:
 	call_deferred("_run")
 
 
+func _verify_cursed_weapon_drop_table_contract() -> void:
+	var shrine := EVENT_SHRINE_SCENE.instantiate()
+	_expect(str(shrine.call("get_cursed_weapon_reward_source_id")) == "cursed_event", "Event shrine should use the cursed weapon source table")
+	_expect((shrine.call("get_cursed_weapon_reward_pool_ids") as PackedStringArray).size() == 15, "Cursed event source should expose all Epic+ weapons")
+	shrine.free()
+
+
 func _run() -> void:
 	Events.special_event_resolved.connect(func(_event_node: Node, _player: Node, _event_id: String, _outcome_id: String) -> void:
 		_events_seen += 1
@@ -81,6 +88,7 @@ func _run() -> void:
 		_finish()
 		return
 
+	_verify_cursed_weapon_drop_table_contract()
 	await _verify_event_shrine_touch_does_not_trigger(main, player)
 	await _verify_room_clear_blessing_trigger(player, blessing_system, hud)
 	await _verify_kill_and_hurt_blessing_triggers(player, blessing_system)
@@ -467,6 +475,7 @@ func _verify_event_shrine_cursed_weapon(main: Node, player: Player) -> void:
 	shrine.set("cursed_weapon_max_health_penalty", 1)
 	var cursed_weapon_pool: Array[Resource] = [CURSED_EVENT_WEAPON]
 	shrine.set("cursed_weapon_pool", cursed_weapon_pool)
+	shrine.set("cursed_weapon_drop_table", null)
 	_expect(shrine.has_method("get_event_summary"), "Cursed weapon event shrine should expose event summary")
 	if shrine.has_method("get_event_summary"):
 		var event_summary: Dictionary = shrine.call("get_event_summary")

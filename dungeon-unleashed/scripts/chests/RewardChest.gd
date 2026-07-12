@@ -1,6 +1,8 @@
 extends Area2D
 class_name RewardChest
 
+const WEAPON_REWARD_PICKER := preload("res://scripts/weapons/WeaponRewardPicker.gd")
+
 @export var chest_type: String = "normal"
 @export var reward_count: int = 1
 @export var drop_pool: PackedStringArray = PackedStringArray(["gold"])
@@ -48,47 +50,8 @@ class_name RewardChest
 	preload("res://resources/relics/conduction_mesh.tres"),
 	preload("res://resources/relics/stormglass_filament.tres"),
 ]
-@export var weapon_pool: Array[Resource] = [
-	preload("res://resources/weapons/ricochet_blaster.tres"),
-	preload("res://resources/weapons/shotgun.tres"),
-	preload("res://resources/weapons/energy_staff.tres"),
-	preload("res://resources/weapons/arc_blade.tres"),
-	preload("res://resources/weapons/nova_core.tres"),
-	preload("res://resources/weapons/blast_launcher.tres"),
-	preload("res://resources/weapons/laser_lance.tres"),
-	preload("res://resources/weapons/coil_carbine.tres"),
-	preload("res://resources/weapons/shatter_fan.tres"),
-	preload("res://resources/weapons/rift_spear.tres"),
-	preload("res://resources/weapons/orbit_sower.tres"),
-	preload("res://resources/weapons/pulse_needler.tres"),
-	preload("res://resources/weapons/cinder_mortar.tres"),
-	preload("res://resources/weapons/mirror_sickle.tres"),
-	preload("res://resources/weapons/storm_fan.tres"),
-	preload("res://resources/weapons/prism_ray.tres"),
-	preload("res://resources/weapons/halo_kernel.tres"),
-	preload("res://resources/weapons/ember_sprayer.tres"),
-	preload("res://resources/weapons/frost_sickle.tres"),
-	preload("res://resources/weapons/slag_comet.tres"),
-	preload("res://resources/weapons/guard_cleaver.tres"),
-	preload("res://resources/weapons/riposte_saber.tres"),
-	preload("res://resources/weapons/bulwark_fan.tres"),
-	preload("res://resources/weapons/coil_bow.tres"),
-	preload("res://resources/weapons/storm_capacitor.tres"),
-	preload("res://resources/weapons/vault_lance.tres"),
-	preload("res://resources/weapons/snare_beacon.tres"),
-	preload("res://resources/weapons/ember_mine.tres"),
-	preload("res://resources/weapons/sentry_seed.tres"),
-	preload("res://resources/weapons/quench_repeater.tres"),
-	preload("res://resources/weapons/furnace_scattergun.tres"),
-	preload("res://resources/weapons/bastion_saw.tres"),
-	preload("res://resources/weapons/rift_bloom.tres"),
-	preload("res://resources/weapons/thunder_nest.tres"),
-	preload("res://resources/weapons/compass_needle.tres"),
-	preload("res://resources/weapons/relay_arc.tres"),
-	preload("res://resources/weapons/lantern_swarm.tres"),
-	preload("res://resources/weapons/undertow_volley.tres"),
-	preload("res://resources/weapons/stormglass_rail.tres"),
-]
+@export var weapon_pool: Array[Resource] = []
+@export var weapon_drop_table: Resource = preload("res://resources/weapon_drop_tables/armory.tres")
 @export var complete_run_on_open: bool = false
 
 @onready var visual: CanvasItem = $Visual
@@ -162,10 +125,26 @@ func get_roll_signature_for_test() -> String:
 	for index in range(maxi(reward_count, 1)):
 		kinds.append(_pick_drop_kind(index))
 	var gold := _roll_gold()
-	var weapon := _pick_resource(weapon_pool, biome_reward_weight_multiplier)
+	var weapon := _pick_weapon()
 	var weapon_id := str(weapon.get("id")) if weapon != null else ""
 	_rng.state = saved_state
 	return "%s|gold:%d|weapon:%s" % [",".join(kinds), gold, weapon_id]
+
+
+func get_weapon_reward_source_id() -> String:
+	if weapon_drop_table == null:
+		return "fallback"
+	return str(weapon_drop_table.get("source_id"))
+
+
+func get_weapon_reward_pool_ids() -> PackedStringArray:
+	if weapon_drop_table != null:
+		return WEAPON_REWARD_PICKER.get_pool_ids(weapon_drop_table)
+	var ids := PackedStringArray()
+	for weapon in weapon_pool:
+		if weapon != null:
+			ids.append(str(weapon.get("id")))
+	return ids
 
 
 func _prepare_random_seed() -> void:
@@ -207,7 +186,7 @@ func _apply_drop(kind: String, player: Node) -> void:
 			_grant_relic()
 		"weapon":
 			if player.has_method("buy_weapon"):
-				player.call("buy_weapon", _pick_resource(weapon_pool, biome_reward_weight_multiplier))
+				player.call("buy_weapon", _pick_weapon())
 		_:
 			if player.has_method("add_gold"):
 				player.call("add_gold", _roll_gold())
@@ -265,6 +244,14 @@ func _pick_resource(pool: Array[Resource], weight_multiplier: float = 1.0) -> Re
 		if roll <= 0.0:
 			return resource
 	return candidates[candidates.size() - 1]
+
+
+func _pick_weapon() -> Resource:
+	if weapon_drop_table != null:
+		var weapon: Resource = WEAPON_REWARD_PICKER.pick_weapon(weapon_drop_table, _rng, biome_reward_weight_multiplier)
+		if weapon != null:
+			return weapon
+	return _pick_resource(weapon_pool, biome_reward_weight_multiplier)
 
 
 func _get_resource_weight(resource: Resource, weight_multiplier: float = 1.0) -> float:

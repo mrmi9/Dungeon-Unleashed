@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="WeaponDropTableData" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/WeaponDropTableData.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/weapons/bastion_saw.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/weapons/bulwark_fan.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/weapons/lantern_swarm.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/weapons/laser_lance.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/weapons/orbit_sower.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/weapons/prism_ray.tres" id="7"]
+[ext_resource type="Resource" path="res://resources/weapons/rift_bloom.tres" id="8"]
+[ext_resource type="Resource" path="res://resources/weapons/sentry_seed.tres" id="9"]
+[ext_resource type="Resource" path="res://resources/weapons/slag_comet.tres" id="10"]
+[ext_resource type="Resource" path="res://resources/weapons/storm_capacitor.tres" id="11"]
+[ext_resource type="Resource" path="res://resources/weapons/storm_fan.tres" id="12"]
+[ext_resource type="Resource" path="res://resources/weapons/halo_kernel.tres" id="13"]
+[ext_resource type="Resource" path="res://resources/weapons/stormglass_rail.tres" id="14"]
+[ext_resource type="Resource" path="res://resources/weapons/thunder_nest.tres" id="15"]
+[ext_resource type="Resource" path="res://resources/weapons/vault_lance.tres" id="16"]
+
+[resource]
+script = ExtResource("1")
+source_id = &"cursed_event"
+display_name = "Cursed Armory"
+weapon_pool = Array[Resource]([ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("10"), ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("14"), ExtResource("15"), ExtResource("16")])
+common_weight = 0.0
+rare_weight = 0.0
+epic_weight = 88.0
+legendary_weight = 12.0
+minimum_rarity = "epic"

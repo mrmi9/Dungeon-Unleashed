@@ -98,6 +98,9 @@ func _verify_premium_chest(player: Player, relic_system: Node) -> void:
 func _verify_weapon_chest(player: Player) -> void:
 	var chest := WEAPON_CHEST.instantiate()
 	get_tree().root.add_child(chest)
+	_expect(str(chest.call("get_weapon_reward_source_id")) == "armory", "Weapon chest should use the armory weapon source table")
+	var source_pool_ids: PackedStringArray = chest.call("get_weapon_reward_pool_ids")
+	_expect(source_pool_ids.size() == 39, "Armory weapon source should expose all non-starter weapons")
 	var weapon_before := ""
 	if player.weapon != null and player.weapon.weapon_data != null:
 		weapon_before = str(player.weapon.weapon_data.display_name)
@@ -105,6 +108,7 @@ func _verify_weapon_chest(player: Player) -> void:
 	_expect(player.weapon != null and player.weapon.weapon_data != null, "Weapon chest should equip a weapon")
 	if player.weapon != null and player.weapon.weapon_data != null and not weapon_before.is_empty():
 		_expect(str(player.weapon.weapon_data.display_name) != weapon_before, "Weapon chest should replace the current weapon")
+		_expect(source_pool_ids.has(str(player.weapon.weapon_data.id)), "Weapon chest should grant a weapon from the armory source table")
 
 
 func _verify_healing_chest(player: Player) -> void:
@@ -120,6 +124,8 @@ func _verify_healing_chest(player: Player) -> void:
 func _verify_boss_chest(player: Player) -> void:
 	var chest := BOSS_CHEST.instantiate()
 	get_tree().root.add_child(chest)
+	_expect(str(chest.call("get_weapon_reward_source_id")) == "boss_chest", "Boss chest should use the boss weapon source table")
+	_expect((chest.call("get_weapon_reward_pool_ids") as PackedStringArray).size() == 32, "Boss weapon source should expose all Rare+ weapons")
 	_expect(bool(chest.get("complete_run_on_open")), "Boss chest should complete run on open")
 	_expect(bool(chest.call("open_for_player", player)), "Boss chest should open for player")
 	await get_tree().process_frame

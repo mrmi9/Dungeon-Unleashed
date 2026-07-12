@@ -4,7 +4,7 @@ Build date: 2026-07-12
 Engine: Godot 4.7 stable
 Renderer: GL Compatibility / OpenGL
 Source checkpoint: `codex/relic-reward-pacing`
-SHA-256: `3D2CB4306A9FF678458DCF03901E17E6E05D728ED58B324F28ED0645D3C342B5`
+SHA-256: `85094A352F4087A22467582B51BFCF8F24940164401CC6F28DC07460F7B8BC2B`
 
 ## How To Run
 
@@ -31,6 +31,7 @@ Run `Dungeon Unleashed.exe`.
 - Room-state minimap updates reuse existing markers, passive HUD work is cached/throttled, and combat text uses a bounded 48-entry pool.
 - Reward-room and normal-chest Rare+ exposure pity; premium and Boss chests have Rare+ floors.
 - Three legendary relics now support multi-shot, energy-sustain, and chain builds; full-run rarity rates are covered by deterministic simulation.
+- Armory, shop, Boss, and cursed-event weapons use separate rarity tables with deterministic full-run rarity and weapon-form coverage.
 - Fixed seed and Replay Seed reproduce route/layout, event rules, chest rolls, central choices, and shop stock when the same interaction order is followed.
 - Keyboard/mouse and controller input are supported; controller deadzone and hint-switch thresholds are configurable.
 

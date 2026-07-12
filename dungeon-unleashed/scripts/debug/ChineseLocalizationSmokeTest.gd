@@ -5,6 +5,7 @@ const LOBBY_SCENE := preload("res://scenes/ui/LobbyScreen.tscn")
 const MAIN_SCENE := preload("res://scenes/main/Main.tscn")
 const CONTENT_DIRS := [
 	"res://resources/weapons",
+	"res://resources/weapon_drop_tables",
 	"res://resources/relics",
 	"res://resources/characters",
 	"res://resources/talents",

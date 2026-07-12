@@ -208,6 +208,7 @@ const MESSAGES := {
 	"Snare Beacon": "诱捕信标", "Storm Capacitor": "风暴电容", "Storm Fan": "风暴战扇",
 	"Stormglass Rail": "风暴晶轨炮", "Thunder Nest": "雷霆巢", "Undertow Volley": "暗流齐射",
 	"Vault Lance": "穹顶长枪",
+	"Armory Weapon Chest": "军械库武器箱", "Shop Weapon": "商店武器", "Boss Weapon Chest": "首领武器箱",
 
 	# Relics.
 	"Adrenaline Charm": "肾上腺护符", "Anchor Spool": "锚定线轴", "Blast Radius Gauge": "爆炸半径计",

@@ -57,6 +57,9 @@ func _run() -> void:
 		_expect(is_equal_approx(float(reward_summary.get("reward_weight_multiplier", 0.0)), _expected_biome_reward_multiplier(room_biome_id)), "Shop inventory should inherit biome reward weight multiplier")
 	else:
 		_expect(false, "Shop inventory should expose biome reward summary")
+	_expect(str(shop_inventory.call("get_weapon_reward_source_id")) == "shop", "Shop should use the shop weapon source table")
+	var shop_weapon_pool_ids: PackedStringArray = shop_inventory.call("get_weapon_reward_pool_ids")
+	_expect(shop_weapon_pool_ids.size() == 39, "Shop weapon source should expose all non-starter weapons")
 	_expect(items.size() == 3, "Shop should spawn exactly 3 items")
 	_expect(_has_item_type(items, "Heal"), "Shop should offer healing")
 	_expect(_has_item_type(items, "Relic"), "Shop should offer a relic")
@@ -65,6 +68,7 @@ func _run() -> void:
 	var heal_item := _first_item_by_type(items, "Heal")
 	var relic_item := _first_item_by_type(items, "Relic")
 	var weapon_item := _first_item_by_type(items, "Weapon")
+	_expect(shop_weapon_pool_ids.has(str(weapon_item.call("get_payload_id"))), "Shop weapon should come from the shop weapon source table")
 	var shop_pool_ids: Array = relic_system.call("get_source_pool_ids", "shop")
 	_expect(shop_pool_ids.has(str(relic_item.call("get_payload_id"))), "Shop relic should come from the shop relic source pool")
 

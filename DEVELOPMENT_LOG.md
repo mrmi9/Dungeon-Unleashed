@@ -17189,3 +17189,41 @@ Exported runtime room check passed. (seed 424242, exit code 0)
 Windows EXE SHA256: 3D2CB4306A9FF678458DCF03901E17E6E05D728ED58B324F28ED0645D3C342B5
 Windows ZIP SHA256: AE9FF5877833017C29223647424450D53B9FCA0DCF0A1ACF94603D101B094554
 ```
+
+## 2026-07-12 完整局武器奖励节奏与来源表
+
+### 生产配置重整
+- 新增 `WeaponDropTableData`、`WeaponRewardPicker` 和四个来源表：军械库、商店、首领箱、诅咒事件。
+- 选择流程改为“来源稀有度权重 -> 档位内武器 drop_weight”，避免 Rare 条目较多时仅因内容数量获得额外总权重。
+- 军械库/商店覆盖 39 把非初始武器；首领箱覆盖 32 把 Rare+ 武器并设置 Rare+ 下限；诅咒事件覆盖 15 把 Epic+ 武器并设置 Epic+ 下限。
+- `RewardChest`、`ShopInventory` 和 `EventShrine` 接入来源表；首领箱显式使用 Boss 表，旧脚本默认武器数组和首领场景 25 项重复引用已移除。
+- 新增来源 ID/候选池接口，宝箱、商店和事件测试会校验真实产出属于对应生产表；固定种子签名继续复现。
+
+### 3000 局固定种子结果
+```text
+军械库：Rare+ 47.9%，Epic+ 13.6%，传说 1.78%
+首领箱：Rare+ 100.0%，Epic+ 26.8%，传说 3.32%
+商店展示：Rare+ 61.6%，Epic+ 19.4%，传说 3.00%
+诅咒事件：1464 次，Epic+ 100.0%，传说 13.32%
+保证奖励：每局 6.49 把，Epic+ 1.70，传说局占比 19.7%，平均 4.31 类 / 3.06 模式
+保证奖励形态局占比：近战 80.8%，环形 48.5%，蓄力 36.3%，部署 41.2%
+武器优先购买：每局 9.49 把，Epic+ 2.28，传说局占比 26.7%，平均 5.09 类 / 3.50 模式
+```
+
+### 回归验证
+```text
+WeaponRewardPacingSmokeTest passed.
+ChestSmokeTest passed.
+ShopSmokeTest passed.
+EventRoomSmokeTest passed.
+SeededRewardSmokeTest passed.
+WeaponSmokeTest passed.
+BalanceSmokeTest passed.
+FullRunSmokeTest passed.
+ContentPipelineSmokeTest passed.
+ChineseLocalizationSmokeTest passed. (localization scan avg 0.663 ms)
+Windows release export passed.
+Exported runtime room check passed. (seed 424242, exit code 0)
+Windows EXE SHA256: 85094A352F4087A22467582B51BFCF8F24940164401CC6F28DC07460F7B8BC2B
+Windows ZIP SHA256: 2C6BC05C1076E1AE4B40C581D24533EE5D025DA6549674FFE73B693D71BFE929
+```

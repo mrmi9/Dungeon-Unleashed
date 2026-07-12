@@ -18,6 +18,7 @@ Last updated: 2026-07-12
 - Resolution settings support only three presets: 1280x720, 1600x900, 1920x1080.
 - Key rebinding supports movement, reload, interact, and pause; mouse shoot and weapon number slots are still fixed.
 - Relic rewards now have per-source `.tres` drop tables, shared Rare+ exposure pity for reward rooms/normal chests, Rare+ floors for premium/Boss chests, and deterministic full-run distribution coverage. Manual playtests are still required for perceived value and build-selection tuning.
+- Weapon rewards now use per-source `.tres` tables for armories, shops, Boss chests, and cursed events, with deterministic full-run rarity and weapon-form coverage. Manual playtests are still required for replacement decisions and perceived shop value.
 - Chest and shop presentation is functional but still visually plain.
 - Result screen now uses a victory/defeat icon, a compact four-metric strip, six icon-labelled detail sections, and one horizontal action row. Final art styling and broader manual readability review are still required.
 
@@ -35,6 +36,7 @@ Last updated: 2026-07-12
 - Original authored SFX/music resources, biome floor/surface/trim visuals, enemy/Boss action atlases, and content icon registries are imported and validated by the content pipeline.
 - Relic reward pacing covers shared miss counting, one-slot Rare+ guarantees, source hard floors, Shop isolation, and run reset.
 - A 1,500-run production-config simulation covers real ownership filtering, random/highest-rarity selection strategies, all five relic sources, deterministic replay, and bounded Rare+/Epic+/Legendary rates.
+- A 3,000-run production-config simulation covers all guaranteed armory/Boss rewards, shop listings, one-in-six cursed events, rarity floors, seven weapon classes, five fire modes, deterministic replay, and bounded build-form rates.
 - Named run/room reward streams cover same-seed replay, cross-source relic RNG isolation, event/chest/shop output, menu seed application, and full-run completion.
 - Windows release `.exe` export completed.
 - Exported `.exe` startup and first-room enemy spawning are verified through the OpenGL/Compatibility runtime room-spawn check.

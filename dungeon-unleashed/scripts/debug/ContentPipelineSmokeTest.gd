@@ -1,6 +1,7 @@
 extends Node
 
 const WEAPON_DIR := "res://resources/weapons"
+const WEAPON_DROP_TABLE_DIR := "res://resources/weapon_drop_tables"
 const RELIC_DIR := "res://resources/relics"
 const CHARACTER_DIR := "res://resources/characters"
 const TALENT_DIR := "res://resources/talents"
@@ -165,6 +166,7 @@ func _ready() -> void:
 func _run() -> void:
 	_verify_content_interface_scripts()
 	_verify_weapons()
+	_verify_weapon_drop_tables()
 	_verify_relics()
 	_verify_characters()
 	_verify_talents()
@@ -574,6 +576,23 @@ func _verify_weapons() -> void:
 					_expect(weapon_tags.has("control"), "Field weapon %s should expose control tag" % id)
 	for required_id in REQUIRED_WEAPON_IDS:
 		_expect(ids.has(required_id), "Weapon library should include %s" % required_id)
+
+
+func _verify_weapon_drop_tables() -> void:
+	var tables := _load_resources(WEAPON_DROP_TABLE_DIR)
+	var source_ids := {}
+	_expect(tables.size() == 4, "Weapon reward pacing should define four production source tables")
+	for table in tables:
+		var source_id := str(table.get("source_id"))
+		_expect(not source_id.is_empty(), "Weapon drop table should define source id")
+		_expect(not source_ids.has(source_id), "Weapon drop table source id should be unique: %s" % source_id)
+		source_ids[source_id] = true
+		_expect(not str(table.get("display_name")).is_empty(), "Weapon drop table %s should define display name" % source_id)
+		var pool = table.get("weapon_pool")
+		_expect(pool is Array and not (pool as Array).is_empty(), "Weapon drop table %s should define a non-empty pool" % source_id)
+		_expect(float(table.get("common_weight")) + float(table.get("rare_weight")) + float(table.get("epic_weight")) + float(table.get("legendary_weight")) > 0.0, "Weapon drop table %s should define positive rarity weight" % source_id)
+	for expected_source in ["armory", "shop", "boss_chest", "cursed_event"]:
+		_expect(source_ids.has(expected_source), "Weapon reward pacing should include %s source" % expected_source)
 
 
 func _verify_relics() -> void:

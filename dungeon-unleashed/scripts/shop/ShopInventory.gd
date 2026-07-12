@@ -2,6 +2,7 @@ extends Node2D
 class_name ShopInventory
 
 const SHOP_ITEM_SCENE := preload("res://scenes/shop/ShopItem.tscn")
+const WEAPON_REWARD_PICKER := preload("res://scripts/weapons/WeaponRewardPicker.gd")
 const ITEM_TYPE_HEAL := 0
 const ITEM_TYPE_RELIC := 1
 const ITEM_TYPE_WEAPON := 2
@@ -50,47 +51,8 @@ const ITEM_TYPE_WEAPON := 2
 	preload("res://resources/relics/conduction_mesh.tres"),
 	preload("res://resources/relics/stormglass_filament.tres"),
 ]
-@export var weapon_pool: Array[Resource] = [
-	preload("res://resources/weapons/ricochet_blaster.tres"),
-	preload("res://resources/weapons/shotgun.tres"),
-	preload("res://resources/weapons/energy_staff.tres"),
-	preload("res://resources/weapons/arc_blade.tres"),
-	preload("res://resources/weapons/nova_core.tres"),
-	preload("res://resources/weapons/blast_launcher.tres"),
-	preload("res://resources/weapons/laser_lance.tres"),
-	preload("res://resources/weapons/coil_carbine.tres"),
-	preload("res://resources/weapons/shatter_fan.tres"),
-	preload("res://resources/weapons/rift_spear.tres"),
-	preload("res://resources/weapons/orbit_sower.tres"),
-	preload("res://resources/weapons/pulse_needler.tres"),
-	preload("res://resources/weapons/cinder_mortar.tres"),
-	preload("res://resources/weapons/mirror_sickle.tres"),
-	preload("res://resources/weapons/storm_fan.tres"),
-	preload("res://resources/weapons/prism_ray.tres"),
-	preload("res://resources/weapons/halo_kernel.tres"),
-	preload("res://resources/weapons/ember_sprayer.tres"),
-	preload("res://resources/weapons/frost_sickle.tres"),
-	preload("res://resources/weapons/slag_comet.tres"),
-	preload("res://resources/weapons/guard_cleaver.tres"),
-	preload("res://resources/weapons/riposte_saber.tres"),
-	preload("res://resources/weapons/bulwark_fan.tres"),
-	preload("res://resources/weapons/coil_bow.tres"),
-	preload("res://resources/weapons/storm_capacitor.tres"),
-	preload("res://resources/weapons/vault_lance.tres"),
-	preload("res://resources/weapons/snare_beacon.tres"),
-	preload("res://resources/weapons/ember_mine.tres"),
-	preload("res://resources/weapons/sentry_seed.tres"),
-	preload("res://resources/weapons/quench_repeater.tres"),
-	preload("res://resources/weapons/furnace_scattergun.tres"),
-	preload("res://resources/weapons/bastion_saw.tres"),
-	preload("res://resources/weapons/rift_bloom.tres"),
-	preload("res://resources/weapons/thunder_nest.tres"),
-	preload("res://resources/weapons/compass_needle.tres"),
-	preload("res://resources/weapons/relay_arc.tres"),
-	preload("res://resources/weapons/lantern_swarm.tres"),
-	preload("res://resources/weapons/undertow_volley.tres"),
-	preload("res://resources/weapons/stormglass_rail.tres"),
-]
+@export var weapon_pool: Array[Resource] = []
+@export var weapon_drop_table: Resource = preload("res://resources/weapon_drop_tables/shop.tres")
 
 @onready var slots: Array[Marker2D] = [
 	$Slots/HealSlot,
@@ -141,6 +103,22 @@ func get_inventory_signature() -> String:
 	return "|".join(entries)
 
 
+func get_weapon_reward_source_id() -> String:
+	if weapon_drop_table == null:
+		return "fallback"
+	return str(weapon_drop_table.get("source_id"))
+
+
+func get_weapon_reward_pool_ids() -> PackedStringArray:
+	if weapon_drop_table != null:
+		return WEAPON_REWARD_PICKER.get_pool_ids(weapon_drop_table)
+	var ids := PackedStringArray()
+	for weapon in weapon_pool:
+		if weapon != null:
+			ids.append(str(weapon.get("id")))
+	return ids
+
+
 func _prepare_random_seed() -> void:
 	if random_seed != 0:
 		_rng.seed = random_seed
@@ -152,7 +130,7 @@ func _prepare_random_seed() -> void:
 func _spawn_inventory() -> void:
 	_spawn_item(slots[0], ITEM_TYPE_HEAL, heal_price, null, heal_amount)
 	_spawn_item(slots[1], ITEM_TYPE_RELIC, relic_price, _pick_relic_for_shop())
-	_spawn_item(slots[2], ITEM_TYPE_WEAPON, weapon_price, _pick_resource(weapon_pool, biome_reward_weight_multiplier))
+	_spawn_item(slots[2], ITEM_TYPE_WEAPON, weapon_price, _pick_weapon_for_shop())
 
 
 func _spawn_item(slot: Marker2D, item_type: int, item_price: int, payload: Resource = null, item_heal_amount: int = 2) -> void:
@@ -216,3 +194,11 @@ func _pick_relic_for_shop() -> Resource:
 		if relic != null:
 			return relic
 	return _pick_resource(relic_pool, biome_reward_weight_multiplier)
+
+
+func _pick_weapon_for_shop() -> Resource:
+	if weapon_drop_table != null:
+		var weapon: Resource = WEAPON_REWARD_PICKER.pick_weapon(weapon_drop_table, _rng, biome_reward_weight_multiplier)
+		if weapon != null:
+			return weapon
+	return _pick_resource(weapon_pool, biome_reward_weight_multiplier)

@@ -1,6 +1,8 @@
 extends Area2D
 class_name EventShrine
 
+const WEAPON_REWARD_PICKER := preload("res://scripts/weapons/WeaponRewardPicker.gd")
+
 @export var event_id := "blood_pact"
 @export var outcome_id := "sacrifice_for_blessing"
 @export var display_name := "Blood Pact"
@@ -23,20 +25,8 @@ class_name EventShrine
 @export var temporary_rule_damage_multiplier_bonus := 0.2
 @export var temporary_rule_fire_rate_multiplier_bonus := 0.18
 @export var temporary_rule_duration := 18.0
-@export var cursed_weapon_pool: Array[Resource] = [
-	preload("res://resources/weapons/ricochet_blaster.tres"),
-	preload("res://resources/weapons/shotgun.tres"),
-	preload("res://resources/weapons/energy_staff.tres"),
-	preload("res://resources/weapons/arc_blade.tres"),
-	preload("res://resources/weapons/nova_core.tres"),
-	preload("res://resources/weapons/blast_launcher.tres"),
-	preload("res://resources/weapons/laser_lance.tres"),
-	preload("res://resources/weapons/coil_carbine.tres"),
-	preload("res://resources/weapons/shatter_fan.tres"),
-	preload("res://resources/weapons/rift_spear.tres"),
-	preload("res://resources/weapons/orbit_sower.tres"),
-	preload("res://resources/weapons/pulse_needler.tres"),
-]
+@export var cursed_weapon_pool: Array[Resource] = []
+@export var cursed_weapon_drop_table: Resource = preload("res://resources/weapon_drop_tables/cursed_event.tres")
 @export var biome_id: String = "prototype_depths"
 @export var biome_name: String = "Prototype Depths"
 @export var biome_reward_weight_multiplier: float = 1.0
@@ -250,10 +240,34 @@ func _grant_cursed_weapon(player: Node) -> bool:
 	if not player.has_method("buy_weapon"):
 		return false
 
-	var weapon_data := _pick_resource(cursed_weapon_pool, biome_reward_weight_multiplier)
+	var weapon_data := _pick_cursed_weapon()
 	if weapon_data == null:
 		return false
 	return bool(player.call("buy_weapon", weapon_data))
+
+
+func get_cursed_weapon_reward_source_id() -> String:
+	if cursed_weapon_drop_table == null:
+		return "fallback"
+	return str(cursed_weapon_drop_table.get("source_id"))
+
+
+func get_cursed_weapon_reward_pool_ids() -> PackedStringArray:
+	if cursed_weapon_drop_table != null:
+		return WEAPON_REWARD_PICKER.get_pool_ids(cursed_weapon_drop_table)
+	var ids := PackedStringArray()
+	for weapon in cursed_weapon_pool:
+		if weapon != null:
+			ids.append(str(weapon.get("id")))
+	return ids
+
+
+func _pick_cursed_weapon() -> Resource:
+	if cursed_weapon_drop_table != null:
+		var weapon: Resource = WEAPON_REWARD_PICKER.pick_weapon(cursed_weapon_drop_table, _rng, biome_reward_weight_multiplier)
+		if weapon != null:
+			return weapon
+	return _pick_resource(cursed_weapon_pool, biome_reward_weight_multiplier)
 
 
 func _grant_temporary_rule(player: Node) -> bool:
