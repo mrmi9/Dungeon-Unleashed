@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"perpetual_dynamo"
+display_name = "Perpetual Dynamo"
+description = "Increase maximum energy by 7 and restore the same amount."
+rarity = "legendary"
+trigger_event = "passive"
+effect_type = "max_energy"
+effect_value = 7.0
+drop_weight = 0.2
+icon_key = "relic_perpetual_dynamo"
+description_value_template = "+7 maximum energy"
+stackable = false
+max_stacks = 1
+build_tags = PackedStringArray("energy", "sustain")
+tags = PackedStringArray("energy", "utility")

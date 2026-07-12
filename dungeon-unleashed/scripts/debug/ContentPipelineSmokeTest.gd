@@ -79,6 +79,9 @@ const REQUIRED_RELIC_IDS := [
 	"forked_bus",
 	"conduction_mesh",
 	"stormglass_filament",
+	"refraction_crown",
+	"perpetual_dynamo",
+	"blackstar_relay",
 ]
 const SUPPORTED_STATUS_EFFECTS := ["none", "burn", "slow"]
 const SUPPORTED_FIRE_MODES := ["projectile", "radial", "melee", "charge", "deployable"]
@@ -227,7 +230,7 @@ func _verify_content_interface_scripts() -> void:
 	_expect(int(statue.get("trigger_interval")) >= 1, "StatueData should expose a trigger interval field")
 	_expect(CONTENT_ICON_REGISTRY_RESOURCE is Resource, "Content icon registry resource should load")
 	_expect(CONTENT_ICON_REGISTRY_RESOURCE.get("definitions") is Array, "Content icon registry should expose definition resources")
-	_expect(CONTENT_ICON_REGISTRY.get_registered_icon_count() >= 122, "Content icon registry should cover the 40-weapon and 45-relic libraries plus shared content icons")
+	_expect(CONTENT_ICON_REGISTRY.get_registered_icon_count() >= 125, "Content icon registry should cover the 40-weapon and 48-relic libraries plus shared content icons")
 	for content_type in ["weapon", "relic", "talent", "blessing", "statue", "character", "room"]:
 		_expect(CONTENT_ICON_REGISTRY.has_definition_for_type(content_type), "Content icon registry should define %s icons" % content_type)
 	_expect(CONTENT_ICON_REGISTRY.get_type_token("weapon_basic_pistol", "weapons") == "WPN", "ContentIconRegistry should resolve weapon icon tokens")
@@ -447,6 +450,9 @@ func _verify_content_interface_scripts() -> void:
 		"relic_forked_bus",
 		"relic_conduction_mesh",
 		"relic_stormglass_filament",
+		"relic_refraction_crown",
+		"relic_perpetual_dynamo",
+		"relic_blackstar_relay",
 	]:
 		item_icon_paths[icon_key] = CONTENT_ICON_REGISTRY.get_texture_path(icon_key, "relics")
 	for icon_key in item_icon_paths.keys():
@@ -573,7 +579,7 @@ func _verify_weapons() -> void:
 func _verify_relics() -> void:
 	var relics := _load_resources(RELIC_DIR)
 	var ids := {}
-	_expect(relics.size() >= 45, "Relic library should reach the 45-relic v1 content target")
+	_expect(relics.size() >= 48, "Relic library should reach the 48-relic v1 content target")
 	for relic in relics:
 		var id := str(relic.get("id"))
 		_expect(not id.is_empty(), "Relic should define id")

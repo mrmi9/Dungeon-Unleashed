@@ -17,7 +17,7 @@ Last updated: 2026-07-12
 - The active dungeon seed now reproduces route/layout generation, central relic/talent/blessing/statue choices, room event rules, chest rolls, and shop stock when the same interaction order is followed. `F3` exposes the seed/map for debugging, but the panel is still developer-facing rather than polished production UI; this is deterministic replay, not recorded input playback.
 - Resolution settings support only three presets: 1280x720, 1600x900, 1920x1080.
 - Key rebinding supports movement, reload, interact, and pause; mouse shoot and weapon number slots are still fixed.
-- Relic rewards now have per-source `.tres` drop tables, shared Rare+ exposure pity for reward rooms/normal chests, and Rare+ floors for premium/Boss chests. Full-run rarity distribution and selection-rate tuning still require simulation plus manual playtests.
+- Relic rewards now have per-source `.tres` drop tables, shared Rare+ exposure pity for reward rooms/normal chests, Rare+ floors for premium/Boss chests, and deterministic full-run distribution coverage. Manual playtests are still required for perceived value and build-selection tuning.
 - Chest and shop presentation is functional but still visually plain.
 - Result screen now uses a victory/defeat icon, a compact four-metric strip, six icon-labelled detail sections, and one horizontal action row. Final art styling and broader manual readability review are still required.
 
@@ -31,9 +31,10 @@ Last updated: 2026-07-12
 ## Already Verified
 
 - Main Godot scene starts in headless CLI.
-- Three connected biomes, three Bosses, six characters, 40 weapons, 45 relics, 18 normal enemy variants, six elite modifiers, the lobby/codex/training flow, and controller input contracts are covered by automated smoke tests.
+- Three connected biomes, three Bosses, six characters, 40 weapons, 48 relics, 18 normal enemy variants, six elite modifiers, the lobby/codex/training flow, and controller input contracts are covered by automated smoke tests.
 - Original authored SFX/music resources, biome floor/surface/trim visuals, enemy/Boss action atlases, and content icon registries are imported and validated by the content pipeline.
 - Relic reward pacing covers shared miss counting, one-slot Rare+ guarantees, source hard floors, Shop isolation, and run reset.
+- A 1,500-run production-config simulation covers real ownership filtering, random/highest-rarity selection strategies, all five relic sources, deterministic replay, and bounded Rare+/Epic+/Legendary rates.
 - Named run/room reward streams cover same-seed replay, cross-source relic RNG isolation, event/chest/shop output, menu seed application, and full-run completion.
 - Windows release `.exe` export completed.
 - Exported `.exe` startup and first-room enemy spawning are verified through the OpenGL/Compatibility runtime room-spawn check.

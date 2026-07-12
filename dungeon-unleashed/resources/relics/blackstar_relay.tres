@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"blackstar_relay"
+display_name = "Blackstar Relay"
+description = "Chain attacks jump to two additional targets."
+rarity = "legendary"
+trigger_event = "passive"
+effect_type = "chain_count_bonus"
+effect_value = 2.0
+drop_weight = 0.2
+icon_key = "relic_blackstar_relay"
+description_value_template = "+2 chain targets"
+stackable = false
+max_stacks = 1
+build_tags = PackedStringArray("chain", "crowd_control")
+tags = PackedStringArray("projectile", "lightning")

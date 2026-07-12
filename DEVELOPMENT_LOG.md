@@ -17098,7 +17098,7 @@ FullRunSmokeTest passed. (68.8s; prior recorded run 265.6s)
 
 ### 中文化范围
 - 新增 `Localization` 自动加载节点并将正式游戏默认区域锁定为 `zh_CN`；代码符号、资源路径、内容 ID 与存档键保持英文，玩家界面统一显示中文。
-- 完成 6 个角色、40 件武器、45 件遗物、3 项天赋、7 项祝福、3 座雕像、3 个 Biome、6 类精英词条、敌人、房间布局、宝箱、事件、HUD、大厅、设置、训练和结算文案翻译。
+- 完成 6 个角色、40 件武器、48 件遗物、3 项天赋、7 项祝福、3 座雕像、3 个 Biome、6 类精英词条、敌人、房间布局、宝箱、事件、HUD、大厅、设置、训练和结算文案翻译。
 - 玩家工具提示不再暴露内部图标键；按键名 `WASD`、`LMB`、`Esc`、`Start` 保留标准写法，操作说明改为中文。
 
 ### 性能与测试
@@ -17152,4 +17152,40 @@ MenuFlowSmokeTest passed.
 FullRunSmokeTest passed.
 RuntimePerformanceSmokeTest passed. (passive HUD 0.035 ms, minimap 0.114 ms)
 Windows release actual-death result visual check passed. (no combat HUD/minimap/legacy banner overlap)
+```
+
+## 2026-07-12 完整局遗物稀有度模拟与传说遗物
+
+### 内容与奖励节奏
+- 遗物库从 45 件扩展到 48 件，新增传说遗物折光冠冕、永动机芯和黑星继电器，分别强化多弹丸、能量续航和连锁构筑。
+- 三件遗物全部接入奖励房、普通宝箱、优质宝箱、首领宝箱和商店生产掉落表，并拥有专属 64px SVG、内容图标定义和完整中文名称、说明、数值摘要。
+- 新增 `RelicRewardSimulation`，按实际三生态区路线模拟每局 3 次奖励房三选一、4 个优质宝箱、3 个首领宝箱和 3 次商店展示；随机选择和最高稀有度选择使用独立 `RelicSystem` 实例并真实写入持有状态。
+- 新增 `RewardDistributionSmokeTest`，覆盖 1500 局主样本、300 局确定性样本、五类来源传说候选、共享 Rare+ 保底、硬下限、重复选项、获取失败和概率区间。
+- 大厅熟练度满级状态补充“已满级”翻译，修复历史存档达到 L3 时出现的 `Maxed` 英文残留。
+
+### 1500 局固定种子结果
+```text
+奖励房：Rare+ 66.3%，Epic+ 7.8%，传奇槽位 0.16%
+优质宝箱：Rare+ 100.0%，Epic+ 10.9%，传奇槽位 0.67%
+首领宝箱：Rare+ 100.0%，Epic+ 15.0%，传奇槽位 0.96%
+商店：Rare+ 41.9%，Epic+ 4.8%，传奇槽位 0.24%
+随机选择：每局 Rare+ 7.88，Epic+ 0.97，传奇局占比 5.7%
+最高稀有度选择：每局 Rare+ 8.99，Epic+ 1.11，传奇局占比 6.8%
+共享保底最长连续未出 Rare+ 3 次，失败 0 次
+```
+
+### 回归验证
+```text
+RewardDistributionSmokeTest passed.
+ContentPipelineSmokeTest passed.
+RelicSmokeTest passed.
+ChineseLocalizationSmokeTest passed. (localization scan avg 0.636 ms)
+RewardPacingSmokeTest passed.
+SeededRewardSmokeTest passed.
+HallArchiveSmokeTest passed.
+LobbyScreenSmokeTest passed.
+Windows release export passed.
+Exported runtime room check passed. (seed 424242, exit code 0)
+Windows EXE SHA256: 3D2CB4306A9FF678458DCF03901E17E6E05D728ED58B324F28ED0645D3C342B5
+Windows ZIP SHA256: AE9FF5877833017C29223647424450D53B9FCA0DCF0A1ACF94603D101B094554
 ```

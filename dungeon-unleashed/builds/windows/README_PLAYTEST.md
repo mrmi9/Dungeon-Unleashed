@@ -3,8 +3,8 @@
 Build date: 2026-07-12
 Engine: Godot 4.7 stable
 Renderer: GL Compatibility / OpenGL
-Source checkpoint: `6363cbf7`
-SHA-256: `0F67D6DA53CA25027E9BA4D688D350308F6AC9E42A3B83C040B44E4F6B15113F`
+Source checkpoint: `codex/relic-reward-pacing`
+SHA-256: `3D2CB4306A9FF678458DCF03901E17E6E05D728ED58B324F28ED0645D3C342B5`
 
 ## How To Run
 
@@ -25,11 +25,12 @@ Run `Dungeon Unleashed.exe`.
 ## Current Build
 
 - Three connected biomes with independent layouts, enemies, terrain, music, and Boss encounters.
-- Six playable characters, 40 weapons, 45 relics, Boss talents, event blessings, and statues.
+- Six playable characters, 40 weapons, 48 relics, Boss talents, event blessings, and statues.
 - Original authored combat SFX and seven music tracks.
 - Shooting hot path uses local ammo HUD updates, cached weapon icons, pooled SFX voices, and one aim-assist query per physics frame.
 - Room-state minimap updates reuse existing markers, passive HUD work is cached/throttled, and combat text uses a bounded 48-entry pool.
 - Reward-room and normal-chest Rare+ exposure pity; premium and Boss chests have Rare+ floors.
+- Three legendary relics now support multi-shot, energy-sustain, and chain builds; full-run rarity rates are covered by deterministic simulation.
 - Fixed seed and Replay Seed reproduce route/layout, event rules, chest rolls, central choices, and shop stock when the same interaction order is followed.
 - Keyboard/mouse and controller input are supported; controller deadzone and hint-switch thresholds are configurable.
 

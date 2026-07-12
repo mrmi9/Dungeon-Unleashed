@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relics/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"refraction_crown"
+display_name = "Refraction Crown"
+description = "Fire two additional projectiles with every shot."
+rarity = "legendary"
+trigger_event = "passive"
+effect_type = "projectile_count"
+effect_value = 2.0
+drop_weight = 0.2
+icon_key = "relic_refraction_crown"
+description_value_template = "+2 projectiles per shot"
+stackable = false
+max_stacks = 1
+build_tags = PackedStringArray("multi_shot", "projectile")
+conflict_tags = PackedStringArray("extra_projectile_major")
+tags = PackedStringArray("projectile", "offense")

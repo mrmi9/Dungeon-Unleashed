@@ -56,6 +56,9 @@ const RUN_SEED_STREAMS := preload("res://scripts/dungeon/RunSeedStreams.gd")
 	preload("res://resources/relics/forked_bus.tres"),
 	preload("res://resources/relics/conduction_mesh.tres"),
 	preload("res://resources/relics/stormglass_filament.tres"),
+	preload("res://resources/relics/refraction_crown.tres"),
+	preload("res://resources/relics/perpetual_dynamo.tres"),
+	preload("res://resources/relics/blackstar_relay.tres"),
 ]
 @export var drop_tables: Array[Resource] = [
 	preload("res://resources/relic_drop_tables/reward.tres"),

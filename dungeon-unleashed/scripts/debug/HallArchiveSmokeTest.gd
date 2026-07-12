@@ -33,7 +33,7 @@ func _run() -> void:
 	var counts: Dictionary = summary.get("counts", {})
 	_expect(int(counts.get("characters", 0)) >= 6, "Hall summary should include expanded character pool")
 	_expect(int(counts.get("weapons", 0)) >= 40, "Hall summary should include the v1-target 40-weapon pool")
-	_expect(int(counts.get("relics", 0)) >= 45, "Hall summary should include the v1-target 45-relic pool")
+	_expect(int(counts.get("relics", 0)) >= 48, "Hall summary should include the v1-target 48-relic pool")
 	_expect(int(counts.get("talents", 0)) >= 3, "Hall summary should include talents")
 	_expect(int(counts.get("blessings", 0)) >= 3, "Hall summary should include blessings")
 	_expect(int(counts.get("statues", 0)) >= 3, "Hall summary should include statues")
